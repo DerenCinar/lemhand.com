@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width" />
+  <title>LemHand - Home</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.3/css/bulma.min.css" />
+  <link href="style.css" rel="stylesheet" type="text/css" />
+<script src="https://replit.com/public/js/repl-auth-v2.js"></script>
+</head>
+
+<body class="bg-white dark:bg-gray-800">
+
+    <script src="https://cdn.jsdelivr.net/gh/alpinejs/alpine@v2.x.x/dist/alpine.min.js" defer></script>
+  <div class="navbar is-fixed-top w-full text-gray-700 bg-white dark:text-gray-200 dark:bg-gray-800">
+    <div x-data="{ open: false }" class="flex flex-col max-w-screen-xl px-4 mx-auto md:items-center md:justify-between md:flex-row md:px-6 lg:px-8">
+      <div class="p-4 flex flex-row items-center justify-between">
+        <a href="home.html" class="text-lg font-semibold tracking-widest text-gray-900 uppercase rounded-lg dark:text-white focus:outline-none focus:shadow-outline">LemHand</a>
+        <button class="md:hidden rounded-lg focus:outline-none focus:shadow-outline" @click="open = !open">
+          <svg fill="currentColor" viewBox="0 0 20 20" class="w-6 h-6">
+            <path x-show="!open" fill-rule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM9 15a1 1 0 011-1h6a1 1 0 110 2h-6a1 1 0 01-1-1z" clip-rule="evenodd"></path>
+            <path x-show="open" fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+          </svg>
+        </button>
+      </div>
+      <nav :class="{'flex': open, 'hidden': !open}" class="flex-col flex-grow pb-4 md:pb-0 hidden md:flex md:justify-end md:flex-row">
+        <a class="px-4 py-2 mt-2 text-sm font-semibold text-gray-900 bg-gray-200 rounded-lg dark:bg-gray-700 dark:hover:bg-gray-600 dark:focus:bg-gray-600 dark:focus:text-white dark:hover:text-white dark:text-gray-200 md:mt-0 hover:text-gray-900 focus:text-gray-900 hover:bg-gray-200 focus:bg-gray-200 focus:outline-none focus:shadow-outline" href="/home.html">Home</a>
+        <a class="px-4 py-2 mt-2 text-sm font-semibold bg-transparent rounded-lg dark:bg-transparent dark:hover:bg-gray-600 dark:focus:bg-gray-600 dark:focus:text-white dark:hover:text-white dark:text-gray-200 md:mt-0 md:ml-4 hover:text-gray-900 focus:text-gray-900 hover:bg-gray-200 focus:bg-gray-200 focus:outline-none focus:shadow-outline" href="shop2.html">Shop</a>
+        <a class="px-4 py-2 mt-2 text-sm font-semibold bg-transparent rounded-lg dark:bg-transparent dark:hover:bg-gray-600 dark:focus:bg-gray-600 dark:focus:text-white dark:hover:text-white dark:text-gray-200 md:mt-0 md:ml-4 hover:text-gray-900 focus:text-gray-900 hover:bg-gray-200 focus:bg-gray-200 focus:outline-none focus:shadow-outline" href="info.html">About</a>
+        <a class="px-4 py-2 mt-2 text-sm font-semibold bg-transparent rounded-lg dark:bg-transparent dark:hover:bg-gray-600 dark:focus:bg-gray-600 dark:focus:text-white dark:hover:text-white dark:text-gray-200 md:mt-0 md:ml-4 hover:text-gray-900 focus:text-gray-900 hover:bg-gray-200 focus:bg-gray-200 focus:outline-none focus:shadow-outline" href="#">Contact</a>
+        <div @click.away="open = false" class="relative" x-data="{ open: false }">
+          <button @click="open = !open" class="flex flex-row items-center w-full px-4 py-2 mt-2 text-sm font-semibold text-left bg-transparent rounded-lg dark:bg-transparent dark:focus:text-white dark:hover:text-white dark:focus:bg-gray-600 dark:hover:bg-gray-600 md:w-auto md:inline md:mt-0 md:ml-4 hover:text-gray-900 focus:text-gray-900 hover:bg-gray-200 focus:bg-gray-200 focus:outline-none focus:shadow-outline">
+            <span>Hi, <span id="username"></span>!</span>
+            <svg fill="currentColor" viewBox="0 0 20 20" :class="{'rotate-180': open, 'rotate-0': !open}" class="inline w-4 h-4 mt-1 ml-1 transition-transform duration-200 transform md:-mt-1"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
+          </button>
+
+             <div x-show="open" x-transition:enter="transition ease-out duration-100" x-transition:enter-start="transform opacity-0 scale-95" x-transition:enter-end="transform opacity-100 scale-100" x-transition:leave="transition ease-in duration-75" x-transition:leave-start="transform opacity-100 scale-100" x-transition:leave-end="transform opacity-0 scale-95" class="absolute right-0 w-full mt-2 origin-top-right rounded-md shadow-lg md:w-48">
+            <div class="px-2 py-2 bg-white rounded-md shadow dark:bg-gray-800">
+              <a class="block px-4 py-2 mt-2 text-sm font-semibold bg-transparent rounded-lg dark:bg-transparent dark:hover:bg-gray-600 dark:focus:bg-gray-600 dark:focus:text-white dark:hover:text-white dark:text-gray-200 md:mt-0 hover:text-gray-900 focus:text-gray-900 hover:bg-gray-200 focus:bg-gray-200 focus:outline-none focus:shadow-outline" href="accont.html">Account</a>
+              <a class="block px-4 py-2 mt-2 text-sm font-semibold bg-transparent rounded-lg dark:bg-transparent dark:hover:bg-gray-600 dark:focus:bg-gray-600 dark:focus:text-white dark:hover:text-white dark:text-gray-200 md:mt-0 hover:text-gray-900 focus:text-gray-900 hover:bg-gray-200 focus:bg-gray-200 focus:outline-none focus:shadow-outline" href="#">Report</a>
+              <a class="block px-4 py-2 mt-2 text-sm font-semibold bg-transparent rounded-lg dark:bg-transparent dark:hover:bg-gray-600 dark:focus:bg-gray-600 dark:focus:text-white dark:hover:text-white dark:text-gray-200 md:mt-0 hover:text-gray-900 focus:text-gray-900 hover:bg-gray-200 focus:bg-gray-200 focus:outline-none focus:shadow-outline" href="index.html">Log Out</a>
+            </div>
+          </div>
+        </div>
+        
+      </nav>
+    </div>
+  </div>
+
+  <img src="Talk to us.png"
+              
+  <section class="hero is-Transparant">
+    <div class="hero-body">
+      <p class="subtitle">
+
+      </p>
+    </div>
+  </section>
+
+
+  </div>
+  <div class="tile is-ancestor">
+    <div class="tile is-vertical is-8">
+      <div class="tile">
+        <div class="tile is-parent is-vertical">
+          <article class="tile is-child notification is-primary">
+            <p class="title">WELCOME TO LEMHAND!</p>
+            <p class="subtitle">Welcome to LemHand 2023! More stuff coming soon!</p>
+          </article>
+          <article class="tile is-child notification is-warning">
+            <p class="title">LemHand Products</p>
+            <p class="subtitle">Introducing LEM COLLECT a new product by LemHand! Coming Out sometime in 2023!</p>
+          </article>
+        </div>
+        <div class="tile is-parent">
+          <article class="tile is-child notification is-info">
+            <p class="title">Lemhand logo</p>
+            <p class="subtitle">Here is the NEW LemHand logo!</p>
+            <figure class="image is-4by4">
+              <img src="LHlgo.png">
+            </figure>
+          </article>
+        </div>
+      </div>
+      <div class="tile is-parent">
+        <article class="tile is-child notification is-danger">
+          <p class="title">Check out DB-ENTERTAINMENT!</p>
+          <p class="subtitle">Check out another website: DB-Entertainment+. Just click the white button!!!</p>
+          <a href="https://sites.google.com/view/db-entertainment">
+          <button class="button">To DB-Entertainment!</button>
+          </a>
+          <div class="content">
+            <!-- Content -->
+          </div>
+        </article>
+      </div>
+    </div>
+    <div class="tile is-parent">
+      <article class="tile is-child notification is-success">
+        <div class="content">
+          <p class="title">Videos</p>
+          <div class="content">
+            <img src="Lemhand.gif" loop=infinite />
+
+          </div>
+        </div>
+      </article>
+    </div>
+  </div>
+  <section class="hero is-info">
+    <div class="hero-body">
+      <p class="title">
+        BUY NOW!
+      </p>
+      <p class="subtitle">
+        BUY THE NEW KILLER BEEZ GAME!
+      </p>
+
+      <a class="button is-primary is-light" href="KILLER_BEEZ_CARDS.jpg" download>DOWNLOAD HERE!</a>
+      <a class="button is-primary is-light"
+        href="https://docs.google.com/document/d/16Xc-xpClQ61us7oGFfoM_w7F161MEmNBA4HNVICv7Rg/edit?usp=sharing">RULES!</a>
+
+
+
+
+
+    </div>
+  </section>
+  <section class="hero is-Transparant">
+    <div class="hero-body">
+      <p class="title">
+
+      </p>
+    </div>
+  </section>
+    <section class="hero is-primary">
+    <div class="hero-body">
+      <p class="title">
+        BUY NOW!
+      </p>
+      <p class="subtitle">
+        Buy now the new Killer Beez game 2023 HARD EDITION!
+      </p>
+
+      <a class="button is-primary is-light" href="unnamed.jpg" download>DOWNLOAD HERE!</a>
+      <a class="button is-primary is-light"
+        href="https://docs.google.com/document/d/16Xc-xpClQ61us7oGFfoM_w7F161MEmNBA4HNVICv7Rg/edit?usp=sharing">RULES!</a>
+
+
+
+
+
+    </div>
+
+
+
+  </section>
+
+  <section class="hero is-Transparant">
+    <div class="hero-body">
+      <p class="title">
+
+      </p>
+    </div>
+  </section>
+
+  <section class="hero is-danger">
+    <div class="hero-body">
+      <p class="title">
+        More coming soon
+      </p>
+
+
+
+      <a class="button is-danger is-light" href="https://lemhand.com">Lemhand!</a>
+
+
+
+
+
+    </div>
+
+  </section>
+
+  <section class="hero is-Transparant">
+    <div class="hero-body">
+      <p class="title">
+
+      </p>
+    </div>
+  </section>
+
+
+
+
+
+
+  <script src="script.js"></script>
+
+
+
+</body>
+<script type="module">
+  // Import the functions you need from the SDKs you need
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.3.1/firebase-app.js";
+  import { getDatabase } from "https://www.gstatic.com/firebasejs/10.3.1/firebase-database.js";
+  import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.3.1/firebase-auth.js";
+  // TODO: Add SDKs for Firebase products that you want to use
+  // https://firebase.google.com/docs/web/setup#available-libraries
+
+  // Your web app's Firebase configuration
+  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+  const firebaseConfig = {
+    apiKey: "AIzaSyCWp6dqShdHCCtvLlJA03QMMqqb6LSePSU",
+    authDomain: "lemhand-6de2a.firebaseapp.com",
+    databaseURL: "https://lemhand-6de2a-default-rtdb.firebaseio.com",
+    projectId: "lemhand-6de2a",
+    storageBucket: "lemhand-6de2a.appspot.com",
+    messagingSenderId: "148302455321",
+    appId: "1:148302455321:web:4f899d96f460842e868088",
+    measurementId: "G-M96JLWHLSP"
+  };
+
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  const database = getDatabase(app);
+  const auth = getAuth();
+
+  auth.onAuthStateChanged((user) => {
+    const username = document.getElementById("username");
+    console.log(user);
+    username.innerText = (user.displayName != null) ? user.displayName : user.email;
+  });
+
+</script>
+
+<script type="text/javascript">
+  const profile = localStorage.getItem("profile");
+  if (profile) {
+    const username = document.getElementById("username");
+    username.innerText = profile.name;
+  }
+</script>
+
+</html>
