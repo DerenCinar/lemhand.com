@@ -119,23 +119,56 @@
 
 
   <section class="hero is-success">
-    <div class="hero-body">
-      <p class="title">
-        Welcome!
-      </p>
-      <p class="subtitle">
-        To LemHand 2023!
-      </p>
+    <img src="hello.jpeg">
+  </section>
+  <p> </p>
+  <div class="mx-auto">
 
-
+	<div id="default-carousel" class="relative" data-carousel="static">
+        <!-- Carousel wrapper -->
+        <div class="overflow-hidden relative h-56 rounded-lg sm:h-64 xl:h-80 2xl:h-96">
+            <!-- Item 1 -->
+            <div class="hidden duration-700 ease-in-out" data-carousel-item>
+               <img src="1.jpeg">
+            </div>
+            <!-- Item 2 -->
+            <div class="hidden duration-700 ease-in-out" data-carousel-item>
+                <img src="hello.jpeg">
+            </div>
+            <!-- Item 3 -->
+            <div class="hidden duration-700 ease-in-out" data-carousel-item>
+                <img src="hello.png" width="1000" height="400">
+            </div>
+        </div>
+        <!-- Slider indicators -->
+        <div class="flex absolute bottom-5 left-1/2 z-30 space-x-3 -translate-x-1/2">
+            <button type="button" class="w-3 h-3 rounded-full" aria-current="false" aria-label="Slide 1" data-carousel-slide-to="0"></button>
+            <button type="button" class="w-3 h-3 rounded-full" aria-current="false" aria-label="Slide 2" data-carousel-slide-to="1"></button>
+            <button type="button" class="w-3 h-3 rounded-full" aria-current="false" aria-label="Slide 3" data-carousel-slide-to="2"></button>
+        </div>
+        <!-- Slider controls -->
+        <button type="button" class="flex absolute top-0 left-0 z-30 justify-center items-center px-4 h-full cursor-pointer group focus:outline-none" data-carousel-prev>
+            <span class="inline-flex justify-center items-center w-8 h-8 rounded-full sm:w-10 sm:h-10 bg-white/30 dark:bg-gray-800/30 group-hover:bg-white/50 dark:group-hover:bg-gray-800/60 group-focus:ring-4 group-focus:ring-white dark:group-focus:ring-gray-800/70 group-focus:outline-none">
+                <svg class="w-5 h-5 text-white sm:w-6 sm:h-6 dark:text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                <span class="hidden">Previous</span>
+            </span>
+        </button>
+        <button type="button" class="flex absolute top-0 right-0 z-30 justify-center items-center px-4 h-full cursor-pointer group focus:outline-none" data-carousel-next>
+            <span class="inline-flex justify-center items-center w-8 h-8 rounded-full sm:w-10 sm:h-10 bg-white/30 dark:bg-gray-800/30 group-hover:bg-white/50 dark:group-hover:bg-gray-800/60 group-focus:ring-4 group-focus:ring-white dark:group-focus:ring-gray-800/70 group-focus:outline-none">
+                <svg class="w-5 h-5 text-white sm:w-6 sm:h-6 dark:text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                <span class="hidden">Next</span>
+            </span>
+        </button>
     </div>
-  </section>
+
+    <script src="https://unpkg.com/flowbite@1.4.0/dist/flowbite.js"></script>
+</div>
+  
+  
 
 
 
-  </div>
-  </div>
-  </section>
+  
 
   <section class="text-gray-700 bg-white dark:text-gray-200 dark:bg-gray-800 hero">
     <div class="hero-body">
@@ -151,30 +184,9 @@
     </div>
   </section>
 
-  <figure class="image is-500x500">
-    <img src="mobile.png">
-  </figure>
+  
 
-  <div class="grid min-h-[140px] w-full place-items-center overflow-x-scroll rounded-lg p-6 lg:overflow-visible">
-    <div role="alert" class="relative block w-full text-base font-regular px-4 py-4 rounded-lg bg-green-200 text-white flex">
-        <div class=" mr-12">
-            <p class="font-bold text-red-500">Sign Up Now!
-            <span class="text-gray-900">
-                - Download Games, Wallpapers and more for FREE!
-            </span>
-            <button href="lemsu.html" class="inline-flex items-center justify-center text-sm font-bold text-green-500 transition-all ml-4 duration-200 rounded-md hover:text-green-700">
-                Sign Up Now<svg class="w-4 h-4 ml-1" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="M12 5l7 7-7 7"></path></svg>
-            </button>
-            </p>
-        </div>
-        <button class="relative align-middle select-none font-sans font-medium text-center uppercase transition-all disabled:opacity-50 disabled:shadow-none disabled:pointer-events-none w-8 max-w-[32px] h-8 max-h-[32px] rounded-lg text-xs text-white hover:bg-white/10 active:bg-white/30 !absolute top-3 right-3" type="button">
-            <span class="absolute top-1/2 left-1/2 transform -translate-y-1/2 -translate-x-1/2">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="h-6 w-6" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
-            </span>
-        </button>
-    </div>
-</div>
-<img src="Untitled-design-unscreen.gif" style="position:fixed; bottom:0px; right:0px;" width="547" height="146" alt="" />
+  
 
 
   <script src="script.js"></script>
