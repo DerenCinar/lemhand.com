@@ -156,5 +156,70 @@
             </div>
           </div>
         </nav>
-    <image src="Gold and White Certificate of Appreciation.png">
+        
+          <div class="max-w-lg mx-auto my-10 bg-white rounded-lg shadow-md p-5">
+            <img class="w-32 h-32 rounded-full mx-auto" src="https://picsum.photos/200" alt="Profile picture">
+            <h2 class="text-center text-2xl font-semibold mt-3"></h2>
+            
+            <div class="flex justify-center mt-5">
+              <a href="#" class="text-blue-500 hover:text-blue-700 mx-3">LemHand</a>
+              <a href="#" class="text-blue-500 hover:text-blue-700 mx-3">LemConnect</a>
+              
+            </div>
+            <div class="mt-5">
+              <h3 class="text-xl font-semibold">Info</h3>
+              <p class="text-gray-600 mt-2">LemConnect is a Employee Portal for LemHand Employees. LEAKING CONFIDENTIAL ITEMS IS HIGLY FORBIDDEN!</p>
+            </div>
+          </div>
+        </body>
 </body>
+</html>
+<script type="module">
+    // Import the functions you need from the SDKs you need
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.3.1/firebase-app.js";
+    import { getDatabase } from "https://www.gstatic.com/firebasejs/10.3.1/firebase-database.js";
+    import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.3.1/firebase-auth.js";
+    // TODO: Add SDKs for Firebase products that you want to use
+    // https://firebase.google.com/docs/web/setup#available-libraries
+  
+    // Your web app's Firebase configuration
+    // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+    const firebaseConfig = {
+      apiKey: "AIzaSyCWp6dqShdHCCtvLlJA03QMMqqb6LSePSU",
+      authDomain: "lemhand-6de2a.firebaseapp.com",
+      databaseURL: "https://lemhand-6de2a-default-rtdb.firebaseio.com",
+      projectId: "lemhand-6de2a",
+      storageBucket: "lemhand-6de2a.appspot.com",
+      messagingSenderId: "148302455321",
+      appId: "1:148302455321:web:4f899d96f460842e868088",
+      measurementId: "G-M96JLWHLSP"
+    };
+  
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const database = getDatabase(app);
+    const auth = getAuth();
+  
+    auth.onAuthStateChanged((user) => {
+      const username = document.getElementById("username");
+      console.log(user);
+      username.innerText = (user.displayName != null) ? user.displayName : user.email;
+    });
+  
+  </script>
+  
+  <script type="text/javascript">
+    const profile = localStorage.getItem("profile");
+    if (profile) {
+      const username = document.getElementById("username");
+      username.innerText = profile.name;
+    }
+  </script>
+  <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+  
+  
+    <script type="text/javascript">
+      function googleTranslateElementInit() {
+        new google.translate.TranslateElement({pageLanguage: 'en'}, 'google_translate_element');
+      }
+      </script>
