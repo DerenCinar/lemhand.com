@@ -262,8 +262,8 @@
                                 </label>
                             </div>
                         </div>
-                        <a href="dwncode798947145698503849247_userpro809_lemhand998304573979.html"> 
-                            <button class="block w-full max-w-xs mx-auto bg-indigo-500 hover:bg-indigo-700 focus:bg-indigo-700 text-white rounded-lg px-3 py-2 font-semibold" > PAY NOW</button>
+                        <a> 
+                            <button onclick="onSubmit()" class="block w-full max-w-xs mx-auto bg-indigo-500 hover:bg-indigo-700 focus:bg-indigo-700 text-white rounded-lg px-3 py-2 font-semibold" > PAY NOW</button>
                         </a> 
                     </div>
                 </div>
@@ -272,11 +272,12 @@
 
 
 </body>
+
 <script type="module">
     // Import the functions you need from the SDKs you need
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.3.1/firebase-app.js";
     import { getDatabase } from "https://www.gstatic.com/firebasejs/10.3.1/firebase-database.js";
-    import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.3.1/firebase-auth.js";
+    import { getAuth, signInWithEmailAndPassword, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.3.1/firebase-auth.js";
     // TODO: Add SDKs for Firebase products that you want to use
     // https://firebase.google.com/docs/web/setup#available-libraries
   
@@ -298,20 +299,38 @@
     const database = getDatabase(app);
     const auth = getAuth();
   
-    auth.onAuthStateChanged((user) => {
-      const username = document.getElementById("username");
-      const email = document.getElementById("email1");
-      console.log(user);
-      username.innerText = (user.displayName != null) ? user.displayName : user.email;
-      email.innerText = (user.email != null) ? user.email : user.email;
-    });
+    window.onSubmit = () => {
+      var email = document.getElementById('email1').value
+    sendPasswordResetEmail(auth, email)
+      .then(() => {
+          alert("Email Sent!")
+          // Password reset email sent!
+          // ..
+      })
+      .catch((error) => {
+          const errorCode = error.code;
+          const errorMessage = error.message;
+          // ..
+          alert(errorMessage)
+      });
+  }
   
-  </script>
-  <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
-  
-  
-    <script type="text/javascript">
-      function googleTranslateElementInit() {
-        new google.translate.TranslateElement({pageLanguage: 'en'}, 'google_translate_element');
-      }
-      </script>
+  auth.onAuthStateChanged((user) => {
+    const username = document.getElementById("username");
+    const email = document.getElementById("email1");
+    console.log(user);
+    username.innerText = (user.displayName != null) ? user.displayName : user.email;
+    email.innerText = (user.email != null) ? user.email : user.email;
+  });
+
+</script>
+
+<script type="text/javascript">
+  const profile = localStorage.getItem("profile");
+  if (profile) {
+    const username = document.getElementById("username");
+    username.innerText = profile.name;
+  }
+</script>
+
+  </html>
