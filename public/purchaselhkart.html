@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width" />
+  <title>LemHand - Videos</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  
+  <link rel="apple-touch-icon" sizes="57x57" href="/apple-icon-57x57.png">
+  <link rel="apple-touch-icon" sizes="60x60" href="/apple-icon-60x60.png">
+  <link rel="apple-touch-icon" sizes="72x72" href="/apple-icon-72x72.png">
+  <link rel="apple-touch-icon" sizes="76x76" href="/apple-icon-76x76.png">
+  <link rel="apple-touch-icon" sizes="114x114" href="/apple-icon-114x114.png">
+  <link rel="apple-touch-icon" sizes="120x120" href="/apple-icon-120x120.png">
+  <link rel="apple-touch-icon" sizes="144x144" href="/apple-icon-144x144.png">
+  <link rel="apple-touch-icon" sizes="152x152" href="/apple-icon-152x152.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-icon-180x180.png">
+  <link rel="icon" type="image/png" sizes="192x192"  href="/android-icon-192x192.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  
+</head>
+
+<body class="bg-white dark:bg-gray-800">
+    
+    <style>@import url('https://cdnjs.cloudflare.com/ajax/libs/MaterialDesign-Webfont/5.3.45/css/materialdesignicons.min.css')</style>
+    <style>
+    /*
+    module.exports = {
+        plugins: [require('@tailwindcss/forms'),]
+    };
+    */
+    .form-radio {
+      -webkit-appearance: none;
+         -moz-appearance: none;
+              appearance: none;
+      -webkit-print-color-adjust: exact;
+              color-adjust: exact;
+      display: inline-block;
+      vertical-align: middle;
+      background-origin: border-box;
+      -webkit-user-select: none;
+         -moz-user-select: none;
+          -ms-user-select: none;
+              user-select: none;
+      flex-shrink: 0;
+      border-radius: 100%;
+      border-width: 2px;
+    }
+    
+    .form-radio:checked {
+      background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3e%3ccircle cx='8' cy='8' r='3'/%3e%3c/svg%3e");
+      border-color: transparent;
+      background-color: currentColor;
+      background-size: 100% 100%;
+      background-position: center;
+      background-repeat: no-repeat;
+    }
+    
+    @media not print {
+      .form-radio::-ms-check {
+        border-width: 1px;
+        color: transparent;
+        background: inherit;
+        border-color: inherit;
+        border-radius: inherit;
+      }
+    }
+    
+    .form-radio:focus {
+      outline: none;
+    }
+    
+    .form-select {
+      background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23a0aec0'%3e%3cpath d='M15.3 9.3a1 1 0 0 1 1.4 1.4l-4 4a1 1 0 0 1-1.4 0l-4-4a1 1 0 0 1 1.4-1.4l3.3 3.29 3.3-3.3z'/%3e%3c/svg%3e");
+      -webkit-appearance: none;
+         -moz-appearance: none;
+              appearance: none;
+      -webkit-print-color-adjust: exact;
+              color-adjust: exact;
+      background-repeat: no-repeat;
+      padding-top: 0.5rem;
+      padding-right: 2.5rem;
+      padding-bottom: 0.5rem;
+      padding-left: 0.75rem;
+      font-size: 1rem;
+      line-height: 1.5;
+      background-position: right 0.5rem center;
+      background-size: 1.5em 1.5em;
+    }
+    
+    .form-select::-ms-expand {
+      color: #a0aec0;
+      border: none;
+    }
+    
+    @media not print {
+      .form-select::-ms-expand {
+        display: none;
+      }
+    }
+    
+    @media print and (-ms-high-contrast: active), print and (-ms-high-contrast: none) {
+      .form-select {
+        padding-right: 0.75rem;
+      }
+    }
+    </style>
+    
+    <div class="min-w-screen min-h-screen bg-gray-50 py-5">
+        <div class="px-5">
+            <div class="mb-2">
+                <a href="#" class="focus:outline-none hover:underline text-gray-500 text-sm"><i class="mdi mdi-arrow-left text-gray-400"></i>Back</a>
+            </div>
+            <div class="mb-2">
+                <h1 class="text-3xl md:text-5xl font-bold text-gray-600">Checkout.</h1>
+            </div>
+            <div class="mb-5 text-gray-400">
+                <a href="#" class="focus:outline-none hover:underline text-gray-500">Home</a> / <a href="#" class="focus:outline-none hover:underline text-gray-500">Cart</a> / <span class="text-gray-600">Checkout</span>
+            </div>
+        </div>
+        <div class="w-full bg-white border-t border-b border-gray-200 px-5 py-10 text-gray-800">
+            <div class="w-full">
+                <div class="-mx-3 md:flex items-start">
+                    <div class="px-3 md:w-7/12 lg:pr-10">
+                        <div class="w-full mx-auto text-gray-800 font-light mb-6 border-b border-gray-200 pb-6">
+                            <div class="w-full flex items-center">
+                                <div class="overflow-hidden rounded-lg w-16  bg-gray-50 border border-gray-200">
+                                    <img src="Untitled design.png" alt="">
+                                </div>
+                                <div class="flex-grow pl-3">
+                                    <h6 class="font-semibold uppercase text-gray-600">LemHand Kart</h6>
+                                    <p class="text-gray-400">x 1</p>
+                                </div>
+                                <div>
+                                    <span class="font-semibold text-gray-600 text-xl">$0.00</span><span class="font-semibold text-gray-600 text-sm">.00</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-6 pb-6 border-b border-gray-200">
+                            <div class="-mx-2 flex items-end justify-end">
+                                <div class="flex-grow px-2 lg:max-w-xs">
+                                    <label class="text-gray-600 font-semibold text-sm mb-2 ml-1">Discount code</label>
+                                    <div>
+                                        <input class="w-full px-3 py-2 border border-gray-200 rounded-md focus:outline-none focus:border-indigo-500 transition-colors" placeholder="XXXXXX" disabled  type="text"/>
+                                    </div>
+                                </div>
+                                <div class="px-2">
+                                    <button class="block w-full max-w-xs mx-auto border border-transparent bg-gray-400 hover:bg-gray-500 focus:bg-gray-500 text-white rounded-md px-5 py-2 font-semibold">APPLY</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-6 pb-6 border-b border-gray-200 text-gray-800">
+                            <div class="w-full flex mb-3 items-center">
+                                <div class="flex-grow">
+                                    <span class="text-gray-600">Subtotal</span>
+                                </div>
+                                <div class="pl-3">
+                                    <span class="font-semibold">$0.00</span>
+                                </div>
+                            </div>
+                            <div class="w-full flex items-center">
+                                <div class="flex-grow">
+                                    <span class="text-gray-600">Taxes (GST)</span>
+                                </div>
+                                <div class="pl-3">
+                                    <span class="font-semibold">$0.00</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-6 pb-6 border-b border-gray-200 md:border-none text-gray-800 text-xl">
+                            <div class="w-full flex items-center">
+                                <div class="flex-grow">
+                                    <span class="text-gray-600">Total</span>
+                                </div>
+                                <div class="pl-3">
+                                    <span class="font-semibold text-gray-400 text-sm">AUD</span> <span class="font-semibold">$0.00</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="px-3 md:w-5/12">
+                        <div class="w-full mx-auto rounded-lg bg-white border border-gray-200 p-3 text-gray-800 font-light mb-6">
+                            <div class="w-full flex mb-3 items-center">
+                                <div class="w-32">
+                                    <span class="text-gray-600 font-semibold">Contact</span>
+                                </div>
+                                <div class="flex-grow pl-3">
+                                    <span id="username">
+                                </div>
+                            </div>
+                            <div class="w-full flex items-center">
+                                <div class="w-32">
+                                    <span class="text-gray-600 font-semibold">Email</span>
+                                </div>
+                                <div class="flex-grow pl-3">
+                                    <span id="email1">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="w-full mx-auto rounded-lg bg-white border border-gray-200 text-gray-800 font-light mb-6">
+                            <div class="w-full p-3 border-b border-gray-200">
+                                <div class="mb-5">
+                                    <label for="type1" class="flex items-center cursor-pointer">
+                                        <input type="radio" class="form-radio h-5 w-5 text-indigo-500" name="type" id="type1" checked>
+                                        <img src="https://leadershipmemphis.org/wp-content/uploads/2020/08/780370.png" class="h-6 ml-3">
+                                    </label>
+                                </div>
+                                <div>
+                                    
+                                    <div class="mb-3 -mx-2 flex items-end">
+                                        <div class="px-2 w-1/4">
+                                            <label class="text-gray-600 font-semibold text-sm mb-2 ml-1">Expiration date</label>
+                                            <div>
+                                                <select class="form-select w-full px-3 py-2 mb-1 border border-gray-200 rounded-md focus:outline-none focus:border-indigo-500 transition-colors cursor-pointer">
+                                                    <option value="01">01 - January</option>
+                                                    <option value="02">02 - February</option>
+                                                    <option value="03">03 - March</option>
+                                                    <option value="04">04 - April</option>
+                                                    <option value="05">05 - May</option>
+                                                    <option value="06">06 - June</option>
+                                                    <option value="07">07 - July</option>
+                                                    <option value="08">08 - August</option>
+                                                    <option value="09">09 - September</option>
+                                                    <option value="10">10 - October</option>
+                                                    <option value="11">11 - November</option>
+                                                    <option value="12">12 - December</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="px-2 w-1/4">
+                                            <select class="form-select w-full px-3 py-2 mb-1 border border-gray-200 rounded-md focus:outline-none focus:border-indigo-500 transition-colors cursor-pointer">
+                                                <option value="2020">2020</option>
+                                                <option value="2021">2021</option>
+                                                <option value="2022">2022</option>
+                                                <option value="2023">2023</option>
+                                                <option value="2024">2024</option>
+                                                <option value="2025">2025</option>
+                                                <option value="2026">2026</option>
+                                                <option value="2027">2027</option>
+                                                <option value="2028">2028</option>
+                                                <option value="2029">2029</option>
+                                            </select>
+                                        </div>
+                                        <div class="px-2 w-1/4">
+                                            <label class="text-gray-600 font-semibold text-sm mb-2 ml-1">Security code</label>
+                                            <div>
+                                                <input class="w-full px-3 py-2 mb-1 border border-gray-200 rounded-md focus:outline-none focus:border-indigo-500 transition-colors" placeholder="000" type="text"/>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="w-full p-3">
+                                <label for="type2" class="flex items-center cursor-pointer">
+                                    <input type="radio" class="form-radio h-5 w-5 text-indigo-500" name="type" id="type2">
+                                    <img src="https://upload.wikimedia.org/wikipedia/commons/b/b5/PayPal.svg" width="80" class="ml-3"/>
+                                </label>
+                            </div>
+                        </div>
+                        <a href="dwncode798947145698503849247_userpro809_lemhand998304573979.html"> 
+                            <button class="block w-full max-w-xs mx-auto bg-indigo-500 hover:bg-indigo-700 focus:bg-indigo-700 text-white rounded-lg px-3 py-2 font-semibold" > PAY NOW</button>
+                        </a> 
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+</body>
+<script type="module">
+    // Import the functions you need from the SDKs you need
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.3.1/firebase-app.js";
+    import { getDatabase } from "https://www.gstatic.com/firebasejs/10.3.1/firebase-database.js";
+    import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.3.1/firebase-auth.js";
+    // TODO: Add SDKs for Firebase products that you want to use
+    // https://firebase.google.com/docs/web/setup#available-libraries
+  
+    // Your web app's Firebase configuration
+    // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+    const firebaseConfig = {
+      apiKey: "AIzaSyCWp6dqShdHCCtvLlJA03QMMqqb6LSePSU",
+      authDomain: "lemhand-6de2a.firebaseapp.com",
+      databaseURL: "https://lemhand-6de2a-default-rtdb.firebaseio.com",
+      projectId: "lemhand-6de2a",
+      storageBucket: "lemhand-6de2a.appspot.com",
+      messagingSenderId: "148302455321",
+      appId: "1:148302455321:web:4f899d96f460842e868088",
+      measurementId: "G-M96JLWHLSP"
+    };
+  
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const database = getDatabase(app);
+    const auth = getAuth();
+  
+    auth.onAuthStateChanged((user) => {
+      const username = document.getElementById("username");
+      const email = document.getElementById("email1");
+      console.log(user);
+      username.innerText = (user.displayName != null) ? user.displayName : user.email;
+      email.innerText = (user.email != null) ? user.email : user.email;
+    });
+  
+  </script>
+  <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+  
+  
+    <script type="text/javascript">
+      function googleTranslateElementInit() {
+        new google.translate.TranslateElement({pageLanguage: 'en'}, 'google_translate_element');
+      }
+      </script>
