@@ -9,8 +9,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.5.1/chart.min.js"></script>
 </head>
 <body>
-    <div class="h-full bg-gray-200 p-8">
-        <div class="bg-white rounded-lg shadow-xl pb-8">
+    <div class="h-full bg-gray-200 dark:bg-gray-800 p-8">
+        <div class="bg-white dark:bg-gray-600 rounded-lg shadow-xl pb-8">
             <div x-data="{ openSettings: false }" class="absolute right-12 mt-4 rounded">
                 <button @click="openSettings = !openSettings" class="border border-gray-400 p-2 rounded text-gray-300 hover:text-gray-300 bg-gray-100 bg-opacity-10 hover:bg-opacity-20" title="Settings">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor">
@@ -56,15 +56,15 @@
             <div class="flex flex-col items-center -mt-20">
                 <img src="pp.png" class="w-40 border-4 border-white rounded-full">
                 <div class="flex items-center space-x-2 mt-2">
-                    <p class="text-2xl"><span id="username"></span></p>
+                    <p class="dark:text-white text-2xl"><span id="username"></span></p>
                     <span class="bg-blue-500 rounded-full p-1" title="Verified">
                         <svg xmlns="http://www.w3.org/2000/svg" class="text-gray-100 h-2.5 w-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="4" d="M5 13l4 4L19 7"></path>
                         </svg>
                     </span>
                 </div>
-                <p class="text-gray-700"><span id="email1"></p>
-                <p class="text-sm text-gray-500">LemID</p>
+                <p class="dark:text-white text-gray-700"><span id="email1"></p>
+                <p class="text-sm dark:text-white text-gray-500">LemID</p>
             </div>
             <div class="flex-1 flex flex-col items-center lg:items-end justify-end px-8 mt-2">
                 <div class="flex items-center space-x-4 mt-2">
@@ -86,9 +86,9 @@
 
         <div class="my-4 flex flex-col 2xl:flex-row space-y-4 2xl:space-y-0 2xl:space-x-4">
             <div class="w-full flex flex-col 2xl:w-1/3">
-                <div class="flex-1 bg-white rounded-lg shadow-xl p-8">
-                    <h4 class="text-xl text-gray-900 font-bold">Welcome to LemHand Account for Mac!</h4>
-                    <ul class="mt-2 text-gray-700">
+                <div class="flex-1 dark:bg-gray-600 bg-white rounded-lg shadow-xl p-8">
+                    <h4 class="text-xl dark:text-white text-gray-900 font-bold">Welcome to LemHand Account for Mac!</h4>
+                    <ul class="mt-2 dark:text-white text-gray-700">
       
                         
                        
@@ -101,8 +101,8 @@
                         
                     </ul>
                 </div>
-                <div class="flex-1 bg-white rounded-lg shadow-xl mt-4 p-8">
-                    <h4 class="text-xl text-gray-900 font-bold">Activity log</h4>
+                <div class="flex-1 dark:bg-gray-600 bg-white rounded-lg shadow-xl mt-4 p-8">
+                    <h4 class="text-xl dark:text-white text-gray-900 font-bold">Activity log</h4>
                     <div class="relative px-4">
                         <div class="absolute h-full border border-dashed border-opacity-20 border-secondary"></div>
 
@@ -112,8 +112,8 @@
                                 <div class="w-3.5 h-3.5 bg-blue-600 rounded-full"></div>
                             </div>
                             <div class="w-11/12">
-                                <p class="text-sm">No Info Found</p>
-                                <p class="text-xs text-gray-500">0 min ago</p>
+                                <p class="dark:text-white text-sm">No Info Found</p>
+                                <p class="text-xs dark:text-white text-gray-500">0 min ago</p>
                             </div>
                         </div>
                         <!-- end::Timeline item -->
