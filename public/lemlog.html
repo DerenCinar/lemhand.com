@@ -87,7 +87,7 @@
 
 			authWindow.close();
 			// this is what you want, in the default script this is `location.reload();`
-			window.location.href = "home.html";
+			window.location.href = "home";
 		}
 	}
 
@@ -120,7 +120,7 @@
 
     function onSignIn(googleUser) {
         localStorage.setItem("profile", parseJwt(googleUser.credential));
-        document.location = "https://lemhand.com/home.html"
+        document.location = "https://lemhand.com/home"
     }
     
 </script>
@@ -158,7 +158,7 @@
   .then((userCredential) => {
     // Signed in 
     const user = userCredential.user;
-    window.location.href = window.location.origin + "/home.html";
+    window.location.href = window.location.origin + "/home";
     // ...
   })
   .catch((error) => {

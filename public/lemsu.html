@@ -103,7 +103,7 @@
 
 			authWindow.close();
 			// this is what you want, in the default script this is `location.reload();`
-			window.location.href = "https://lemhand.com/home.html";
+			window.location.href = "https://lemhand.com/home";
 		}
 	}
 </script>
@@ -159,7 +159,7 @@ createUserWithEmailAndPassword(auth, email, password)
         displayName: username
     }).then(() => {
         alert('user created!')
-        window.location.href = window.location.origin + "/home.html";
+        window.location.href = window.location.origin + "/home";
     }).catch((error) => {
         alert(error);
     });
