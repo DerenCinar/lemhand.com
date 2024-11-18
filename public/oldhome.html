@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>LemHand - LemLegacy</title>
+    <link rel="apple-touch-icon" sizes="57x57" href="/apple-icon-57x57.png">
+  <link rel="apple-touch-icon" sizes="60x60" href="/apple-icon-60x60.png">
+  <link rel="apple-touch-icon" sizes="72x72" href="/apple-icon-72x72.png">
+  <link rel="apple-touch-icon" sizes="76x76" href="/apple-icon-76x76.png">
+  <link rel="apple-touch-icon" sizes="114x114" href="/apple-icon-114x114.png">
+  <link rel="apple-touch-icon" sizes="120x120" href="/apple-icon-120x120.png">
+  <link rel="apple-touch-icon" sizes="144x144" href="/apple-icon-144x144.png">
+  <link rel="apple-touch-icon" sizes="152x152" href="/apple-icon-152x152.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-icon-180x180.png">
+  <link rel="icon" type="image/png" sizes="192x192"  href="/android-icon-192x192.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <link rel="manifest" href="/manifest.json">
+  <link href="legacymenu.css" rel="stylesheet" type="text/css" />
+  <link href="bulma.css" rel="stylesheet" type="text/css" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      .center {
+          display: block;
+          margin-left: auto;
+          margin-right: auto;
+          width:63%
+        }
+
+      
+      </style>
+    </head>
+    <body>
+        <div class="topnav">
+          <a href="old.html">LemLegacy</a>
+          <a class="active" href="oldhome.html">Home</a>
+          <a href="oldshop.html">Shop</a>
+          <a href="oldgames.html">Games</a>
+          <a href="oldsettings.html">More</a>
+        </div>
+
+
+        <!-- Slide Show -->
+<section>
+    <img class="mySlides" src="LemHand Kart 8.svg" style="width:100%">
+    <img class="mySlides" src="Untitled presentation (3).svg" style="width:100%">
+  </section>
+<script>
+// Automatic Slideshow - change image every 3 seconds
+    var myIndex = 0;
+    carousel();
+    
+    function carousel() {
+      var i;
+      var x = document.getElementsByClassName("mySlides");
+      for (i = 0; i < x.length; i++) {
+        x[i].style.display = "none";
+      }
+      myIndex++;
+      if (myIndex > x.length) {myIndex = 1}
+      x[myIndex-1].style.display = "block";
+      setTimeout(carousel, 3000);
+    }
+    
+    </script>
+    <section class="hero is-white">
+        <div class="hero-body">
+          <p class="title">Welcome to LemHand</p>
+          <p class="subtitle">You are currently using LemLegacy</p>
+          <button class="button is-success is-outlined">Shop</button>
+          <button class="button is-success is-outlined">Games</button>
+          <button class="button is-success is-outlined">Account</button>
+        </div>
+      </section>
