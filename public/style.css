@@ -132,5 +132,16 @@ body {
   margin-right: auto;
   width: 50%;
 }
+.column {
+  float: left;
+  width: 50%;
+}
+
+/* Clear floats after the columns */
+.row:after {
+  content: "";
+  display: table;
+  clear: both;
+}
 
 
