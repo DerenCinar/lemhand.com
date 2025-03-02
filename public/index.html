@@ -2,88 +2,91 @@
 <html>
 
 <head>
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3509564018541707"
-     crossorigin="anonymous"></script>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width" />
-  <title>LemHand</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <script src="https://unpkg.com/vue@3" defer=""></script>
-  <script src="app.js" defer=""></script>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
-  <link href="style.css" rel="stylesheet" type="text/css" />
-  <link href="bulma.css" rel="stylesheet" type="text/css" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="mobile-web-app-capable" content="yes" />
-  <link rel="apple-touch-icon" sizes="57x57" href="/apple-icon-57x57.png">
-  <link rel="apple-touch-icon" sizes="60x60" href="/apple-icon-60x60.png">
-  <link rel="apple-touch-icon" sizes="72x72" href="/apple-icon-72x72.png">
-  <link rel="apple-touch-icon" sizes="76x76" href="/apple-icon-76x76.png">
-  <link rel="apple-touch-icon" sizes="114x114" href="/apple-icon-114x114.png">
-  <link rel="apple-touch-icon" sizes="120x120" href="/apple-icon-120x120.png">
-  <link rel="apple-touch-icon" sizes="144x144" href="/apple-icon-144x144.png">
-  <link rel="apple-touch-icon" sizes="152x152" href="/apple-icon-152x152.png">
-  <link rel="apple-touch-icon" sizes="180x180" href="/apple-icon-180x180.png">
-  <link rel="icon" type="image/png" sizes="192x192"  href="/android-icon-192x192.png">
-  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-  <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png">
-  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-  <link rel="manifest" href="/manifest.json">
-  <meta name="msapplication-TileColor" content="#ffffff">
-  <meta name="msapplication-TileImage" content="/ms-icon-144x144.png">
-  <meta name="theme-color" content="#ffffff">
-  <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3509564018541707"
+        crossorigin="anonymous"></script>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>LemHand</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script src="https://unpkg.com/vue@3" defer=""></script>
+    <script src="app.js" defer="" type="module"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <link href="style.css" rel="stylesheet" type="text/css" />
+    <link href="bulma.css" rel="stylesheet" type="text/css" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <link rel="apple-touch-icon" sizes="57x57" href="/apple-icon-57x57.png">
+    <link rel="apple-touch-icon" sizes="60x60" href="/apple-icon-60x60.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="/apple-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="76x76" href="/apple-icon-76x76.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="/apple-icon-114x114.png">
+    <link rel="apple-touch-icon" sizes="120x120" href="/apple-icon-120x120.png">
+    <link rel="apple-touch-icon" sizes="144x144" href="/apple-icon-144x144.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="/apple-icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-icon-180x180.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="/android-icon-192x192.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="manifest" href="/manifest.json">
+    <meta name="msapplication-TileColor" content="#ffffff">
+    <meta name="msapplication-TileImage" content="/ms-icon-144x144.png">
+    <meta name="theme-color" content="#ffffff">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
 
 </head>
 
-    <body class="bg-gray-900" id="app">
-        <header class="header">
-            <a href="#" class="logo">LemHand</a>
-            <i class='bx bx-menu' id="menu-icon"></i>
-            <nav class="navbar">
-                <a href="#">Home</a>
-                <a href="#">Services</a>
-                <a href="#">News</a>
-                <a href="lemhand/index.html">The Old LemHand</a>
-                <a href="#" v-on:click="this.name = 'Lyschko'">{{myname}}</a>
-            </nav>
-        </header>
-        <div class="nav-bg"></div>
-        <br>
-        <br>
-        <br>
-        
-            <div class="hero is-info">
-                
-                <div class="hero-body">
-                    <div class="columns">
-                        <div class="column">
-                            <div class="box">
-                                <h1 class="title" style="color:black">Welcome to the NEW LemHand!</h1>
-                                <h1 class="subtitle is-6" style="color:black">The LemHand website got a redesign!</h1>
-                                <div class="buttons">
-                                    <button class="button is-fullwidth">Learn More</button>
-                                    <button class="button is-fullwidth">Create an Account</button>
-                                    <button class="button is-fullwidth">Help Center</button>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="column">
-                            <div class="box">
-                                <h1 class="title" style="color:black">LemHand Services</h1>
-                                <h1 class="subtitle is-6" style="color:black">Other Websites that are owned by LemHand</h1>
-                                <div class="buttons">
-                                    <button class="button is-fullwidth">Quizzy</button>
-                                    <button class="button is-fullwidth">Web Bowser</button>
-                                    <button class="button is-fullwidth">Oui U</button>
-                                </div>
-                            </div>
-                        </div>
-                        
-                      </div>
-                </div>
-            </div>
+<body class="bg-gray-900" id="app" @auth-event="onAuthEvent">
+    <header class="header">
+        <a href="#" class="logo">LemHand</a>
+        <i class='bx bx-menu' id="menu-icon"></i>
+        <nav class="navbar">
+            <a href="#">Home</a>
+            <a href="#">Services</a>
+            <a href="#">News</a>
+            <a href="lemhand/index.html">The Old LemHand</a>
+            <a v-if="accountStatus" href="lemlog.html">{{ myname }}</a>
+            <a v-else v-on:click="">{{ myname }}</a>
 
-    </body>
+        </nav>
+    </header>
+    <div class="nav-bg"></div>
+    <br>
+    <br>
+    <br>
+
+    <div class="hero is-info">
+
+        <div class="hero-body">
+            <div class="columns">
+                <div class="column">
+                    <div class="box">
+                        <h1 class="title" style="color:black">Welcome to the NEW LemHand!</h1>
+                        <h1 class="subtitle is-6" style="color:black">The LemHand website got a redesign!</h1>
+                        <div class="buttons">
+                            <button class="button is-fullwidth">Learn More</button>
+                            <button class="button is-fullwidth">Create an Account</button>
+                            <button class="button is-fullwidth">Help Center</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="column">
+                    <div class="box">
+                        <h1 class="title" style="color:black">LemHand Services</h1>
+                        <h1 class="subtitle is-6" style="color:black">Other Websites that are owned by LemHand</h1>
+                        <div class="buttons">
+                            <a class="button is-fullwidth" href="https://quizzy-online.web.app">Quizzy</a>
+                            <a class="button is-fullwidth" href="">Web Bowser</a>
+                            <a class="button is-fullwidth" href="https://buyouiu.web.app">Oui U</a>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+   
+</body>
+
 </html>

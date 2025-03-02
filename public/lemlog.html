@@ -158,7 +158,10 @@
   .then((userCredential) => {
     // Signed in 
     const user = userCredential.user;
-    window.location.href = window.location.origin + "/home";
+
+    localStorage.setItem("user", user);
+        
+    window.location.href = window.location.origin + "/public/index.html";
     // ...
   })
   .catch((error) => {
