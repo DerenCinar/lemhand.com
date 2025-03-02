@@ -27,3 +27,4 @@ menuIcon.addEventListener('click', () => {
     navbar.classList.toggle('active');
     navbg.classList.toggle('active');
 });
+ 
