@@ -49,8 +49,10 @@ body {
   text-decoration: none;
   font-weight: 600;
   cursor: default;
+  mix-blend-mode: difference;
 }
 .navbar a {
+  mix-blend-mode: difference;
   color: #fff;
   font-size: 18px;
   text-decoration: none;
@@ -98,7 +100,7 @@ body {
     height: 295px;
     background: rgba(255, 255, 255, 0.1);
     border-bottom: 2px solid rgba(255, 255, 255, 0.2);
-    backdrop-filter: blur(10px) invert(); 
+    backdrop-filter: blur(10px); 
     z-index: 99;
     display: none;
     
