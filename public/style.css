@@ -44,14 +44,11 @@ body {
   left: 100%;
 }
 .logo {
+  color: #fff;
   font-size: 25px;
   text-decoration: none;
   font-weight: 600;
   cursor: default;
-  background: inherit;
-  background-clip: text;
-  color: transparent;
-  filter: invert(1);
 }
 .navbar a {
   color: #fff;
@@ -101,9 +98,10 @@ body {
     height: 295px;
     background: rgba(255, 255, 255, 0.1);
     border-bottom: 2px solid rgba(255, 255, 255, 0.2);
-    backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px) invert(); 
     z-index: 99;
     display: none;
+    
   }
   .nav-bg.active {
     display: block;
