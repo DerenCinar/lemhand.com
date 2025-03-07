@@ -44,12 +44,14 @@ body {
   left: 100%;
 }
 .logo {
-  color: #fff;
   font-size: 25px;
   text-decoration: none;
   font-weight: 600;
   cursor: default;
-  mix-blend-mode: difference; /* Inverts the background color against the text */
+  background: inherit;
+  background-clip: text;
+  color: transparent;
+  filter: invert(1);
 }
 .navbar a {
   color: #fff;
