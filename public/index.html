@@ -43,8 +43,8 @@
         <i class='bx bx-menu' id="menu-icon"></i>
         <nav class="navbar">
             <a v-on:click="this.currentpage = 'home'" :class="{'has-text-success':currentpage === 'home'}">Home</a>
-            <a href="#" :class="{'has-text-success':currentpage === 'services'}">Services</a>
-            <a href="#" :class="{'has-text-success':currentpage === 'news'}">News</a>
+            <a v-on:click="this.currentpage = 'services'" :class="{'has-text-success':currentpage === 'services'}">Services</a>
+            <a v-on:click="this.currentpage = 'news'" :class="{'has-text-success':currentpage === 'news'}">News</a>
             <a href="lemhand/index.html">The Old LemHand</a>
             <a v-if="accountStatus" href="lemlog.html">{{ myname }}</a>
             <a v-else v-on:click="">{{ myname }}</a>
@@ -89,7 +89,7 @@
     </div>
 </main>
 <main v-if="this.currentpage === 'lemhandemployees'">
-    <div class="hero is-info">
+    <div class="hero is-primary">
 
         <div class="hero-body"> 
             <div class="box">
@@ -121,12 +121,12 @@
     </div> 
 </main>
 <main v-if="this.currentpage === 'lhe'">
-    <div class="hero is-info">
+    <div class="hero is-warning">
 
         <div class="hero-body">
             <div class="box">
                 <h1 class="title" style="color:black">LemHand Employee Portal</h1>
-                <h1 class="subtitle is-6" style="color:black">Hello There!
+                <h1 class="subtitle is-6" style="color:black">{{'Hello There! You are logged in as ' + this.lheName}} 
                 </h1>
 
 
@@ -139,6 +139,29 @@
         </div>
     </div>
 </main>
+<main v-if="this.currentpage === 'news'">
+    <div class="hero is-danger">
+
+        <div class="hero-body">
+            <div class="box">
+                <h1 class="title has-text-centered" style='color:black; font-family: "Times New Roman"'>The LemHand Times</h1>
+                <h1 class="subtitle is-6 has-text-centered" style="color:black"> The latest news about LemHand
+                </h1>
+        
+                <ul v-for="article in articles" class="ddw">
+                    <li class="ddw">
+                    <div class="ddw mb-4 box is-white">
+                        <h1 class="title is-4" style='color:black; font-family: "Times New Roman"'>{{article.title}}</h1>
+                        <h1 class="subtitle is-6" style='color:black; font-family: "Times New Roman"'>{{article.subtitle}}</h1>
+                        <button class="button is-fullwidth is-outlined is-success">Read Article</button>
+                    </div>
+                    </li> 
+                </ul>
+            </div>
+        </div>
+    </div>
+</main>
+
 </body>
 
 

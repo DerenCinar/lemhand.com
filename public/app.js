@@ -28,12 +28,18 @@ const app = Vue.createApp({
         return {
             test: 'hello',
             name: '',
-            currentpage: 'home',
+            currentpage: 'news',
             lheName: '',
             lheCode: 'Krabat', 
             lheCodeInput: '',
             lheErrorMessage: false,
-            lheErrorName: false
+            lheErrorName: false,
+            articles: [
+                {title: 'What is Quizzy? ', subtitle: 'In this article you will learn everything about Quizzy and how to use it', content: 'i am text'},
+                {title: 'LemHand plans to shutdown its old UI on May 4', subtitle: 'The company LemHand Co. LTD has approved that its shutting down its old website on May 4', content: 'i am text'},
+                {title: 'LemHand introduces LemNews', subtitle: 'LemHand introduces its own news service called LemNews and we will talk all about it in this article!', content: 'i am text'},
+
+            ]
         }
     },
     computed: {
