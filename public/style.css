@@ -49,6 +49,7 @@ body {
   text-decoration: none;
   font-weight: 600;
   cursor: default;
+  mix-blend-mode: difference; /* Inverts the background color against the text */
 }
 .navbar a {
   color: #fff;
@@ -56,6 +57,7 @@ body {
   text-decoration: none;
   margin-left: 35px;
   transition: 0.3s;
+  mix-blend-mode: difference; /* Inverts the background color against the text */
 }
 .navbar a:hover {
   color: #f00;
