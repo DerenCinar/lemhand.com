@@ -28,7 +28,7 @@ const app = Vue.createApp({
         return {
             test: 'hello',
             name: '',
-            currentpage: 'news',
+            currentpage: 'home',
             lheName: '',
             lheCode: 'Krabat', 
             lheCodeInput: '',
