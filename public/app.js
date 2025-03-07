@@ -28,7 +28,12 @@ const app = Vue.createApp({
         return {
             test: 'hello',
             name: '',
-            
+            currentpage: 'home',
+            lheName: '',
+            lheCode: 'Krabat', 
+            lheCodeInput: '',
+            lheErrorMessage: false,
+            lheErrorName: false
         }
     },
     computed: {
@@ -54,6 +59,15 @@ const app = Vue.createApp({
             } else {
                 this.name = '';
             }
+        },
+        lheLogin() { 
+            if (this.lheCodeInput === this.lheCode && this.lheName !== '') {
+                this.currentpage = 'lhe'
+            }
+            else {
+                if (this.lheCodeInput !== this.lheCode) this.lheErrorMessage = true
+                if (this.lheName === '') this.lheErrorName = true
+                }
         }
     },
 });

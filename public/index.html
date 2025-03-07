@@ -42,9 +42,9 @@
         <a href="#" class="logo">LemHand</a>
         <i class='bx bx-menu' id="menu-icon"></i>
         <nav class="navbar">
-            <a href="#">Home</a>
-            <a href="#">Services</a>
-            <a href="#">News</a>
+            <a v-on:click="this.currentpage = 'home'" :class="{'has-text-success':currentpage === 'home'}">Home</a>
+            <a href="#" :class="{'has-text-success':currentpage === 'services'}">Services</a>
+            <a href="#" :class="{'has-text-success':currentpage === 'news'}">News</a>
             <a href="lemhand/index.html">The Old LemHand</a>
             <a v-if="accountStatus" href="lemlog.html">{{ myname }}</a>
             <a v-else v-on:click="">{{ myname }}</a>
@@ -55,7 +55,7 @@
     <br>
     <br>
     <br>
-
+    <main v-if="this.currentpage === 'home'">
     <div class="hero is-info">
 
         <div class="hero-body">
@@ -79,6 +79,7 @@
                             <a class="button is-fullwidth" href="https://quizzy-online.web.app">Quizzy</a>
                             <a class="button is-fullwidth" href="">Web Bowser</a>
                             <a class="button is-fullwidth" href="https://buyouiu.web.app">Oui U</a>
+                            <a class="button is-fullwidth" v-on:click="this.currentpage = 'lemhandemployees'">LemHand Employee Portal</a>
                         </div>
                     </div>
                 </div>
@@ -86,7 +87,59 @@
             </div>
         </div>
     </div>
-   
+</main>
+<main v-if="this.currentpage === 'lemhandemployees'">
+    <div class="hero is-info">
+
+        <div class="hero-body"> 
+            <div class="box">
+                <h1 class="title" style="color:black">Log In</h1>
+                <h1 class="subtitle is-6" style="color:black">Please enter your LemConnect credentials</h1>
+                <div class="form">
+                    <div class="field">
+                        <label class="label">Name</label>
+                        <div class="control">
+                          <input :class="{ 'is-danger': lheErrorName}"  v-model="lheName" class="input" type="text" placeholder="Type Here">
+                        </div>
+                        <p v-if="lheErrorName" class="help is-danger">Please enter a name</p>
+                    </div>
+                    
+                    <div class="field">
+                        <label class="label">Access Code</label>
+                        <div class="control">
+                          <input :class="{ 'is-danger': lheErrorMessage}" v-model="lheCodeInput" class="input" type="text" placeholder="Type Here">
+                        </div>
+                        <p v-if="lheErrorMessage" class="help is-danger">This access code is invalid</p>
+                    </div>                        
+                    <div class="buttons">
+                        <button class="button is-fullwidth is-outlined is-success" v-on:click="lheLogin()">Log In</button>
+                    </div>
+                    
+                </div>
+                
+            </div>
+    </div> 
+</main>
+<main v-if="this.currentpage === 'lhe'">
+    <div class="hero is-info">
+
+        <div class="hero-body">
+            <div class="box">
+                <h1 class="title" style="color:black">LemHand Employee Portal</h1>
+                <h1 class="subtitle is-6" style="color:black">Hello There!
+                </h1>
+
+
+                <div class="buttons">
+                    <button class="button is-fullwidth">Learn More</button>
+                    <button class="button is-fullwidth">Create an Account</button>
+                    <button class="button is-fullwidth">Help Center</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
 </body>
+
 
 </html>
