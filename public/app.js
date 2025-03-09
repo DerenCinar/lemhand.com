@@ -26,7 +26,7 @@ const auth = getAuth();
 const app = Vue.createApp({
     data() {
         return {
-            
+            mkey: 0,
             test: 'hello',
             name: '',
             currentpage: 'home',
@@ -71,8 +71,9 @@ const app = Vue.createApp({
         auth.onAuthStateChanged(this.onAuthEvent);
     },
     methods: {
-        resetCount() {  
-            localStorage.setItem("myKey", +localStorage.getItem("myKey") - 1 )
+        resetCount() {
+            this.mkey = +localStorage.getItem("myKey") - 1
+            localStorage.setItem("myKey", this.mkey)
             
         },
         onAuthEvent(user) {
