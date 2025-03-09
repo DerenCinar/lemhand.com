@@ -72,7 +72,7 @@ const app = Vue.createApp({
     },
     methods: {
         resetCount() {  
-            localStorage.setItem("myKey", +localStorage.getItem("myKey") - 1 )
+            localStorage.setItem("myKey", localStorage.getItem("myKey") + 1 )
             
         },
         onAuthEvent(user) {
