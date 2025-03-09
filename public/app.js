@@ -26,7 +26,7 @@ const auth = getAuth();
 const app = Vue.createApp({
     data() {
         return {
-            mkey: 0,
+            readArticles: 0,
             test: 'hello',
             name: '',
             currentpage: 'home',
@@ -57,21 +57,26 @@ const app = Vue.createApp({
             else return false
         },
         availbleArticles() {
-            if (localStorage.getItem("readArticles") === null) {
-                localStorage.setItem("readArticles", 0);
-            }
-
-            return this.articles.length - localStorage.getItem("readArticles");
+            return this.articles.length - this.readArticles;
         }
     },
     mounted() {
         auth.onAuthStateChanged(this.onAuthEvent);
+
+        if (localStorage.getItem("readArticles") === null) {
+            localStorage.setItem("readArticles", 0);
+        }
+
+        this.readArticles = +localStorage.getItem("readArticles");
+    },
+    watch: {
+        readArticles(newValue, oldValue) {
+            localStorage.setItem("readArticles", newValue);
+        }
     },
     methods: {
         resetCount() {
-            if (localStorage.getItem("readArticles") !== this.articles.length) {
-                localStorage.setItem("readArticles",  +localStorage.getItem("readArticles") + 1);
-            }
+            this.readArticles++;
         },
         onAuthEvent(user) {
             console.log("onAuthEvent");
