@@ -58,7 +58,7 @@ const app = Vue.createApp({
         },
         availbleArticles() {
             if (localStorage.getItem("readArticles") === null) {
-                localStorage.setItem("readArticles") = 0;
+                localStorage.setItem("readArticles", 0);
             }
 
             return this.articles.length - localStorage.getItem("readArticles");
@@ -70,7 +70,7 @@ const app = Vue.createApp({
     methods: {
         resetCount() {
             if (localStorage.getItem("readArticles") !== this.articles.length) {
-                localStorage.setItem("readArticles") = localStorage.getItem("readArticles") - 1;
+                localStorage.setItem("readArticles", localStorage.getItem("readArticles") - 1);
             }
         },
         onAuthEvent(user) {
