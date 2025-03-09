@@ -58,11 +58,11 @@ const app = Vue.createApp({
         },
         availbleArticles() {
             if (localStorage.getItem("myKey") === null) {
-                localStorage.setItem("readArticles", 0)
+                localStorage.setItem("readArticles", 0) 
                 localStorage.setItem("myKey", this.articles.length)
-            } if (+localStorage.getItem("myKey") + +localStorage.getItem("readArticles")  < this.articles.length) {
-                return this.articles.length - +localStorage.getItem("readArticles") 
-            }
+            } if (localStorage.getItem("myKey") < this.articles.length) {
+                return this.articles.length - localStorage.getItem("myKey") 
+            } 
             
             else return localStorage.getItem("myKey")
         }
@@ -71,8 +71,9 @@ const app = Vue.createApp({
         auth.onAuthStateChanged(this.onAuthEvent);
     },
     methods: {
-        resetCount() {
-            localStorage.setItem("readArticles", +this.articles.length + 1)
+        resetCount() {  
+            localStorage.setItem("myKey", +localStorage.getItem("myKey") - 1 )
+            
         },
         onAuthEvent(user) {
             console.log("onAuthEvent");
