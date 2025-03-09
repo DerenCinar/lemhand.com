@@ -68,6 +68,14 @@
                             <button class="button is-fullwidth">Learn More</button>
                             <button class="button is-fullwidth">Create an Account</button>
                             <button class="button is-fullwidth">Help Center</button>
+                            
+                                <div class="relative inline-flex ddw">
+                                    <button v-on:click="this.currentpage = 'news'" class="button is-fullwidth is-danger">New Articles avalible</button>
+                                    <span
+                                        class="absolute top-0.5 right-0.5 grid min-h-[24px] min-w-[24px] translate-x-2/4 -translate-y-2/4 place-items-center rounded-full bg-red-600 py-1 px-1 text-xs text-white">
+                                        {{availbleArticles}}
+                                    </span>
+                                </div>
                         </div>
                     </div>
                 </div>
@@ -153,7 +161,7 @@
                     <div class="ddw mb-4 box is-white">
                         <h1 class="title is-4" style='color:black; font-family: "Times New Roman"'>{{article.title}}</h1>
                         <h1 class="subtitle is-6" style='color:black; font-family: "Times New Roman"'>{{article.subtitle}}</h1>
-                        <button class="button is-fullwidth is-outlined is-success">Read Article</button>
+                        <button v-on:click="resetCount()" class="button is-fullwidth is-outlined is-success">Read Article</button>
                     </div>
                     </li> 
                 </ul>

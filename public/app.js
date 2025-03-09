@@ -26,6 +26,7 @@ const auth = getAuth();
 const app = Vue.createApp({
     data() {
         return {
+            
             test: 'hello',
             name: '',
             currentpage: 'home',
@@ -37,7 +38,9 @@ const app = Vue.createApp({
             articles: [
                 {title: 'What is Quizzy? ', subtitle: 'In this article you will learn everything about Quizzy and how to use it', content: 'i am text'},
                 {title: 'LemHand plans to shutdown its old UI on May 4', subtitle: 'The company LemHand Co. LTD has approved that its shutting down its old website on May 4', content: 'i am text'},
-                {title: 'LemHand introduces LemNews', subtitle: 'LemHand introduces its own news service called LemNews and we will talk all about it in this article!', content: 'i am text'},
+                {title: 'LemHand plans to shutdown its old UI on May 4', subtitle: 'The company LemHand Co. LTD has approved that its shutting down its old website on May 4', content: 'i am text'},
+                {title: 'LemHand plans to shutdown its old UI on May 4', subtitle: 'The company LemHand Co. LTD has approved that its shutting down its old website on May 4', content: 'i am text'},
+                {title: 'LemHand plans to shutdown its old UI on May 4', subtitle: 'The company LemHand Co. LTD has approved that its shutting down its old website on May 4', content: 'i am text'},
 
             ]
         }
@@ -52,12 +55,25 @@ const app = Vue.createApp({
         accountStatus() {
             if (this.name === '') return true
             else return false
+        },
+        availbleArticles() {
+            if (localStorage.getItem("myKey") === null) {
+                localStorage.setItem("readArticles", 0)
+                localStorage.setItem("myKey", this.articles.length)
+            } if (+localStorage.getItem("myKey") + +localStorage.getItem("readArticles")  < this.articles.length) {
+                return this.articles.length - +localStorage.getItem("readArticles") 
+            }
+            
+            else return localStorage.getItem("myKey")
         }
     },
     mounted() {
         auth.onAuthStateChanged(this.onAuthEvent);
     },
     methods: {
+        resetCount() {
+            localStorage.setItem("readArticles", +this.articles.length + 1)
+        },
         onAuthEvent(user) {
             console.log("onAuthEvent");
             if (user) {
