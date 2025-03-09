@@ -57,14 +57,11 @@ const app = Vue.createApp({
             else return false
         },
         availbleArticles() {
-            if (localStorage.getItem("myKey") === null) {
-                localStorage.setItem("readArticles", 0) 
-                localStorage.setItem("myKey", this.articles.length)
-            } if (localStorage.getItem("myKey") < this.articles.length) {
-                return this.articles.length - localStorage.getItem("myKey") 
-            } 
-            
-            else return localStorage.getItem("myKey")
+            if (localStorage.getItem("readArticles") === null) {
+                localStorage.setItem("readArticles") = 0;
+            }
+
+            return this.articles.length - localStorage.getItem("readArticles");
         }
     },
     mounted() {
@@ -72,9 +69,9 @@ const app = Vue.createApp({
     },
     methods: {
         resetCount() {
-            this.mkey = localStorage.getItem("myKey") - 1
-            localStorage.setItem("myKey", this.mkey)
-            
+            if (localStorage.getItem("readArticles") !== this.articles.length) {
+                localStorage.setItem("readArticles") = localStorage.getItem("readArticles") - 1;
+            }
         },
         onAuthEvent(user) {
             console.log("onAuthEvent");
