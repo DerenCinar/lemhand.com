@@ -39,7 +39,7 @@
 
 <body class="bg-gray-900" id="app" @auth-event="onAuthEvent">
     <header class="header">
-        <a href="#" class="logo">LemHand</a>
+        <p href="#" class="logo">LemHand</p>
         <i class='bx bx-menu' id="menu-icon"></i>
         <nav class="navbar">
             <a v-on:click="this.currentpage = 'home'" :class="{'has-text-success':currentpage === 'home'}">Home</a>
@@ -56,7 +56,7 @@
     <br>
     <br>
     <main v-if="this.currentpage === 'home'">
-    <div class="hero is-info">
+    <div class="hero is-info" style="background-color:#e2f0d5">
 
         <div class="hero-body">
             <div class="columns">
@@ -69,12 +69,16 @@
                             <button class="button is-fullwidth">Create an Account</button>
                             <button class="button is-fullwidth">Help Center</button>
                             
-                                <div class="relative inline-flex ddw">
-                                    <button v-on:click="this.currentpage = 'news'" class="button is-fullwidth is-danger">New Articles avalible</button>
+                                <div class="relative inline-flex ddw" v-if="availbleArticles > 0">
+                                    <button v-on:click="this.currentpage = 'news'" class="button is-fullwidth is-danger" style="background-color:#399351">New Articles avalible</button>
                                     <span
                                         class="absolute top-0.5 right-0.5 grid min-h-[24px] min-w-[24px] translate-x-2/4 -translate-y-2/4 place-items-center rounded-full bg-red-600 py-1 px-1 text-xs text-white">
                                         {{availbleArticles}}
                                     </span>
+                                </div>
+                                <div class="relative inline-flex ddw" v-else>
+                                    <button v-on:click="this.currentpage = 'news'" class="button is-fullwidth is-danger" style="background-color:#399351">Woo Hoo! All Articles Finished</button>
+                                    
                                 </div>
                         </div>
                     </div>
