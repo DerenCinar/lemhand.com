@@ -10,6 +10,16 @@ body {
   background-size: cover;
   background-position: center;
 }
+.iconhelper {
+  object-fit: contain
+
+}
+.centerd {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  width: 50%;
+}
 .header {
   position: fixed;
   top: 0;

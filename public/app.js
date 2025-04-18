@@ -35,6 +35,8 @@ const app = Vue.createApp({
             lheCodeInput: '',
             lheErrorMessage: false,
             lheErrorName: false,
+            osName: 'Unknown OS',
+
             articles: [
                 {title: 'What is Quizzy? ', subtitle: 'In this article you will learn everything about Quizzy and how to use it', content: 'i am text'},
                 {title: 'LemHand plans to shutdown its old UI on May 4', subtitle: 'The company LemHand Co. LTD has approved that its shutting down its old website on May 4', content: 'i am text'},
@@ -61,6 +63,8 @@ const app = Vue.createApp({
         }
     },
     mounted() {
+        this.detectOS();
+
         auth.onAuthStateChanged(this.onAuthEvent);
 
         if (localStorage.getItem("readArticles") === null) {
@@ -75,6 +79,24 @@ const app = Vue.createApp({
         }
     },
     methods: {
+        detectOS() {
+            const userAgent = window.navigator.userAgent;
+            let os = 'Unknown OS';
+      
+            if (userAgent.indexOf('Win') !== -1) {
+              os = 'Windows';
+            } else if (userAgent.indexOf('Mac') !== -1) {
+              os = 'MacOS';
+            } else if (userAgent.indexOf('Linux') !== -1) {
+              os = 'Linux';
+            } else if (userAgent.indexOf('Android') !== -1) {
+                os = 'Android';
+            } else if (userAgent.indexOf('iOS') !== -1) {
+                os = 'iOS';
+            }
+            this.osName = os;
+          },
+      
         resetCount() {
             this.readArticles++;
         },

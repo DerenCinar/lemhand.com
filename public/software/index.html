@@ -9,13 +9,15 @@
     <title>LemHand</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script> 
-    <script src="app.js" defer="" type="module"></script>
+    <script src="/public/app.js" defer="" type="module"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <link href="style.css" rel="stylesheet" type="text/css" />
     <link href="bulma.css" rel="stylesheet" type="text/css" /> 
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
     <link rel="apple-touch-icon" sizes="57x57" href="/apple-icon-57x57.png">
     <link rel="apple-touch-icon" sizes="60x60" href="/apple-icon-60x60.png">
     <link rel="apple-touch-icon" sizes="72x72" href="/apple-icon-72x72.png">
@@ -57,34 +59,106 @@
     <br>
     <br>
     <main v-if="this.currentpage === 'home'">
-    <div class="hero is-info" style="background-color:#e2f0d5">
 
+    <div class="hero is-info" style="background-color:#e2f0d5">
+        
+        <div class="relative w-full h-[80vh] bg-slate-800">
+            <input
+              class="hidden peer/slider1 checkbox"
+              type="radio"
+              name="slider"
+              id="slider1"
+              checked
+            />
+            <input
+              class="hidden peer/slider2 checkbox"
+              type="radio"
+              name="slider"
+              id="slider2"
+            />
+            <input
+              class="hidden peer/slider3 checkbox"
+              type="radio"
+              name="slider"
+              id="slider3"
+            />
+        
+            <div
+              class="relative w-[300vw] h-[100%] flex transition-all duration-500 ease-in-out peer-checked/slider1:-left-0 peer-checked/slider2:-left-[100vw] peer-checked/slider3:-left-[200vw]"
+            >
+              <div class="relative w-full h-full bg-red-500">
+                <br>
+                <br>
+                <h1 class="title is-1 has-text-centered">LemHand Draw</h1>
+                <h1 class="subtitle has-text-centered">Eat · Sleep · Draw</h1>
+                <br>
+                <br>
+                <br>
+                <br>
+                <br>
+                <br>
+                <br>
+                <br>
+                <br>
+                <br>
+                <br>
+                <br>
+                <br>
+                
+                <div class="section buttons">
+
+                    <button v-if="osName === 'Android'" class="button is-dark is-fullwidth" disabled><i class="material-icons">android</i>⠀Download for Android</button>
+                    <button v-if="osName === 'Windows'" class="button is-dark is-fullwidth"><i class="material-icons">laptop_windows</i>⠀Download for Windows</button>
+                    <button v-if="osName === 'MacOS'" class="button is-dark is-fullwidth" disabled><i class="material-icons">laptop_mac</i>⠀Download for Mac</button>
+                    <button class="button is-dark is-fullwidth" disabled><i class="material-icons">laptop_chromebook</i>⠀Use Online for ChromeOS</button>
+
+
+                </div>
+              </div>
+              <div class="relative w-full h-full  bg-amber-500">
+                <br>
+                <br>
+                <h1 class="title is-1 has-text-centered">LemHand Office</h1>
+                <h1 class="subtitle has-text-centered">Collection of all LemHand Apps</h1>
+              </div>
+              <div class="relative w-full h-full bg-emerald-500">
+                <br>
+                <br>
+                <h1 class="title is-1 has-text-centered">LemHand Internet</h1>
+                <h1 class="subtitle has-text-centered">Your trusted private browser</h1>
+              </div>
+            </div>
+        
+            <div
+              class="absolute w-full flex justify-center gap-2 bottom-12 peer-[&_label:nth-of-type(1)]/slider1:peer-checked/slider1:opacity-100 peer-[&_label:nth-of-type(1)]/slider1:peer-checked/slider1:w-10 peer-[&_label:nth-of-type(2)]/slider2:peer-checked/slider2:opacity-100 peer-[&_label:nth-of-type(2)]/slider2:peer-checked/slider2:w-10 peer-[&_label:nth-of-type(3)]/slider3:peer-checked/slider3:opacity-100 peer-[&_label:nth-of-type(3)]/slider3:peer-checked/slider3:w-10"
+            >
+              <label
+                class="block w-5 h-5 bg-white cursor-pointer opacity-50 z-10 transition-all duration-300 ease-in-out hover:scale-125 hover:opacity-100"
+                for="slider1"
+              >
+              </label>
+              <label
+                class="block w-5 h-5 bg-white cursor-pointer opacity-50 z-10 transition-all duration-300 ease-in-out hover:scale-125 hover:opacity-100"
+                for="slider2"
+              >
+              </label>
+              <label
+                class="block w-5 h-5 bg-white cursor-pointer opacity-50 z-10 transition-all duration-300 ease-in-out hover:scale-125 hover:opacity-100"
+                for="slider3"
+              >
+              </label>
+            </div>
+          </div>
         <div class="hero-body">
-            <div class="columns">
-                <div class="column">
                     <div class="box">
-                        <h1 class="title" style="color:black">Welcome to the NEW LemHand!</h1>
-                        <h1 class="subtitle is-6" style="color:black">The LemHand website got a redesign!</h1>
+                        <h1 class="title" style="color:black">LemHand Software</h1>
+                        <h1 class="subtitle is-6" style="color:black">Please select service</h1>
                         <div class="buttons">
-                            <button class="button is-fullwidth">Learn More</button>
-                            <button class="button is-fullwidth">Create an Account</button>
-                            <button class="button is-fullwidth">Help Center</button>
-                            
-                                <div class="relative inline-flex ddw" v-if="availbleArticles > 0">
-                                    <button v-on:click="this.currentpage = 'news'" class="button is-fullwidth is-danger" style="background-color:#399351">New Articles avalible</button>
-                                    <span
-                                        class="absolute top-0.5 right-0.5 grid min-h-[24px] min-w-[24px] translate-x-2/4 -translate-y-2/4 place-items-center rounded-full bg-red-600 py-1 px-1 text-xs text-white">
-                                        {{availbleArticles}}
-                                    </span>
-                                </div>
-                                <div class="relative inline-flex ddw" v-else>
-                                    <button v-on:click="this.currentpage = 'news'" class="button is-fullwidth is-danger" style="background-color:#399351">Woo Hoo! All Articles Finished</button>
-                                    
-                                </div>
+                            <button class="button is-fullwidth">LemHand Office Pro</button>
+                            <button class="button is-fullwidth" style="color:white; background-color:#d15150">LemHand Draw</button>
+
                         </div>
                     </div>
-                </div>
-                <div class="column">
                     <div class="box">
                         <h1 class="title" style="color:black">LemHand Services</h1>
                         <h1 class="subtitle is-6" style="color:black">Other Websites that are owned by LemHand</h1>
@@ -95,9 +169,7 @@
                             <a class="button is-fullwidth" v-on:click="this.currentpage = 'lemhandemployees'">LemHand Employee Portal</a>
                         </div>
                     </div>
-                </div>
 
-            </div>
         </div>
     </div>
 </main>
