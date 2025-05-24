@@ -37,6 +37,7 @@
             color: white;
             text-decoration: none;
         }
+       
         .navbar a {
             color: white;
             margin-left: 1rem;
@@ -56,6 +57,7 @@
         #menu-icon { /* From user's HTML */
             display: none; /* Assuming mobile logic is in app.js */
         }
+
         .nav-bg { /* From user's HTML */
             /* Assuming styles are in style.css */
         }
@@ -171,10 +173,10 @@
     <div class="nav-bg"></div>
     <br> 
     <br>
-    <br>
+   
     
-    <div style="padding-top: 60px;"> 
-        <main v-if="currentpage === 'home'" class="p-4">
+    <div> 
+        <main v-if="currentpage === 'home'" >
             <div class="hero is-info" style="background-color:#e2f0d5">
                 <div class="hero-body">
                     <div class="columns">
@@ -199,13 +201,13 @@
                         </div>
                         <div class="column">
                             <div class="box">
-                                 <h1 class="title" style="color:black">LemHand Services</h1>
-                                 <h1 class="subtitle is-6" style="color:black">Other Websites that are owned by LemHand</h1>
+                                 <h1 class="title" style="color:black">LemHand Software</h1>
+                                 <h1 class="subtitle is-6" style="color:black">The best apps by LemHand</h1>
                                  <div class="buttons">
-                                     <a class="button is-fullwidth" href="https://quizzy-online.web.app">Quizzy</a>
-                                     <a class="button is-fullwidth" href="#">Web Browser</a> <a class="button is-fullwidth" href="https://buyouiu.web.app">Oui U</a>
-                                     <a class="button is-fullwidth" @click="setCurrentPage('lemhandemployees')">LemHand Employee Portal</a>
-                                 </div>
+                                    <a class="button is-fullwidth" href="/software">LemHand Software</a>
+                                    <a class="button is-white is-fullwidth" href="/software/internet" style="background: linear-gradient(90deg, #2563eb 0%, #7c3aed 100%); /* Blue to violet gradient */ color:white">LemHand Internet</a>
+                                    <a class="button is-danger is-fullwidth" disabled href="/software/draw.html">LemHand Draw</a>
+                                </div>
                             </div>
                         </div>
                     </div>
