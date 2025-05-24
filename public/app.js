@@ -36,7 +36,7 @@ const app = Vue.createApp({
             lheErrorMessage: false,
             lheErrorName: false,
             osName: 'Unknown OS',
-
+            drop: false,
             articles: [
                 {title: 'What is Quizzy? ', subtitle: 'In this article you will learn everything about Quizzy and how to use it', content: 'i am text'},
                 {title: 'LemHand plans to shutdown its old UI on May 4', subtitle: 'The company LemHand Co. LTD has approved that its shutting down its old website on May 4', content: 'i am text'},
@@ -96,7 +96,9 @@ const app = Vue.createApp({
             }
             this.osName = os;
           },
-      
+          dropdown() {
+            this.drop = !this.drop
+          },
         resetCount() {
             this.readArticles++;
         },

@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-G">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LemHand Internet - Experience the Web, Reimagined</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0a0a23; /* Dark navy blue base */
+            color: #e0e0e0; /* Light gray text for contrast */
+            overflow-x: hidden; /* Prevent horizontal scroll */
+        }
+
+        /* Custom gradient background for hero */
+        .hero-gradient {
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b0764 100%); /* Blue to purple gradient */
+        }
+
+        /* Custom gradient for buttons */
+        .btn-gradient {
+            background: linear-gradient(90deg, #2563eb 0%, #7c3aed 100%); /* Blue to violet gradient */
+            transition: all 0.3s ease;
+        }
+        .btn-gradient:hover {
+            box-shadow: 0 0 20px #7c3aed, 0 0 10px #2563eb;
+            transform: translateY(-2px);
+        }
+
+        /* Animation classes */
+        .animate-on-scroll {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+        }
+        .animate-on-scroll.animated {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .animate-on-scroll-delay-1 { transition-delay: 0.1s; }
+        .animate-on-scroll-delay-2 { transition-delay: 0.2s; }
+        .animate-on-scroll-delay-3 { transition-delay: 0.3s; }
+        .animate-on-scroll-delay-4 { transition-delay: 0.4s; }
+
+        /* Subtle pulse for download button */
+        .pulse {
+            animation: pulse-animation 2s infinite;
+        }
+        @keyframes pulse-animation {
+            0% { box-shadow: 0 0 0 0 rgba(66, 153, 225, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(66, 153, 225, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(66, 153, 225, 0); }
+        }
+
+        /* Glassmorphism effect for feature cards */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 1rem; /* 16px */
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <header class="fixed top-0 left-0 right-0 z-50 transition-all duration-300" id="navbar">
+        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <h1 class="text-3xl font-bold text-white">LemHand<span class="text-blue-400"> Internet</span></h1>
+            <nav class="hidden md:flex space-x-6">
+                <a href="#features" class="text-gray-300 hover:text-blue-400 transition-colors">Features</a>
+                <a href="#showcase" class="text-gray-300 hover:text-blue-400 transition-colors">Showcase</a>
+                <a href="#download" class="text-gray-300 hover:text-blue-400 transition-colors">Download</a>
+            </nav>
+            <a href="#download" class="hidden md:block px-6 py-2 text-white font-semibold rounded-lg btn-gradient">Download Now</a>
+            <button id="mobile-menu-button" class="md:hidden text-white focus:outline-none">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+            </button>
+        </div>
+        <div id="mobile-menu" class="hidden md:hidden bg-gray-800 bg-opacity-90">
+            <a href="#features" class="block px-6 py-3 text-gray-300 hover:text-blue-400 transition-colors">Features</a>
+            <a href="#showcase" class="block px-6 py-3 text-gray-300 hover:text-blue-400 transition-colors">Showcase</a>
+            <a href="#download" class="block px-6 py-3 text-gray-300 hover:text-blue-400 transition-colors">Download</a>
+            <a href="#download" class="block mx-6 my-3 px-6 py-3 text-white text-center font-semibold rounded-lg btn-gradient">Download Now</a>
+        </div>
+    </header>
+
+    <section class="hero-gradient min-h-screen flex items-center justify-center pt-20 pb-10 px-4 sm:px-6 lg:px-8">
+        <div class="text-center space-y-8 max-w-3xl">
+            <h2 class="animate-on-scroll text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold text-white leading-tight">
+                Experience the Web, <span class="block">Reimagined with <span class="bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500">LemHand</span>.</span>
+            </h2>
+            <p class="animate-on-scroll animate-on-scroll-delay-1 text-lg sm:text-xl md:text-2xl text-gray-300 max-w-2xl mx-auto">
+                Blazing fast, ultra-secure, and endlessly customizable. LemHand Internet puts you in control of your online world.
+            </p>
+            <div class="animate-on-scroll animate-on-scroll-delay-2 space-y-4 sm:space-y-0 sm:space-x-4 flex flex-col sm:flex-row justify-center items-center">
+                <a href="/cdn/lhInternet.pkg" class="w-full sm:w-auto px-10 py-4 text-xl font-bold text-white rounded-xl btn-gradient pulse" download>
+                    Download LemHand Internet
+                </a>
+                <span class="text-gray-400 text-sm">Available for macOS</span>
+            </div>
+            <div class="animate-on-scroll animate-on-scroll-delay-3 pt-8">
+                <img src="https://placehold.co/800x450/1e3a8a/e0e0e0?text=LemHand+Browser+UI+Mockup" alt="LemHand Internet Mockup" class="rounded-xl shadow-2xl mx-auto border-4 border-gray-700">
+            </div>
+        </div>
+    </section>
+
+    <section id="features" class="py-20 px-4 sm:px-6 lg:px-8">
+        <div class="container mx-auto">
+            <div class="text-center mb-16">
+                <h3 class="animate-on-scroll text-4xl font-bold text-white">Why <span class="text-blue-400">LemHand</span> Stands Out</h3>
+                <p class="animate-on-scroll animate-on-scroll-delay-1 text-lg text-gray-400 mt-4 max-w-2xl mx-auto">Discover the features that make LemHand the next generation browser.</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <div class="animate-on-scroll glass-card p-8 text-center hover:shadow-xl transition-shadow duration-300">
+                    <div class="flex justify-center mb-6">
+                        <svg class="w-16 h-16 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                    </div>
+                    <h4 class="text-2xl font-semibold text-white mb-3">Blazing Speed</h4>
+                    <p class="text-gray-300">Optimized engine for lightning-fast page loads and smooth browsing.</p>
+                </div>
+                <div class="animate-on-scroll animate-on-scroll-delay-1 glass-card p-8 text-center hover:shadow-xl transition-shadow duration-300">
+                    <div class="flex justify-center mb-6">
+                        <svg class="w-16 h-16 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                    </div>
+                    <h4 class="text-2xl font-semibold text-white mb-3">Ironclad Security</h4>
+                    <p class="text-gray-300">Advanced protection against malware, phishing, and online threats.</p>
+                </div>
+                <div class="animate-on-scroll animate-on-scroll-delay-2 glass-card p-8 text-center hover:shadow-xl transition-shadow duration-300">
+                    <div class="flex justify-center mb-6">
+                        <svg class="w-16 h-16 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                    </div>
+                    <h4 class="text-2xl font-semibold text-white mb-3">Ultimate Privacy</h4>
+                    <p class="text-gray-300">Built-in tracker blocking and VPN-like features for anonymous browsing.</p>
+                </div>
+                <div class="animate-on-scroll animate-on-scroll-delay-3 glass-card p-8 text-center hover:shadow-xl transition-shadow duration-300">
+                    <div class="flex justify-center mb-6">
+                        <svg class="w-16 h-16 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                    </div>
+                    <h4 class="text-2xl font-semibold text-white mb-3">Deep Customization</h4>
+                    <p class="text-gray-300">Themes, extensions, and settings to make LemHand truly yours.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="showcase" class="py-20 px-4 sm:px-6 lg:px-8 bg-gray-900 bg-opacity-50">
+        <div class="container mx-auto">
+            <div class="text-center mb-16">
+                <h3 class="animate-on-scroll text-4xl font-bold text-white">See <span class="text-purple-400">LemHand</span> in Action</h3>
+                <p class="animate-on-scroll animate-on-scroll-delay-1 text-lg text-gray-400 mt-4 max-w-2xl mx-auto">A glimpse into the sleek and intuitive interface of LemHand Internet.</p>
+            </div>
+            <div class="animate-on-scroll animate-on-scroll-delay-2">
+                <img src="https://placehold.co/1200x700/0a0a23/e0e0e0?text=Detailed+LemHand+Browser+Interface" alt="LemHand Internet Detailed Interface" class="rounded-xl shadow-2xl mx-auto border-4 border-purple-500">
+            </div>
+            <div class="animate-on-scroll animate-on-scroll-delay-3 mt-12 grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+                <div class="p-6">
+                    <h5 class="text-2xl font-semibold text-blue-300 mb-2">Fluid Tab Management</h5>
+                    <p class="text-gray-400">Organize your browsing with ease using our inLemHandtive tab groups and vertical tab options.</p>
+                </div>
+                <div class="p-6">
+                    <h5 class="text-2xl font-semibold text-green-300 mb-2">Integrated Tools</h5>
+                    <p class="text-gray-400">Notes, screen capture, and more, built right into the browser for enhanced productivity.</p>
+                </div>
+                <div class="p-6">
+                    <h5 class="text-2xl font-semibold text-yellow-300 mb-2">Personalized Dashboard</h5>
+                    <p class="text-gray-400">Customize your new tab page with widgets, news feeds, and quick links.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="download" class="py-20 px-4 sm:px-6 lg:px-8 hero-gradient">
+        <div class="container mx-auto text-center">
+            <h3 class="animate-on-scroll text-4xl font-bold text-white">Ready to Elevate Your Browsing?</h3>
+            <p class="animate-on-scroll animate-on-scroll-delay-1 text-xl text-gray-300 mt-4 mb-10 max-w-xl mx-auto">
+                Download LemHand Internet today and join the revolution. It's free, fast, and secure.
+            </p>
+            <div class="animate-on-scroll animate-on-scroll-delay-2">
+                <a href="/cdn/lhInternet.pkg" class="px-12 py-5 text-2xl font-bold text-white rounded-xl btn-gradient pulse" download>
+                    Download LemHand for Free
+                </a>
+            </div>
+            <p class="animate-on-scroll animate-on-scroll-delay-3 text-gray-400 mt-6 text-sm">
+                Compatible with Windows 10/11, macOS 11+, and major Linux distributions.
+            </p>
+            <div class="animate-on-scroll animate-on-scroll-delay-4 mt-10 flex justify-center space-x-6">
+                <img src="https://placehold.co/50x50/ffffff/000000?text=W" alt="Windows" class="h-10 w-10 opacity-70 hover:opacity-100 transition-opacity" title="Windows">
+                <img src="https://placehold.co/50x50/ffffff/000000?text=M" alt="macOS" class="h-10 w-10 opacity-70 hover:opacity-100 transition-opacity" title="macOS">
+                <img src="https://placehold.co/50x50/ffffff/000000?text=L" alt="Linux" class="h-10 w-10 opacity-70 hover:opacity-100 transition-opacity" title="Linux">
+            </div>
+        </div>
+    </section>
+
+    <footer class="bg-gray-900 text-center py-10 px-4 sm:px-6 lg:px-8">
+        <p class="text-gray-400">&copy; <span id="currentYear"></span> LemHand Internet. All rights reserved.</p>
+        <p class="text-gray-500 text-sm mt-2">Crafted with <span class="text-red-500">&hearts;</span> for a better web.</p>
+        <div class="mt-4 space-x-4">
+            <a href="#" class="text-gray-400 hover:text-blue-400">Privacy Policy</a>
+            <a href="#" class="text-gray-400 hover:text-blue-400">Terms of Service</a>
+            <a href="#" class="text-gray-400 hover:text-blue-400">Contact Us</a>
+        </div>
+    </footer>
+
+    <script>
+        // JavaScript for scroll animations
+        const animatedElements = document.querySelectorAll('.animate-on-scroll');
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('animated');
+                    // Optional: unobserve after animation to save resources
+                    // observer.unobserve(entry.target); 
+                } else {
+                    // Optional: remove class to re-animate if scrolling up and then down again
+                    // entry.target.classList.remove('animated'); 
+                }
+            });
+        }, {
+            threshold: 0.1 // Trigger when 10% of the element is visible
+        });
+
+        animatedElements.forEach(el => {
+            observer.observe(el);
+        });
+
+        // Navbar background on scroll
+        const navbar = document.getElementById('navbar');
+        window.onscroll = function () {
+            if (window.pageYOffset > 50) {
+                navbar.classList.add("bg-gray-900", "bg-opacity-80", "shadow-lg", "backdrop-blur-md");
+            } else {
+                navbar.classList.remove("bg-gray-900", "bg-opacity-80", "shadow-lg", "backdrop-blur-md");
+            }
+        };
+
+        // Mobile menu toggle
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const mobileMenu = document.getElementById('mobile-menu');
+        mobileMenuButton.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+        });
+        
+        // Close mobile menu when a link is clicked
+        const mobileMenuLinks = mobileMenu.querySelectorAll('a');
+        mobileMenuLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                mobileMenu.classList.add('hidden');
+            });
+        });
+
+
+        // Set current year in footer
+        document.getElementById('currentYear').textContent = new Date().getFullYear();
+    </script>
+
+</body>
+</html>
