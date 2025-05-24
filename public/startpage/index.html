@@ -8,7 +8,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
-        /* Base Dark Theme Variables (can be overridden by light-mode class) */
         :root {
             --bg-color: #121212;
             --text-color: #e0e0e0;
@@ -27,7 +26,7 @@
             --settings-btn-bg: #2a2a2a;
             --settings-btn-text: #ccc;
             --settings-btn-hover-bg: #333;
-            --modal-bg: #1e1e1e; /* For modals like settings and add quick link */
+            --modal-bg: #1e1e1e; 
             --input-bg: #2a2a2a;
             --input-border: #383838;
             --input-text: #e0e0e0;
@@ -41,7 +40,6 @@
             transition: background-color 0.3s, color 0.3s;
         }
 
-        /* Light Theme */
         body.light-mode {
             --bg-color: #f0f2f5;
             --text-color: #1c1e21;
@@ -79,7 +77,7 @@
         .widget-card, .quick-link-card, .news-card {
             background-color: var(--card-bg-color);
             border: 1px solid var(--card-border-color);
-            border-radius: 0.75rem; /* 12px */
+            border-radius: 0.75rem; 
             transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out, background-color 0.3s, border-color 0.3s;
         }
         .widget-card:hover, .quick-link-card:hover, .news-card:hover {
@@ -103,7 +101,6 @@
             background-color: var(--settings-btn-hover-bg);
         }
         
-        /* Text colors that need to adapt */
         .main-heading { color: var(--heading-text-color); }
         .subtle-text { color: var(--secondary-text-color); }
         .accent-text { color: var(--accent-color); }
@@ -114,45 +111,22 @@
         }
         .input-field:focus {
             border-color: var(--accent-color);
-            /* For Tailwind focus:ring utility, you might need to adjust ring color if not inheriting border color */
-             box-shadow: 0 0 0 2px var(--accent-color); /* Custom ring effect */
+            box-shadow: 0 0 0 2px var(--accent-color); 
         }
         .modal-content {
             background-color: var(--modal-bg);
         }
 
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--card-bg-color); }
+        ::-webkit-scrollbar-thumb { background: var(--accent-color); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--accent-color-hover); }
 
-        /* Scrollbar styling */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: var(--card-bg-color); /* Adapts to theme */
-        }
-        ::-webkit-scrollbar-thumb {
-            background: var(--accent-color);
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: var(--accent-color-hover);
-        }
-
-        /* Theme toggle switch */
-        .theme-toggle-dot {
-            transition: transform 0.3s ease-in-out;
-        }
-        body.light-mode .theme-toggle-dot {
-            transform: translateX(1.75rem); /* w-14 h-8, dot w-6 h-6. (14-6)/2 = 4 units. 1 unit = 0.25rem. So 1.75rem is 7 units. */
-        }
-        .theme-toggle-bg {
-            background-color: #4A5568; /* Default for dark */
-        }
-        body.light-mode .theme-toggle-bg {
-            background-color: var(--accent-color); /* Use accent color for light mode 'on' state */
-        }
-        .news-loading-spinner i {
-            color: var(--accent-color);
-        }
+        .theme-toggle-dot { transition: transform 0.3s ease-in-out; }
+        body.light-mode .theme-toggle-dot { transform: translateX(1.75rem); }
+        .theme-toggle-bg { background-color: #4A5568; }
+        body.light-mode .theme-toggle-bg { background-color: var(--accent-color); }
+        .news-loading-spinner i, .weather-loading-spinner i { color: var(--accent-color); }
     </style>
 </head>
 <body class="min-h-screen flex flex-col items-center p-4 sm:p-6 md:p-8">
@@ -186,21 +160,25 @@
 
             <div id="weatherWidget" class="widget-card p-6">
                 <h3 class="text-xl font-semibold mb-3 main-heading">Weather</h3>
-                <div id="weatherContent" class="flex items-center">
-                    <i id="weatherIcon" class="fas fa-spinner fa-spin text-4xl text-yellow-400 mr-4"></i> <div>
+                <div id="weatherLoadingState" class="weather-loading-spinner text-center p-2 subtle-text">
+                    <i class="fas fa-spinner fa-spin text-2xl"></i>
+                    <p>Fetching weather...</p>
+                </div>
+                <div id="weatherContent" class="hidden items-center">
+                    <i id="weatherIcon" class="fas fa-question-circle text-4xl mr-4"></i>
+                    <div>
                         <div id="weatherTemp" class="text-2xl font-bold main-heading">--°C</div>
-                        <div id="weatherCondition" class="subtle-text">Loading...</div>
+                        <div id="weatherCondition" class="subtle-text">Weather Condition</div>
                     </div>
                 </div>
-                 <div id="weatherLocation" class="text-xs subtle-text mt-3">Sunnyvale, CA</div>
-                <p id="weatherError" class="text-xs text-red-500 mt-2 hidden">Could not fetch weather.</p>
+                 <div id="weatherLocation" class="text-xs subtle-text mt-3">Unknown Location</div>
+                <p id="weatherError" class="text-xs text-red-500 mt-2 hidden">Could not fetch weather. Enable location services or try again later.</p>
             </div>
         </section>
 
         <section class="md:col-span-2 lg:col-span-2">
             <h2 class="text-2xl font-semibold mb-4 main-heading">Quick Links</h2>
-            <div id="quickLinksContainer" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-                </div>
+            <div id="quickLinksContainer" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4"></div>
             <button id="addQuickLinkBtn" class="mt-4 w-full quick-link-card p-4 flex items-center justify-center subtle-text hover:text-green-400 transition-colors">
                 <i class="fas fa-plus mr-2"></i> Add Quick Link
             </button>
@@ -209,7 +187,7 @@
         <section class="md:col-span-3 lg:col-span-1 space-y-4 max-h-[70vh] overflow-y-auto pr-2">
             <h2 class="text-2xl font-semibold mb-4 main-heading sticky top-0 bg-opacity-80 backdrop-blur-md py-2 z-10" style="background-color: var(--bg-color);">News Feed</h2>
             <div id="newsFeedContainer" class="space-y-3">
-                <div id="newsLoadingState" class="news-loading-spinner text-center p-4 subtle-text hidden">
+                 <div id="newsLoadingState" class="news-loading-spinner text-center p-4 subtle-text hidden">
                     <i class="fas fa-spinner fa-spin text-2xl"></i>
                     <p>Loading news...</p>
                 </div>
@@ -225,7 +203,6 @@
                 <i class="fas fa-times text-2xl"></i>
             </button>
             <h2 class="text-2xl font-semibold mb-6 main-heading">Settings</h2>
-            
             <div class="mt-6">
                 <label for="themeToggleSwitch" class="flex items-center justify-between cursor-pointer">
                     <span class="main-heading mr-3">Light Mode</span>
@@ -236,7 +213,6 @@
                     </div>
                 </label>
             </div>
-
             <p class="subtle-text mt-4">More customization options will appear here.</p>
              <button id="saveSettingsBtn" class="mt-8 w-full text-white font-semibold py-2 px-4 rounded-lg transition-colors" style="background-color: var(--accent-color);">
                 Save Preferences
@@ -266,7 +242,6 @@
         </div>
     </div>
 
-
     <script>
         // --- Theme Management ---
         const themeToggleSwitch = document.getElementById('themeToggleSwitch');
@@ -280,104 +255,173 @@
                 document.body.classList.remove('light-mode');
                 themeToggleSwitch.checked = false;
             }
-             // Manually update focus ring color for search input as Tailwind's JIT might not pick up CSS var changes for ring color
             const searchInputEl = document.getElementById('searchInput');
             if (searchInputEl) {
                 searchInputEl.style.setProperty('--tw-ring-color', getComputedStyle(document.documentElement).getPropertyValue('--accent-color'));
             }
         }
-
-        function saveTheme(theme) {
-            localStorage.setItem(THEME_STORAGE_KEY, theme);
-        }
-
+        function saveTheme(theme) { localStorage.setItem(THEME_STORAGE_KEY, theme); }
         function loadTheme() {
-            const preferredTheme = localStorage.getItem(THEME_STORAGE_KEY) || 'dark'; // Default to dark
+            const preferredTheme = localStorage.getItem(THEME_STORAGE_KEY) || 'dark';
             applyTheme(preferredTheme);
         }
-
         themeToggleSwitch.addEventListener('change', () => {
             const newTheme = themeToggleSwitch.checked ? 'light' : 'dark';
             applyTheme(newTheme);
             saveTheme(newTheme);
         });
 
-
         // --- Clock Widget ---
         const timeDisplay = document.getElementById('timeDisplay');
         const dateDisplay = document.getElementById('dateDisplay');
-
         function updateClock() {
             const now = new Date();
-            const hours = String(now.getHours()).padStart(2, '0');
-            const minutes = String(now.getMinutes()).padStart(2, '0');
-            const seconds = String(now.getSeconds()).padStart(2, '0');
-            timeDisplay.textContent = `${hours}:${minutes}:${seconds}`;
-
-            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-            dateDisplay.textContent = now.toLocaleDateString(undefined, options);
+            timeDisplay.textContent = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+            dateDisplay.textContent = now.toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
         }
         setInterval(updateClock, 1000);
         
-
         // --- Weather Widget ---
-        const weatherIcon = document.getElementById('weatherIcon');
-        const weatherTemp = document.getElementById('weatherTemp');
-        const weatherCondition = document.getElementById('weatherCondition');
-        const weatherLocationDisplay = document.getElementById('weatherLocation');
-        const weatherError = document.getElementById('weatherError');
-        const WEATHER_STORAGE_KEY = 'lemhandInternet_weather';
-        const WEATHER_CACHE_DURATION = 30 * 60 * 1000; // 30 minutes in milliseconds
+        const weatherWidget = {
+            loadingState: document.getElementById('weatherLoadingState'),
+            content: document.getElementById('weatherContent'),
+            icon: document.getElementById('weatherIcon'),
+            temp: document.getElementById('weatherTemp'),
+            condition: document.getElementById('weatherCondition'),
+            locationDisplay: document.getElementById('weatherLocation'),
+            error: document.getElementById('weatherError'),
+            STORAGE_KEY: 'lemhandInternet_locationWeather',
+            CACHE_DURATION: 30 * 60 * 1000, // 30 minutes
+        };
 
         function renderWeather(data) {
-            weatherTemp.textContent = `${data.temp}°C`;
-            weatherCondition.textContent = data.condition;
-            weatherLocationDisplay.textContent = data.location;
-            weatherIcon.className = `fas ${data.icon} text-4xl mr-4`; 
-            weatherIcon.style.color = data.iconColor || 'var(--accent-color)'; 
-            weatherError.classList.add('hidden');
+            weatherWidget.loadingState.classList.add('hidden');
+            weatherWidget.content.classList.remove('hidden');
+            weatherWidget.content.classList.add('flex'); // Ensure flex is applied
+            weatherWidget.error.classList.add('hidden');
+
+            weatherWidget.temp.textContent = `${Math.round(data.temp)}°C`;
+            weatherWidget.condition.textContent = data.condition;
+            weatherWidget.locationDisplay.textContent = data.locationName;
+            weatherWidget.icon.className = `fas ${data.icon || 'fa-question-circle'} text-4xl mr-4`;
+            weatherWidget.icon.style.color = data.iconColor || 'var(--accent-color)';
+        }
+        
+        function displayWeatherError(message) {
+            weatherWidget.loadingState.classList.add('hidden');
+            weatherWidget.content.classList.add('hidden');
+            weatherWidget.error.textContent = message;
+            weatherWidget.error.classList.remove('hidden');
         }
 
-        async function fetchWeather() {
-            console.log("Fetching new weather data (mocked)...");
-            weatherIcon.className = 'fas fa-spinner fa-spin text-4xl text-yellow-400 mr-4';
-            weatherCondition.textContent = 'Loading...';
-            weatherError.classList.add('hidden');
+        async function fetchWeatherFromGemini(latitude, longitude) {
+            console.log(`Workspaceing weather from Gemini for lat: ${latitude}, lon: ${longitude}`);
+            weatherWidget.loadingState.classList.remove('hidden');
+            weatherWidget.content.classList.add('hidden');
+            weatherWidget.error.classList.add('hidden');
 
-
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            const now = new Date();
+            const prompt = `Generate plausible current weather data for latitude ${latitude.toFixed(2)} and longitude ${longitude.toFixed(2)}. Consider the current Coordinated Universal Time is ${now.toISOString()}. Provide temperature in Celsius, a brief weather condition (e.g., 'Cloudy', 'Sunny', 'Rain'), a descriptive city name or general area, a suitable Font Awesome version 5 icon name (e.g., 'fa-cloud-sun', 'fa-smog', 'fa-bolt'), and a hex color code for the icon. Ensure the output is a valid JSON object matching the schema.`;
+            
+            const payload = {
+                contents: [{ role: "user", parts: [{ text: prompt }] }],
+                generationConfig: {
+                    responseMimeType: "application/json",
+                    responseSchema: {
+                        type: "OBJECT",
+                        properties: {
+                            "temp": { "type": "NUMBER", description: "Temperature in Celsius." },
+                            "condition": { "type": "STRING", description: "Brief weather condition, e.g., 'Partly Cloudy'." },
+                            "locationName": { "type": "STRING", description: "Name of the city or general area." },
+                            "icon": { "type": "STRING", description: "Font Awesome v5 icon name (e.g., 'fa-sun')." },
+                            "iconColor": { "type": "STRING", description: "Hex color code for the icon (e.g., '#FFD700')." }
+                        },
+                        required: ["temp", "condition", "locationName", "icon", "iconColor"]
+                    }
+                }
+            };
+            const apiKey = ""; // Handled by Canvas environment
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
 
             try {
-                const mockData = {
-                    temp: 18, 
-                    condition: "Clear",
-                    location: "Sunnyvale, CA",
-                    icon: "fa-moon", 
-                    iconColor: "#F0E68C", 
-                    timestamp: Date.now()
-                };
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (!response.ok) throw new Error(`API request failed with status ${response.status}: ${await response.text()}`);
                 
-                renderWeather(mockData);
-                localStorage.setItem(WEATHER_STORAGE_KEY, JSON.stringify(mockData));
+                const result = await response.json();
+                if (!result.candidates || !result.candidates[0].content || !result.candidates[0].content.parts[0]) {
+                    throw new Error("Invalid response structure from Gemini API.");
+                }
+                const weatherData = JSON.parse(result.candidates[0].content.parts[0].text);
+                weatherData.latitude = latitude; // Store coords for cache validation
+                weatherData.longitude = longitude;
+
+                renderWeather(weatherData);
+                localStorage.setItem(weatherWidget.STORAGE_KEY, JSON.stringify({ data: weatherData, timestamp: Date.now() }));
+
             } catch (error) {
-                console.error("Error fetching weather:", error);
-                weatherError.classList.remove('hidden');
-                weatherCondition.textContent = 'Error';
-                weatherIcon.className = 'fas fa-exclamation-triangle text-4xl text-red-500 mr-4';
+                console.error("Error fetching weather from Gemini:", error);
+                displayWeatherError("Could not fetch weather data. Please try again later.");
             }
         }
 
-        function loadWeather() {
-            const storedWeather = localStorage.getItem(WEATHER_STORAGE_KEY);
-            if (storedWeather) {
-                const weatherData = JSON.parse(storedWeather);
-                if (Date.now() - weatherData.timestamp < WEATHER_CACHE_DURATION) {
-                    console.log("Using cached weather data.");
-                    renderWeather(weatherData);
-                    return;
-                }
+        function getUserLocationAndFetchWeather() {
+            if (!navigator.geolocation) {
+                displayWeatherError("Geolocation is not supported by your browser.");
+                return;
             }
-            fetchWeather();
+
+            weatherWidget.loadingState.classList.remove('hidden');
+            weatherWidget.content.classList.add('hidden');
+            weatherWidget.error.classList.add('hidden');
+            weatherWidget.locationDisplay.textContent = "Requesting location...";
+
+
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const { latitude, longitude } = position.coords;
+                    // Check if cached data is for the same location and recent
+                    const storedWeatherData = localStorage.getItem(weatherWidget.STORAGE_KEY);
+                    if (storedWeatherData) {
+                        const { data, timestamp } = JSON.parse(storedWeatherData);
+                        const isSameLocation = data.latitude && data.longitude && 
+                                               Math.abs(data.latitude - latitude) < 0.01 && // Tolerance for location comparison
+                                               Math.abs(data.longitude - longitude) < 0.01;
+                        if (isSameLocation && (Date.now() - timestamp < weatherWidget.CACHE_DURATION)) {
+                            console.log("Using cached weather data for current location.");
+                            renderWeather(data);
+                            return;
+                        }
+                    }
+                    fetchWeatherFromGemini(latitude, longitude);
+                },
+                (error) => {
+                    console.error("Error getting geolocation:", error);
+                    let message = "Could not get your location. ";
+                    switch(error.code) {
+                        case error.PERMISSION_DENIED: message += "Location access denied."; break;
+                        case error.POSITION_UNAVAILABLE: message += "Location information is unavailable."; break;
+                        case error.TIMEOUT: message += "Location request timed out."; break;
+                        default: message += "An unknown error occurred."; break;
+                    }
+                    // Try to load any last known cached weather if geolocation fails
+                    const storedWeatherData = localStorage.getItem(weatherWidget.STORAGE_KEY);
+                    if (storedWeatherData) {
+                        const { data, timestamp } = JSON.parse(storedWeatherData);
+                         if (Date.now() - timestamp < weatherWidget.CACHE_DURATION * 2) { // Allow older cache if geo fails
+                            console.warn("Geolocation failed. Using last known cached weather data.");
+                            renderWeather(data);
+                            weatherWidget.locationDisplay.textContent += " (Cached, location update failed)";
+                            return;
+                        }
+                    }
+                    displayWeatherError(message);
+                },
+                { timeout: 10000, maximumAge: 600000, enableHighAccuracy: false } // Options: 10s timeout, 10min maxAge for cached position, low accuracy
+            );
         }
 
 
@@ -389,12 +433,8 @@
             const query = searchInput.value.trim();
             if (query) {
                 let searchUrl;
-                try {
-                    new URL(query); 
-                    searchUrl = query.startsWith('http') ? query : `http://${query}`;
-                } catch (_) {
-                    searchUrl = `https://www.google.com/search?q=${encodeURIComponent(query)}`;
-                }
+                try { new URL(query); searchUrl = query.startsWith('http') ? query : `http://${query}`; } 
+                catch (_) { searchUrl = `https://www.google.com/search?q=${encodeURIComponent(query)}`; }
                 window.location.href = searchUrl; 
             }
         });
@@ -409,103 +449,48 @@
         const defaultQuickLinks = [
             { name: "Google", url: "https://google.com", icon: "fab fa-google" },
             { name: "GitHub", url: "https://github.com", icon: "fab fa-github" },
-            { name: "YouTube", url: "https://youtube.com", icon: "fab fa-youtube" },
         ];
         let quickLinks = [];
-
         function loadQuickLinks() {
             const storedLinks = localStorage.getItem(QUICK_LINKS_STORAGE_KEY);
-            if (storedLinks) {
-                quickLinks = JSON.parse(storedLinks);
-            } else {
-                quickLinks = [...defaultQuickLinks]; 
-                saveQuickLinks(); 
-            }
+            quickLinks = storedLinks ? JSON.parse(storedLinks) : [...defaultQuickLinks];
+            if (!storedLinks) saveQuickLinks();
         }
-
-        function saveQuickLinks() {
-            localStorage.setItem(QUICK_LINKS_STORAGE_KEY, JSON.stringify(quickLinks));
-        }
-
+        function saveQuickLinks() { localStorage.setItem(QUICK_LINKS_STORAGE_KEY, JSON.stringify(quickLinks)); }
         function renderQuickLinks() {
             quickLinksContainer.innerHTML = ''; 
             quickLinks.forEach((link, index) => {
                 const linkElement = document.createElement('a');
-                linkElement.href = link.url;
-                linkElement.target = "_blank"; 
+                linkElement.href = link.url; linkElement.target = "_blank"; 
                 linkElement.className = "quick-link-card relative p-4 flex flex-col items-center justify-center text-center group"; 
-                linkElement.setAttribute('data-index', index);
-
-                const iconContainer = document.createElement('div');
-                iconContainer.className = "quick-link-icon rounded-full flex items-center justify-center mb-2 transition-transform duration-200 group-hover:scale-110";
-                
-                const iconElement = document.createElement('i');
                 const faviconUrl = `https://www.google.com/s2/favicons?domain=${link.url}&sz=32`;
-                iconElement.innerHTML = `<img src="${faviconUrl}" alt="${link.name} favicon" class="w-full h-full rounded-full object-contain" onerror="this.style.display='none'; this.parentElement.innerHTML = '<i class=\\'${link.icon || 'fas fa-link'} text-xl subtle-text\\'></i>';">`;
-                
-                iconContainer.appendChild(iconElement);
-
-                const nameElement = document.createElement('span');
-                nameElement.textContent = link.name;
-                nameElement.className = "text-sm subtle-text group-hover:text-green-400 transition-colors";
-                
-                const removeBtn = document.createElement('button');
-                removeBtn.className = "absolute top-1 right-1 p-1 subtle-text opacity-0 group-hover:opacity-100 hover:text-red-400 transition-opacity duration-200 z-10";
-                removeBtn.innerHTML = '<i class="fas fa-times-circle text-base"></i>'; 
-                removeBtn.title = `Remove ${link.name}`;
-                removeBtn.onclick = (e) => {
-                    e.preventDefault(); 
-                    e.stopPropagation(); 
-                    removeQuickLink(index);
-                };
-                
-                linkElement.appendChild(removeBtn);
-                linkElement.appendChild(iconContainer);
-                linkElement.appendChild(nameElement);
+                linkElement.innerHTML = `
+                    <button class="absolute top-1 right-1 p-1 subtle-text opacity-0 group-hover:opacity-100 hover:text-red-400 transition-opacity duration-200 z-10" title="Remove ${link.name}" data-index="${index}">
+                        <i class="fas fa-times-circle text-base"></i>
+                    </button>
+                    <div class="quick-link-icon rounded-full flex items-center justify-center mb-2 transition-transform duration-200 group-hover:scale-110">
+                        <img src="${faviconUrl}" alt="${link.name}" class="w-full h-full rounded-full object-contain" onerror="this.style.display='none'; this.parentElement.innerHTML = '<i class=\\'${link.icon || 'fas fa-link'} text-xl subtle-text\\'></i>';">
+                    </div>
+                    <span class="text-sm subtle-text group-hover:accent-text transition-colors">${link.name}</span>`;
                 quickLinksContainer.appendChild(linkElement);
             });
+            quickLinksContainer.querySelectorAll('button[data-index]').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault(); e.stopPropagation();
+                    removeQuickLink(parseInt(btn.dataset.index));
+                });
+            });
         }
-        
-        function removeQuickLink(index) {
-            quickLinks.splice(index, 1);
-            saveQuickLinks();
-            renderQuickLinks();
-        }
-
-        addQuickLinkBtn.addEventListener('click', () => {
-            addQuickLinkModal.classList.remove('hidden');
-            quickLinkForm.reset(); 
-            document.getElementById('linkName').focus(); 
-        });
-
-        closeQuickLinkModalBtn.addEventListener('click', () => {
-            addQuickLinkModal.classList.add('hidden');
-        });
-
-        addQuickLinkModal.addEventListener('click', (e) => {
-            if (e.target === addQuickLinkModal) {
-                addQuickLinkModal.classList.add('hidden');
-            }
-        });
-
+        function removeQuickLink(index) { quickLinks.splice(index, 1); saveQuickLinks(); renderQuickLinks(); }
+        addQuickLinkBtn.addEventListener('click', () => { addQuickLinkModal.classList.remove('hidden'); quickLinkForm.reset(); document.getElementById('linkName').focus(); });
+        closeQuickLinkModalBtn.addEventListener('click', () => addQuickLinkModal.classList.add('hidden'));
+        addQuickLinkModal.addEventListener('click', (e) => { if (e.target === addQuickLinkModal) addQuickLinkModal.classList.add('hidden'); });
         quickLinkForm.addEventListener('submit', (e) => {
             e.preventDefault();
             const name = document.getElementById('linkName').value.trim();
-            const urlInput = document.getElementById('linkUrl').value.trim();
-            let url = urlInput;
-            if (url && !url.match(/^https?:\/\//i)) {
-                url = 'http://' + url;
-            }
-
-            if (name && url) {
-                quickLinks.push({ name, url, icon: 'fas fa-link' }); 
-                saveQuickLinks();
-                renderQuickLinks();
-                addQuickLinkModal.classList.add('hidden');
-            } else {
-                if (!name) document.getElementById('linkName').focus();
-                else if (!urlInput) document.getElementById('linkUrl').focus();
-            }
+            let url = document.getElementById('linkUrl').value.trim();
+            if (url && !url.match(/^https?:\/\//i)) url = 'http://' + url;
+            if (name && url) { quickLinks.push({ name, url, icon: 'fas fa-link' }); saveQuickLinks(); renderQuickLinks(); addQuickLinkModal.classList.add('hidden'); }
         });
 
         // --- News Feed (Dynamic with Gemini API) ---
@@ -513,161 +498,87 @@
         const newsLoadingState = document.getElementById('newsLoadingState');
         const newsErrorState = document.getElementById('newsErrorState');
         const NEWS_STORAGE_KEY = 'lemhandInternet_news';
-        const NEWS_CACHE_DURATION = 15 * 60 * 1000; // 15 minutes
+        const NEWS_CACHE_DURATION = 15 * 60 * 1000; 
 
         function displayNews(newsItems) {
-            newsFeedContainer.innerHTML = ''; // Clear previous items or loading state
+            newsFeedContainer.innerHTML = ''; 
             if (!newsItems || newsItems.length === 0) {
-                newsFeedContainer.innerHTML = '<p class="subtle-text text-center">No news to display currently.</p>';
-                return;
+                newsFeedContainer.innerHTML = '<p class="subtle-text text-center">No news to display currently.</p>'; return;
             }
-
             newsItems.forEach(item => {
-                const newsItemElement = document.createElement('a');
-                // For Gemini generated news, we won't have real URLs, so make them non-clickable or link to '#'
-                newsItemElement.href = item.url || "#"; 
-                if (item.url && item.url !== "#") {
-                    newsItemElement.target = "_blank";
-                } else {
-                    newsItemElement.style.cursor = "default";
-                    newsItemElement.onclick = (e) => e.preventDefault();
-                }
-                newsItemElement.className = "news-card block p-4 hover:bg-gray-700 transition-colors group"; 
-
-                newsItemElement.innerHTML = `
-                    <h4 class="text-md font-semibold main-heading mb-1 group-hover:text-green-300 transition-colors">${item.title}</h4>
+                const el = document.createElement('a');
+                el.href = item.url || "#"; 
+                if (item.url && item.url !== "#") el.target = "_blank";
+                else { el.style.cursor = "default"; el.onclick = (e) => e.preventDefault(); }
+                el.className = "news-card block p-4 hover:bg-gray-700 transition-colors group"; 
+                el.innerHTML = `
+                    <h4 class="text-md font-semibold main-heading mb-1 group-hover:accent-text transition-colors">${item.title}</h4>
                     <p class="text-sm subtle-text mb-1">${item.summary || ''}</p>
                     <div class="flex justify-between items-center text-xs">
                         <span class="news-source font-medium">${item.source} - ${item.category || 'General'}</span>
                         <span class="subtle-text">${item.relativeTime}</span>
-                    </div>
-                `;
-                newsFeedContainer.appendChild(newsItemElement);
+                    </div>`;
+                newsFeedContainer.appendChild(el);
             });
         }
         
         async function fetchNewsFromGemini() {
-            console.log("Fetching new news data from Gemini API...");
-            newsLoadingState.classList.remove('hidden');
-            newsErrorState.classList.add('hidden');
-            newsFeedContainer.innerHTML = ''; // Clear out old news during load
-
+            newsLoadingState.classList.remove('hidden'); newsErrorState.classList.add('hidden'); newsFeedContainer.innerHTML = ''; 
             const prompt = "Generate an array of 4 recent-sounding news items for a browser new tab page. Each item should be distinct and cover categories like technology, world news, science, or business. Provide a concise title, a very brief one-sentence summary, a fictional but plausible news source name, a category, and a relative timestamp like '2h ago', 'Just now', 'Yesterday'. Ensure the output is a valid JSON array matching the schema.";
-            
             const payload = {
                 contents: [{ role: "user", parts: [{ text: prompt }] }],
                 generationConfig: {
                     responseMimeType: "application/json",
                     responseSchema: {
-                        type: "ARRAY",
-                        items: {
-                            type: "OBJECT",
-                            properties: {
-                                "title": { "type": "STRING", description: "The headline of the news item." },
-                                "summary": { "type": "STRING", description: "A very brief one-sentence summary." },
-                                "source": { "type": "STRING", description: "A fictional but plausible news source name." },
-                                "category": { "type": "STRING", description: "The category of the news (e.g., Technology, World)." },
-                                "relativeTime": { "type": "STRING", description: "A relative timestamp, e.g., '2h ago'." },
-                                "url": {"type": "STRING", description: "A placeholder URL, e.g., '#news-item-1'"}
-                            },
-                            required: ["title", "summary", "source", "category", "relativeTime", "url"]
+                        type: "ARRAY", items: {
+                            type: "OBJECT", properties: {
+                                "title": { "type": "STRING" }, "summary": { "type": "STRING" },
+                                "source": { "type": "STRING" }, "category": { "type": "STRING" },
+                                "relativeTime": { "type": "STRING" }, "url": {"type": "STRING"}
+                            }, required: ["title", "summary", "source", "category", "relativeTime", "url"]
                         }
                     }
                 }
             };
-
-            const apiKey = "AIzaSyDnJhrLehPNgODff7gS5mQsnpO0mY414wc"; // Empty, will be handled by environment
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
-
+            const apiKey = "AIzaSyDnJhrLehPNgODff7gS5mQsnpO0mY414wc"; const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
             try {
-                const response = await fetch(apiUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-
-                if (!response.ok) {
-                    const errorBody = await response.text();
-                    throw new Error(`API request failed with status ${response.status}: ${errorBody}`);
-                }
-
+                const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                if (!response.ok) throw new Error(`API request failed: ${response.status} ${await response.text()}`);
                 const result = await response.json();
-
-                if (result.candidates && result.candidates.length > 0 &&
-                    result.candidates[0].content && result.candidates[0].content.parts &&
-                    result.candidates[0].content.parts.length > 0) {
-                    
-                    const newsText = result.candidates[0].content.parts[0].text;
-                    const newsItems = JSON.parse(newsText); // Expecting JSON array based on schema
-
-                    // Add a unique URL placeholder if Gemini doesn't provide one that's useful
-                    newsItems.forEach((item, index) => {
-                        if (!item.url || item.url === "#") {
-                            item.url = `#news-item-${Date.now()}-${index}`;
-                        }
-                    });
-
-                    displayNews(newsItems);
-                    localStorage.setItem(NEWS_STORAGE_KEY, JSON.stringify({ items: newsItems, timestamp: Date.now() }));
-                } else {
-                    throw new Error("No valid content received from Gemini API.");
-                }
-            } catch (error) {
-                console.error("Error fetching or parsing news from Gemini:", error);
-                newsErrorState.classList.remove('hidden');
-                newsFeedContainer.innerHTML = ''; // Clear if there was any partial loading
-            } finally {
-                newsLoadingState.classList.add('hidden');
-            }
+                if (!result.candidates?.[0]?.content?.parts?.[0]) throw new Error("Invalid Gemini response structure.");
+                const newsItems = JSON.parse(result.candidates[0].content.parts[0].text);
+                newsItems.forEach((item, i) => { if (!item.url || item.url === "#") item.url = `#news-item-${Date.now()}-${i}`; });
+                displayNews(newsItems);
+                localStorage.setItem(NEWS_STORAGE_KEY, JSON.stringify({ items: newsItems, timestamp: Date.now() }));
+            } catch (error) { console.error("Error fetching news:", error); newsErrorState.classList.remove('hidden'); newsFeedContainer.innerHTML = ''; } 
+            finally { newsLoadingState.classList.add('hidden'); }
         }
-
         function loadNews() {
-            const storedNews = localStorage.getItem(NEWS_STORAGE_KEY);
-            if (storedNews) {
-                const newsData = JSON.parse(storedNews);
-                if (Date.now() - newsData.timestamp < NEWS_CACHE_DURATION) {
-                    console.log("Using cached news data.");
-                    displayNews(newsData.items);
-                    newsLoadingState.classList.add('hidden');
-                    newsErrorState.classList.add('hidden');
-                    return;
-                }
+            const stored = localStorage.getItem(NEWS_STORAGE_KEY);
+            if (stored) {
+                const { items, timestamp } = JSON.parse(stored);
+                if (Date.now() - timestamp < NEWS_CACHE_DURATION) { displayNews(items); return; }
             }
             fetchNewsFromGemini();
         }
-
 
         // --- Settings Panel ---
         const settingsButton = document.getElementById('settingsButton');
         const settingsPanel = document.getElementById('settingsPanel');
         const closeSettingsPanelButton = document.getElementById('closeSettingsPanel');
         const saveSettingsBtn = document.getElementById('saveSettingsBtn');
-
-
-        settingsButton.addEventListener('click', () => {
-            settingsPanel.classList.remove('hidden');
-        });
-        closeSettingsPanelButton.addEventListener('click', () => {
-            settingsPanel.classList.add('hidden');
-        });
-        settingsPanel.addEventListener('click', (e) => {
-            if (e.target === settingsPanel) {
-                settingsPanel.classList.add('hidden');
-            }
-        });
-        saveSettingsBtn.addEventListener('click', () => {
-            console.log("Preferences saved (theme is saved on toggle).");
-            settingsPanel.classList.add('hidden');
-        });
-
+        settingsButton.addEventListener('click', () => settingsPanel.classList.remove('hidden'));
+        closeSettingsPanelButton.addEventListener('click', () => settingsPanel.classList.add('hidden'));
+        settingsPanel.addEventListener('click', (e) => { if (e.target === settingsPanel) settingsPanel.classList.add('hidden'); });
+        saveSettingsBtn.addEventListener('click', () => { settingsPanel.classList.add('hidden'); });
 
         // Initial Renders & Loaders
         loadTheme(); 
         updateClock(); 
-        loadWeather(); 
+        getUserLocationAndFetchWeather(); // Changed from loadWeather()
         loadQuickLinks(); 
         renderQuickLinks();
-        loadNews(); // Changed from renderNewsFeed to loadNews
+        loadNews();
     </script>
 </body>
 </html>
