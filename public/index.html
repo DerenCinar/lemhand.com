@@ -1,45 +1,164 @@
-<!DOCTYPE html>
+\<!DOCTYPE html>
 <html>
 
 <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width" />
-    <title>LemHand</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script> 
-    <script src="app.js" defer="" type="module"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    <link href="style.css" rel="stylesheet" type="text/css" />
+    <title>LemHand - Tech News</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+        <link href="style.css" rel="stylesheet" type="text/css" />
     <link href="bulma.css" rel="stylesheet" type="text/css" /> 
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="mobile-web-app-capable" content="yes" />
-    <link rel="apple-touch-icon" sizes="57x57" href="/apple-icon-57x57.png">
-    <link rel="apple-touch-icon" sizes="60x60" href="/apple-icon-60x60.png">
-    <link rel="apple-touch-icon" sizes="72x72" href="/apple-icon-72x72.png">
-    <link rel="apple-touch-icon" sizes="76x76" href="/apple-icon-76x76.png">
-    <link rel="apple-touch-icon" sizes="114x114" href="/apple-icon-114x114.png">
-    <link rel="apple-touch-icon" sizes="120x120" href="/apple-icon-120x120.png">
-    <link rel="apple-touch-icon" sizes="144x144" href="/apple-icon-144x144.png">
-    <link rel="apple-touch-icon" sizes="152x152" href="/apple-icon-152x152.png">
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-icon-180x180.png">
-    <link rel="icon" type="image/png" sizes="192x192" href="/android-icon-192x192.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-    <link rel="manifest" href="/manifest.json">
-    <meta name="msapplication-TileColor" content="#ffffff">
-    <meta name="msapplication-TileImage" content="/ms-icon-144x144.png">
-    <meta name="theme-color" content="#ffffff">
-    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <script src="app.js" defer="" type="module"></script>
 
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <style>
+        /* Basic styles from previous version, slightly adapted */
+        body {
+            font-family: 'Inter', sans-serif; /* Default font, Times New Roman will be applied specifically */
+            margin: 0;
+            /* background-color: #f4f7f6; */ /* Will be overridden by Tailwind bg-gray-900 */
+        }
+        .header { /* Original header styling from user's full code */
+            background-color: #333; /* Assuming this was intended or defined in style.css */
+            color: white;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 1001; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .header .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: white;
+            text-decoration: none;
+        }
+        .navbar a {
+            color: white;
+            margin-left: 1rem;
+            text-decoration: none;
+            cursor: pointer;
+            padding: 0.5rem 0.75rem;
+            border-radius: 4px;
+            transition: background-color 0.3s ease;
+        }
+        .navbar a:hover {
+            background-color: #555;
+        }
+        .navbar a.has-text-success { /* This class was in user's nav */
+            color: #48c774 !important; /* Bulma success color */
+            /* font-weight: bold; */ /* Original didn't have bold here, but often used with active links */
+        }
+        #menu-icon { /* From user's HTML */
+            display: none; /* Assuming mobile logic is in app.js */
+        }
+        .nav-bg { /* From user's HTML */
+            /* Assuming styles are in style.css */
+        }
+
+        /* Styles for the news section to match original user code */
+        /* .hero.is-danger is a Bulma class */
+        /* .box is a Bulma class */
+        /* .ddw seems to be a custom class, assuming it's for display/layout, not adding specific styles here */
+        
+        .loading-spinner {
+            border: 4px solid #f3f3f3; /* Light grey */
+            border-top: 4px solid #3498db; /* Blue */
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Modal Styles (kept for functionality) */
+        .modal {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        .modal-background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        .modal-content {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px; /* Original box was not rounded, but modal benefits from it */
+            max-width: 700px;
+            width: 100%;
+            position: relative;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .modal-close {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: none;
+            border: none;
+            font-size: 1.8rem;
+            cursor: pointer;
+            color: #777;
+        }
+        .modal-close:hover {
+            color: #333;
+        }
+        .article-content-real-news {
+            line-height: 1.6;
+            color: #333; /* Text color inside modal */
+            margin-bottom: 1.5rem;
+        }
+        .article-source-modal { /* Specific class for modal source */
+            font-size: 0.9em;
+            color: #555;
+            margin-bottom: 0.5rem;
+            font-family: "Times New Roman", Times, serif;
+        }
+        .article-published-modal { /* Specific class for modal published date */
+            font-size: 0.9em;
+            color: #777;
+            margin-bottom: 1.5rem;
+            font-family: "Times New Roman", Times, serif;
+        }
+        .button.is-link-to-source { /* Kept for modal functionality */
+            background-color: #48c774; 
+            color: white;
+        }
+        .button.is-link-to-source:hover {
+            background-color: #3aaa62;
+        }
+
+        /* Ensure Times New Roman is applied where specified inline in original HTML */
+        .font-times { 
+            font-family: "Times New Roman", Times, serif;
+        }
+    </style>
 </head>
 
-<body class="bg-gray-900" id="app" @auth-event="onAuthEvent">
-
-    <header class="header">
-        <p href="#" class="logo">LemHand</p>
-        <i class='bx bx-menu' id="menu-icon"></i>
+<body class="bg-gray-900" id="app"> <header class="header">
+        <p href="#" class="logo">LemHand</p> <i class='bx bx-menu' id="menu-icon"></i>
         <nav class="navbar">
             <a v-on:click="this.currentpage = 'home'" :class="{'has-text-success':currentpage === 'home'}">Home</a>
             <a v-on:click="this.currentpage = 'services'" :class="{'has-text-success':currentpage === 'services'}">Services</a>
@@ -47,135 +166,149 @@
             <a href="search/index.html">Search</a>
             <a v-if="accountStatus" href="lemlog.html">{{ myname }}</a>
             <a v-else v-on:click="">{{ myname }}</a>
-
         </nav>
     </header>
     <div class="nav-bg"></div>
     <br> 
     <br>
     <br>
-    <main v-if="this.currentpage === 'home'">
-    <div class="hero is-info" style="background-color:#e2f0d5">
+    
+    <div style="padding-top: 60px;"> 
+        <main v-if="currentpage === 'home'" class="p-4">
+            <div class="hero is-info" style="background-color:#e2f0d5">
+                <div class="hero-body">
+                    <div class="columns">
+                        <div class="column">
+                            <div class="box">
+                                <h1 class="title" style="color:black">Welcome to the NEW LemHand!</h1>
+                                <h1 class="subtitle is-6" style="color:black">The LemHand website got a redesign!</h1>
+                                <div class="buttons">
+                                    <button class="button is-fullwidth">Learn More</button>
+                                    <button class="button is-fullwidth">Create an Account</button>
+                                    <button class="button is-fullwidth">Help Center</button>
+                                    <div class="relative inline-flex ddw" v-if="availableArticlesCount > 0"> <button @click="setCurrentPage('news')" class="button is-fullwidth is-danger" style="background-color:#399351">New Articles available</button>
+                                        <span class="absolute top-0.5 right-0.5 grid min-h-[24px] min-w-[24px] translate-x-2/4 -translate-y-2/4 place-items-center rounded-full bg-red-600 py-1 px-1 text-xs text-white">
+                                            {{availableArticlesCount}}
+                                        </span>
+                                    </div>
+                                    <div class="relative inline-flex ddw" v-else>
+                                        <button @click="setCurrentPage('news')" class="button is-fullwidth is-danger" style="background-color:#399351">Woo Hoo! All Articles Finished</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="column">
+                            <div class="box">
+                                 <h1 class="title" style="color:black">LemHand Services</h1>
+                                 <h1 class="subtitle is-6" style="color:black">Other Websites that are owned by LemHand</h1>
+                                 <div class="buttons">
+                                     <a class="button is-fullwidth" href="https://quizzy-online.web.app">Quizzy</a>
+                                     <a class="button is-fullwidth" href="#">Web Browser</a> <a class="button is-fullwidth" href="https://buyouiu.web.app">Oui U</a>
+                                     <a class="button is-fullwidth" @click="setCurrentPage('lemhandemployees')">LemHand Employee Portal</a>
+                                 </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
 
-        <div class="hero-body">
-            <div class="columns">
-                <div class="column">
+        <main v-if="currentpage === 'lemhandemployees'" class="p-4">
+             <div class="hero is-primary">
+                <div class="hero-body"> 
                     <div class="box">
-                        <h1 class="title" style="color:black">Welcome to the NEW LemHand!</h1>
-                        <h1 class="subtitle is-6" style="color:black">The LemHand website got a redesign!</h1>
+                        <h1 class="title" style="color:black">Log In</h1>
+                        <h1 class="subtitle is-6" style="color:black">Please enter your LemConnect credentials</h1>
+                        <div class="form">
+                            <div class="field">
+                                <label class="label">Name</label>
+                                <div class="control">
+                                  <input :class="{ 'is-danger': lheErrorName}"  v-model="lheName" class="input" type="text" placeholder="Type Here">
+                                </div>
+                                <p v-if="lheErrorName" class="help is-danger">Please enter a name</p>
+                            </div>
+                            <div class="field">
+                                <label class="label">Access Code</label>
+                                <div class="control">
+                                  <input :class="{ 'is-danger': lheErrorMessage}" v-model="lheCodeInput" class="input" type="text" placeholder="Type Here">
+                                </div>
+                                <p v-if="lheErrorMessage" class="help is-danger">This access code is invalid</p>
+                            </div>                        
+                            <div class="buttons">
+                                <button class="button is-fullwidth is-outlined is-success" @click="lheLogin()">Log In</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div> 
+        </main>
+
+        <main v-if="currentpage === 'lhe'" class="p-4">
+            <div class="hero is-warning">
+                <div class="hero-body">
+                    <div class="box">
+                        <h1 class="title" style="color:black">LemHand Employee Portal</h1>
+                        <h1 class="subtitle is-6" style="color:black">{{'Hello There! You are logged in as ' + lheNameDisplay }}</h1>
                         <div class="buttons">
                             <button class="button is-fullwidth">Learn More</button>
                             <button class="button is-fullwidth">Create an Account</button>
                             <button class="button is-fullwidth">Help Center</button>
-                            
-                                <div class="relative inline-flex ddw" v-if="availbleArticles > 0">
-                                    <button v-on:click="this.currentpage = 'news'" class="button is-fullwidth is-danger" style="background-color:#399351">New Articles avalible</button>
-                                    <span
-                                        class="absolute top-0.5 right-0.5 grid min-h-[24px] min-w-[24px] translate-x-2/4 -translate-y-2/4 place-items-center rounded-full bg-red-600 py-1 px-1 text-xs text-white">
-                                        {{availbleArticles}}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <main v-if="currentpage === 'news'">
+            <div class="hero is-danger"> <div class="hero-body">
+                    <div class="box"> <h1 class="title has-text-centered" style='color:black; font-family: "Times New Roman", Times, serif;'>The LemHand Times</h1> <h1 class="subtitle is-6 has-text-centered" style="color:black; font-family: 'Times New Roman', Times, serif;"> The latest news about LemHand </h1> <div class="field has-addons has-addons-centered my-5"> <div class="control">
+                                <button @click="fetchRealNews" class="button is-link is-medium rounded-md" :disabled="isLoadingNews"> <span class="icon is-small" v-if="!isLoadingNews">
+                                        <i class="bx bx-chip"></i> 
                                     </span>
-                                </div>
-                                <div class="relative inline-flex ddw" v-else>
-                                    <button v-on:click="this.currentpage = 'news'" class="button is-fullwidth is-danger" style="background-color:#399351">Woo Hoo! All Articles Finished</button>
-                                    
-                                </div>
+                                    <span>{{ isLoadingNews ? 'Fetching...' : 'Fetch Latest Tech News' }}</span>
+                                </button>
+                            </div>
                         </div>
-                    </div>
-                </div>
-                <div class="column">
-                    <div class="box">
-                        <h1 class="title" style="color:black">LemHand Services</h1>
-                        <h1 class="subtitle is-6" style="color:black">Other Websites that are owned by LemHand</h1>
-                        <div class="buttons">
-                            <a class="button is-fullwidth" href="https://quizzy-online.web.app">Quizzy</a>
-                            <a class="button is-fullwidth" href="">Web Bowser</a>
-                            <a class="button is-fullwidth" href="https://buyouiu.web.app">Oui U</a>
-                            <a class="button is-fullwidth" v-on:click="this.currentpage = 'lemhandemployees'">LemHand Employee Portal</a>
+                        
+                        <div v-if="isLoadingNews" class="loading-spinner"></div>
+                        
+                        <div v-if="newsError" class="notification is-warning is-light p-3 rounded-md mb-4"> <button class="delete" @click="newsError = ''"></button>
+                            Error fetching news: {{ newsError }}
                         </div>
-                    </div>
-                </div>
 
+                        <div v-if="!articles.length && !isLoadingNews && !newsError" class="has-text-centered p-5 text-white"> <p>Click "Fetch Latest Tech News" to see headlines!</p>
+                        </div>
+
+                        <ul v-for="article in articles" class="ddw" :key="article.url || article.title">
+                            <li class="ddw">
+                            <div class="ddw mb-4 box is-white"> <h1 class="title is-4" style='color:black; font-family: "Times New Roman", Times, serif;'>{{article.title}}</h1>
+                                <h1 class="subtitle is-6" style='color:black; font-family: "Times New Roman", Times, serif;'>{{article.snippet}}</h1> 
+                                <button @click="openArticleModal(article)" class="button is-fullwidth is-outlined is-success">Read Article</button>
+                            </div>
+                            </li> 
+                        </ul>
+                    </div>
+                </div>
             </div>
+        </main>
+    </div>
+
+    <div v-if="showArticleModal" class="modal is-active">
+        <div class="modal-background" @click="closeArticleModal"></div>
+        <div class="modal-content box p-6"> <button class="modal-close is-large" aria-label="close" @click="closeArticleModal">&times;</button>
+            <h2 class="title is-3 mb-2" style='color:black; font-family: "Times New Roman", Times, serif;'>{{ selectedArticle.title }}</h2>
+            <p v-if="selectedArticle.source" class="article-source-modal">Source: {{ selectedArticle.source }}</p>
+            <p v-if="selectedArticle.published" class="article-published-modal">Published: {{ selectedArticle.published }}</p>
+            <div class="content article-content-real-news" style='font-family: "Times New Roman", Times, serif; color:black;'>
+                <p>{{ selectedArticle.snippet }}</p> </div>
+            <a :href="selectedArticle.url" target="_blank" rel="noopener noreferrer" class="button is-link-to-source is-fullwidth rounded-md">
+                <span class="icon is-small mr-2">
+                    <i class="bx bx-link-external"></i>
+                </span>
+                Read Full Article at Source
+            </a>
         </div>
     </div>
-</main>
-<main v-if="this.currentpage === 'lemhandemployees'">
-    <div class="hero is-primary">
-
-        <div class="hero-body"> 
-            <div class="box">
-                <h1 class="title" style="color:black">Log In</h1>
-                <h1 class="subtitle is-6" style="color:black">Please enter your LemConnect credentials</h1>
-                <div class="form">
-                    <div class="field">
-                        <label class="label">Name</label>
-                        <div class="control">
-                          <input :class="{ 'is-danger': lheErrorName}"  v-model="lheName" class="input" type="text" placeholder="Type Here">
-                        </div>
-                        <p v-if="lheErrorName" class="help is-danger">Please enter a name</p>
-                    </div>
-                    
-                    <div class="field">
-                        <label class="label">Access Code</label>
-                        <div class="control">
-                          <input :class="{ 'is-danger': lheErrorMessage}" v-model="lheCodeInput" class="input" type="text" placeholder="Type Here">
-                        </div>
-                        <p v-if="lheErrorMessage" class="help is-danger">This access code is invalid</p>
-                    </div>                        
-                    <div class="buttons">
-                        <button class="button is-fullwidth is-outlined is-success" v-on:click="lheLogin()">Log In</button>
-                    </div>
-                    
-                </div>
-                
-            </div>
-    </div> 
-</main>
-<main v-if="this.currentpage === 'lhe'">
-    <div class="hero is-warning">
-
-        <div class="hero-body">
-            <div class="box">
-                <h1 class="title" style="color:black">LemHand Employee Portal</h1>
-                <h1 class="subtitle is-6" style="color:black">{{'Hello There! You are logged in as ' + this.lheName}} 
-                </h1>
-
-
-                <div class="buttons">
-                    <button class="button is-fullwidth">Learn More</button>
-                    <button class="button is-fullwidth">Create an Account</button>
-                    <button class="button is-fullwidth">Help Center</button>
-                </div>
-            </div>
-        </div>
-    </div>
-</main>
-<main v-if="this.currentpage === 'news'">
-    <div class="hero is-danger">
-
-        <div class="hero-body">
-            <div class="box">
-                <h1 class="title has-text-centered" style='color:black; font-family: "Times New Roman"'>The LemHand Times</h1>
-                <h1 class="subtitle is-6 has-text-centered" style="color:black"> The latest news about LemHand
-                </h1>
-        
-                <ul v-for="article in articles" class="ddw">
-                    <li class="ddw">
-                    <div class="ddw mb-4 box is-white">
-                        <h1 class="title is-4" style='color:black; font-family: "Times New Roman"'>{{article.title}}</h1>
-                        <h1 class="subtitle is-6" style='color:black; font-family: "Times New Roman"'>{{article.subtitle}}</h1>
-                        <button v-on:click="resetCount()" class="button is-fullwidth is-outlined is-success">Read Article</button>
-                    </div>
-                    </li> 
-                </ul>
-            </div>
-        </div>
-    </div>
-</main>
-
-
 
 </body>
-
-
 </html>
