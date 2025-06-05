@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Crystal Strike - Block Towers (No Crystals)</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: 'Arial', sans-serif;
+            background-color: #111;
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+        #controls-info {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            padding: 10px;
+            background-color: rgba(0,0,0,0.7);
+            border-radius: 8px;
+            font-size: 14px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
+        #score-info {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 10px;
+            background-color: rgba(0,0,0,0.7);
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
+        #message-box {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 25px;
+            background-color: rgba(0,120,200,0.85);
+            border: 3px solid #fff;
+            border-radius: 12px;
+            font-size: 26px;
+            text-align: center;
+            display: none; /* Hidden by default */
+            z-index: 100;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.4);
+        }
+    </style>
+</head>
+<body>
+    <div id="controls-info">
+        Controls:<br>
+        Arrow Up: Pitch Down<br>
+        Arrow Down: Pitch Up<br>
+        Arrow Left: Yaw Left<br>
+        Arrow Right: Yaw Right<br>
+        W: Increase Speed<br>
+        S: Decrease Speed<br>
+        A/D: Roll (Optional)
+    </div>
+    <div id="score-info">Score: 0</div>
+    <div id="message-box"></div>
+    <script>
+        // --- Global Variables ---
+        let scene, camera, renderer;
+        let plane, planeCollider;
+        let towers = [];
+        let particles = [];
+        let score = 0;
+        const planeSpeedBase = 0.8;
+        let planeSpeedMultiplier = 0.0; // Plane starts stationary
+        const maxPlaneSpeedMultiplier = 2.0;
+        const minPlaneSpeedMultiplier = 0.5; 
+
+        const keys = {}; // To store keyboard state
+        const clock = new THREE.Clock(); 
+
+        // --- Sound Synthesis (Tone.js) ---
+        const synth = new Tone.Synth().toDestination();
+        const explosionSynth = new Tone.NoiseSynth({
+            noise: { type: "white" },
+            envelope: { attack: 0.005, decay: 0.1, sustain: 0 }
+        }).toDestination();
+        explosionSynth.volume.value = -10;
+
+        const towerCollapseSound = new Tone.NoiseSynth({
+            noise: { type: "brown" }, 
+            envelope: { attack: 0.1, decay: 1.5, sustain: 0.1, release: 0.5 }
+        }).toDestination();
+        towerCollapseSound.volume.value = -8;
+
+
+        const towerHitSound = () => { 
+            explosionSynth.triggerAttackRelease("8n", Tone.now()); 
+            const tonalSynth = new Tone.MembraneSynth().toDestination();
+            tonalSynth.triggerAttackRelease("C2", "8n", Tone.now());
+        };
+
+        const gameWinSound = () => {
+            const winSynth = new Tone.PolySynth(Tone.Synth).toDestination();
+            winSynth.triggerAttackRelease(["C4", "E4", "G4", "C5"], "1n");
+        }
+
+        // --- Initialization ---
+        function init() {
+            scene = new THREE.Scene();
+            scene.fog = new THREE.Fog(0x1a233a, 150, 1000); 
+
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1200); 
+            camera.position.set(0, 25, 260); 
+
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap; 
+            document.body.appendChild(renderer.domElement);
+
+            const ambientLight = new THREE.AmbientLight(0x505070); 
+            scene.add(ambientLight);
+
+            const directionalLight = new THREE.DirectionalLight(0xffeedd, 0.9); 
+            directionalLight.position.set(70, 120, 90);
+            directionalLight.castShadow = true;
+            directionalLight.shadow.mapSize.width = 2048; 
+            directionalLight.shadow.mapSize.height = 2048;
+            directionalLight.shadow.camera.near = 50;
+            directionalLight.shadow.camera.far = 800; 
+            directionalLight.shadow.camera.left = -200;
+            directionalLight.shadow.camera.right = 200;
+            directionalLight.shadow.camera.top = 200;
+            directionalLight.shadow.camera.bottom = -200;
+            scene.add(directionalLight);
+
+            const groundGeometry = new THREE.PlaneGeometry(1600, 1600); 
+            const groundMaterial = new THREE.MeshStandardMaterial({ color: 0x2a3a2a, roughness: 0.9, metalness: 0.1 }); 
+            const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+            ground.rotation.x = -Math.PI / 2;
+            ground.receiveShadow = true;
+            scene.add(ground);
+
+            const skyGeometry = new THREE.SphereGeometry(1000, 32, 15); 
+            const skyMaterial = new THREE.ShaderMaterial({
+                uniforms: {
+                    topColor: { value: new THREE.Color(0x3a4f7f) }, 
+                    bottomColor: { value: new THREE.Color(0x080b1f) }, 
+                    offset: { value: 33 },
+                    exponent: { value: 0.7 }
+                },
+                vertexShader: `
+                    varying vec3 vWorldPosition;
+                    void main() {
+                        vec4 worldPosition = modelMatrix * vec4( position, 1.0 );
+                        vWorldPosition = worldPosition.xyz;
+                        gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+                    }
+                `,
+                fragmentShader: `
+                    uniform vec3 topColor;
+                    uniform vec3 bottomColor;
+                    uniform float offset;
+                    uniform float exponent;
+                    varying vec3 vWorldPosition;
+                    void main() {
+                        float h = normalize( vWorldPosition + offset ).y;
+                        gl_FragColor = vec4( mix( bottomColor, topColor, max( pow( max( h , 0.0), exponent ), 0.0 ) ), 1.0 );
+                    }
+                `,
+                side: THREE.BackSide
+            });
+            const sky = new THREE.Mesh(skyGeometry, skyMaterial);
+            scene.add(sky);
+
+            createPlane();
+            createTowers(2); 
+            displayStartMessage(); 
+
+            window.addEventListener('resize', onWindowResize, false);
+            document.addEventListener('keydown', onKeyDown);
+            document.addEventListener('keyup', onKeyUp);
+
+            animate();
+        }
+
+        // --- Plane Creation (Commercial Airplane Style) ---
+        function createPlane() {
+            const planeGroup = new THREE.Group();
+            const fuselageColor = 0xC0C0C0; 
+            const wingColor = 0xcccccc;
+
+            // Fuselage (main body)
+            const fuselageGeometry = new THREE.CylinderGeometry(1.5, 1.8, 18, 16); 
+            const fuselageMaterial = new THREE.MeshStandardMaterial({ color: fuselageColor, roughness: 0.3, metalness: 0.5 });
+            const fuselage = new THREE.Mesh(fuselageGeometry, fuselageMaterial);
+            fuselage.rotation.x = Math.PI / 2; 
+            fuselage.castShadow = true;
+            planeGroup.add(fuselage);
+
+            // Nose Cone
+            const noseGeometry = new THREE.SphereGeometry(1.5, 16, 8, 0, Math.PI * 2, 0, Math.PI / 2); 
+            const nose = new THREE.Mesh(noseGeometry, fuselageMaterial); 
+            nose.position.z = 9; 
+            nose.rotation.x = Math.PI / 2;
+            fuselage.add(nose); 
+
+            // Cockpit (simple box approximation)
+            const cockpitGeometry = new THREE.BoxGeometry(2, 1.5, 3);
+            const cockpit = new THREE.Mesh(cockpitGeometry, fuselageMaterial);
+            cockpit.position.set(0, 0.6, 7); 
+            fuselage.add(cockpit);
+
+
+            // Main Wings
+            const wingShape = new THREE.Shape();
+            wingShape.moveTo(0, 0.5);
+            wingShape.lineTo(0, -0.5);
+            wingShape.lineTo(12, -1.5); 
+            wingShape.lineTo(12.5, 0);  
+            wingShape.lineTo(10, 1.5); 
+            wingShape.lineTo(0, 0.5);
+
+            const extrudeSettings = { depth: 0.3, bevelEnabled: false };
+            const wingGeometry = new THREE.ExtrudeGeometry(wingShape, extrudeSettings);
+            const wingMaterial = new THREE.MeshStandardMaterial({ color: wingColor, roughness: 0.4, metalness: 0.3 });
+
+            const leftWing = new THREE.Mesh(wingGeometry, wingMaterial);
+            leftWing.rotation.set(0, Math.PI/2, 0); 
+            leftWing.position.set(-0.2, 0, 0); 
+            leftWing.castShadow = true;
+            planeGroup.add(leftWing);
+
+            const rightWing = new THREE.Mesh(wingGeometry, wingMaterial);
+            rightWing.rotation.set(0, -Math.PI/2, 0); 
+            rightWing.scale.z = -1; 
+            rightWing.position.set(0.2, 0, 0); 
+            rightWing.castShadow = true;
+            planeGroup.add(rightWing);
+            
+            // Engines (simple cylinders under wings)
+            const engineGeometry = new THREE.CylinderGeometry(0.6, 0.5, 3, 12);
+            const engineMaterial = new THREE.MeshStandardMaterial({ color: 0x555555, roughness: 0.2, metalness: 0.7 });
+
+            const leftEngine = new THREE.Mesh(engineGeometry, engineMaterial);
+            leftEngine.rotation.x = Math.PI / 2;
+            leftEngine.position.set(-4, -0.2, 0); // MODIFIED: Raised Y position to connect more with wing
+            leftEngine.castShadow = true;
+            planeGroup.add(leftEngine);
+
+            const rightEngine = new THREE.Mesh(engineGeometry, engineMaterial);
+            rightEngine.rotation.x = Math.PI / 2;
+            rightEngine.position.set(4, -0.2, 0); // MODIFIED: Raised Y position to connect more with wing
+            rightEngine.castShadow = true;
+            planeGroup.add(rightEngine);
+
+
+            // Tail Fin (Vertical Stabilizer)
+            const tailFinGeometry = new THREE.BoxGeometry(0.3, 4, 2.5);
+            const tailFin = new THREE.Mesh(tailFinGeometry, wingMaterial); 
+            tailFin.position.set(0, 1.8, -7.5); 
+            tailFin.rotation.y = Math.PI; 
+            tailFin.castShadow = true;
+            planeGroup.add(tailFin);
+
+            // Horizontal Stabilizers (Tail Wings)
+            const hStabGeometry = new THREE.BoxGeometry(5, 0.2, 1.8);
+            const leftHStab = new THREE.Mesh(hStabGeometry, wingMaterial);
+            leftHStab.position.set(-2.5, 0.5, -8); 
+            leftHStab.castShadow = true;
+            planeGroup.add(leftHStab);
+
+            const rightHStab = new THREE.Mesh(hStabGeometry, wingMaterial);
+            rightHStab.position.set(2.5, 0.5, -8);
+            rightHStab.castShadow = true;
+            planeGroup.add(rightHStab);
+
+
+            plane = planeGroup;
+            plane.position.set(0, 40, 200); 
+            scene.add(plane);
+
+            const colliderRadius = 9; 
+            const colliderGeometry = new THREE.SphereGeometry(colliderRadius, 8, 8);
+            const colliderMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00, wireframe: true, visible: false });
+            planeCollider = new THREE.Mesh(colliderGeometry, colliderMaterial);
+        }
+
+        // --- Tower Creation (Rectangular - No Crystals) ---
+        function createTowers(numTowers) {
+            const towerWidth = 10; 
+            const towerDepth = 10;
+            const towerHeight = 90; 
+
+            const baseDistanceFromSpawnZ = -600; 
+            const spacingX = 25; 
+
+            for (let i = 0; i < numTowers; i++) {
+                const towerGroup = new THREE.Group();
+
+                const towerGeometry = new THREE.BoxGeometry(towerWidth, towerHeight, towerDepth);
+                towerGeometry.computeBoundingBox(); 
+                const towerMaterial = new THREE.MeshStandardMaterial({ 
+                    color: 0x555565, 
+                    roughness: 0.85, 
+                    metalness: 0.05 
+                });
+                const towerMesh = new THREE.Mesh(towerGeometry, towerMaterial);
+                towerMesh.position.y = towerHeight / 2; 
+                towerMesh.castShadow = true;
+                towerMesh.receiveShadow = true;
+                towerGroup.add(towerMesh);
+
+                let towerXPosition;
+                if (numTowers === 1) {
+                    towerXPosition = 0; 
+                } else {
+                    towerXPosition = (i - (numTowers - 1) / 2) * spacingX;
+                }
+                towerGroup.position.set(towerXPosition, 0, baseDistanceFromSpawnZ);
+                
+                towerGroup.userData = { 
+                    towerMesh: towerMesh, 
+                    towerMeshLocalBox: new THREE.Box3().copy(towerMesh.geometry.boundingBox), 
+                    destroyed: false, 
+                    isCollapsing: false, 
+                    collapseProgress: 0,
+                    scoreAwarded: false,
+                    collapseAxis: Math.random() > 0.5 ? new THREE.Vector3(1,0,0) : new THREE.Vector3(0,0,1), 
+                    collapseAngle: (Math.random() - 0.5) * 0.3 
+                };
+
+                towers.push(towerGroup);
+                scene.add(towerGroup);
+            }
+        }
+
+        // --- Event Handlers ---
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        function onKeyDown(event) {
+            keys[event.code] = true;
+            if (Tone.context.state !== 'running') {
+                Tone.start();
+            }
+            if (event.code === 'KeyW') {
+                const messageBox = document.getElementById('message-box');
+                if (messageBox.style.display === 'block' && messageBox.textContent.includes("Start Engine")) {
+                    messageBox.style.display = 'none';
+                }
+            }
+        }
+
+        function onKeyUp(event) {
+            keys[event.code] = false;
+        }
+
+        // --- Plane Controls ---
+        function updatePlaneControls() {
+            const rotationSpeed = 0.022; 
+            const pitchSpeed = 0.018;
+            const speedAdjustRate = 0.025;
+
+            if (keys['ArrowLeft']) plane.rotation.y += rotationSpeed;
+            if (keys['ArrowRight']) plane.rotation.y -= rotationSpeed;
+            if (keys['ArrowUp']) plane.rotation.x += pitchSpeed;
+            if (keys['ArrowDown']) plane.rotation.x -= pitchSpeed;
+            
+            plane.rotation.x = Math.max(-Math.PI / 2.2, Math.min(Math.PI / 2.2, plane.rotation.x));
+
+            if (keys['KeyA']) plane.rotation.z += rotationSpeed;
+            if (keys['KeyD']) plane.rotation.z -= rotationSpeed;
+            plane.rotation.z *= 0.93; 
+
+            if (keys['KeyW']) {
+                 planeSpeedMultiplier = Math.min(maxPlaneSpeedMultiplier, planeSpeedMultiplier + speedAdjustRate);
+                 if (planeSpeedMultiplier < 0.01 && speedAdjustRate > 0) { 
+                    planeSpeedMultiplier = Math.max(0.1, speedAdjustRate); 
+                 }
+            }
+            if (keys['KeyS']) {
+                planeSpeedMultiplier = Math.max(0, planeSpeedMultiplier - speedAdjustRate); 
+            }
+            
+            if (planeSpeedMultiplier > 0.001) {
+                const direction = new THREE.Vector3();
+                plane.getWorldDirection(direction);
+                plane.position.addScaledVector(direction, planeSpeedBase * planeSpeedMultiplier);
+            }
+
+
+            if(planeCollider && plane) {
+                plane.getWorldPosition(planeCollider.position);
+            }
+        }
+
+        // --- Collision Detection ---
+        function checkCollisions() {
+            if (!planeCollider || !plane) return;
+
+            const planeBoundingSphere = new THREE.Sphere(planeCollider.position, planeCollider.geometry.parameters.radius);
+
+            towers.forEach(tower => {
+                if (tower.userData.scoreAwarded || tower.userData.collapseProgress >= 1) {
+                    return; 
+                }
+
+                if (tower.userData.towerMesh) {
+                    const towerMesh = tower.userData.towerMesh;
+                    const currentTowerBox = new THREE.Box3().copy(tower.userData.towerMeshLocalBox).applyMatrix4(towerMesh.matrixWorld);
+
+                    if (planeBoundingSphere.intersectsBox(currentTowerBox)) {
+                        const towerCenter = new THREE.Vector3();
+                        towerMesh.getWorldPosition(towerCenter); 
+                        initiateTowerDestruction(tower, towerCenter.clone());
+                    }
+                }
+            });
+        }
+        
+        // --- Tower Destruction Logic ---
+        function initiateTowerDestruction(tower, explosionPosition) {
+            if (tower.userData.scoreAwarded) {
+                return; 
+            }
+
+            createExplosion(explosionPosition); 
+            towerHitSound(); 
+
+            score++;
+            updateScoreDisplay();
+            tower.userData.scoreAwarded = true; 
+            tower.userData.destroyed = true;    
+            
+            if (!tower.userData.isCollapsing) { 
+                tower.userData.isCollapsing = true;
+                tower.userData.collapseProgress = 0; 
+                towerCollapseSound.triggerAttackRelease("1.5s", Tone.now() + 0.1); 
+            }
+        }
+        
+        // --- Tower Collapse Animation ---
+        function updateCollapsingTowers(deltaTime) {
+            let anyTowerStillCollapsing = false;
+            towers.forEach(tower => {
+                if (tower.userData.isCollapsing && tower.userData.collapseProgress < 1) {
+                    anyTowerStillCollapsing = true;
+                    tower.userData.collapseProgress += deltaTime * 0.4; 
+                    tower.userData.collapseProgress = Math.min(tower.userData.collapseProgress, 1); 
+
+                    const _totalRotation = -Math.PI / 2 + tower.userData.collapseAngle; 
+                    tower.quaternion.setFromAxisAngle(tower.userData.collapseAxis, _totalRotation * tower.userData.collapseProgress);
+                    
+                    if (tower.userData.towerMesh && tower.userData.towerMesh.geometry) { 
+                        tower.position.y = - (tower.userData.towerMesh.geometry.parameters.height / 2) * tower.userData.collapseProgress * Math.sin(Math.PI/2 * tower.userData.collapseProgress) ;
+                    }
+
+                    if (tower.userData.collapseProgress >= 1) {
+                        tower.userData.isCollapsing = false; 
+                    }
+                } else if (tower.userData.isCollapsing && tower.userData.collapseProgress >=1) {
+                    tower.userData.isCollapsing = false;
+                }
+            });
+            if (!anyTowerStillCollapsing) {
+                 checkGameWinState();
+            }
+        }
+
+        // --- Game Win State Check ---
+        function checkGameWinState() {
+            if (gameWonDisplayed) return; 
+
+            const allScoresAwarded = towers.every(t => t.userData.scoreAwarded);
+            if (!allScoresAwarded) return; 
+
+            const noTowersActivelyCollapsing = !towers.some(t => t.userData.isCollapsing && tower.userData.collapseProgress < 1);
+
+            if (allScoresAwarded && noTowersActivelyCollapsing) {
+                displayGameWinMessage();
+                gameWinSound();
+            }
+        }
+
+
+        function createExplosion(position) {
+            const particleCount = 150; 
+            const particleMaterial = new THREE.PointsMaterial({
+                color: 0xff33cc, 
+                size: 0.7,
+                transparent: true,
+                opacity: 0.9,
+                blending: THREE.AdditiveBlending,
+                depthWrite: false 
+            });
+
+            const tempParticles = []; 
+            for (let i = 0; i < particleCount; i++) {
+                const particleGeometry = new THREE.BufferGeometry();
+                particleGeometry.setAttribute('position', new THREE.Float32BufferAttribute([0,0,0], 3));
+                const particle = new THREE.Points(particleGeometry, particleMaterial.clone()); 
+                particle.position.copy(position);
+                particle.userData = {
+                    velocity: new THREE.Vector3(
+                        (Math.random() - 0.5) * 1.5, 
+                        (Math.random() - 0.5) * 1.5,
+                        (Math.random() - 0.5) * 1.5
+                    ),
+                    life: 0.8 + Math.random() * 0.4 
+                };
+                scene.add(particle);
+                tempParticles.push(particle);
+            }
+            particles.push(...tempParticles); 
+        }
+
+        function updateExplosions(deltaTime) {
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const particle = particles[i];
+                particle.position.addScaledVector(particle.userData.velocity, deltaTime * 25); 
+                particle.userData.life -= deltaTime;
+                particle.userData.velocity.y -= deltaTime * 0.5; 
+
+                if (particle.material.opacity > 0) { 
+                     particle.material.opacity -= deltaTime * 1.2; 
+                }
+
+                if (particle.userData.life <= 0 || particle.material.opacity <= 0) {
+                    scene.remove(particle);
+                    if(particle.geometry) particle.geometry.dispose(); 
+                    if(particle.material && typeof particle.material.dispose === 'function') particle.material.dispose(); 
+                    particles.splice(i, 1);
+                }
+            }
+        }
+
+        // --- HUD Updates ---
+        function updateScoreDisplay() {
+            const scoreElement = document.getElementById('score-info');
+            if (scoreElement) scoreElement.textContent = `Score: ${score}`;
+        }
+        
+        function displayStartMessage() {
+            const messageBox = document.getElementById('message-box');
+            if (messageBox) {
+                messageBox.textContent = "Press 'W' to Start Engine / Accelerate!";
+                messageBox.style.display = 'block';
+            }
+        }
+
+        let gameWonDisplayed = false; 
+        function displayGameWinMessage() {
+            if (gameWonDisplayed) return; 
+            const messageBox = document.getElementById('message-box');
+            if (messageBox) { 
+                messageBox.textContent = `ALL TOWERS DESTROYED! YOU WON! Score: ${score}`;
+                messageBox.style.display = 'block'; 
+                gameWonDisplayed = true; 
+            }
+        }
+        
+        // --- Camera Logic ---
+        function updateCamera() {
+            if (!plane) return;
+            const relativeCameraOffset = new THREE.Vector3(0, 8, -25); 
+            const cameraOffset = relativeCameraOffset.applyMatrix4(plane.matrixWorld);
+            camera.position.lerp(cameraOffset, 0.08); 
+            
+            const lookAtPosition = new THREE.Vector3(0, 2.5, 20); 
+            const lookAtTarget = lookAtPosition.applyMatrix4(plane.matrixWorld);
+            camera.lookAt(lookAtTarget);
+        }
+
+
+        // --- Animation Loop ---
+        function animate() {
+            requestAnimationFrame(animate);
+            const deltaTime = clock.getDelta(); 
+
+            if (plane) updatePlaneControls();
+            
+            checkCollisions(); 
+            updateExplosions(deltaTime);
+            updateCollapsingTowers(deltaTime); 
+            updateCamera();
+            
+            renderer.render(scene, camera);
+        }
+
+        // --- Start the game ---
+        window.onload = () => {
+            if (Tone.context.state !== 'running') {
+                console.log("Tone.js context will start on first user interaction.");
+            }
+            init();
+        };
+
+    </script>
+</body>
+</html>
