@@ -1,0 +1,1513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Missile Command - Scenery Collision</title>
+    <style>
+        body { margin: 0; overflow: hidden; font-family: Arial, sans-serif; background-color: #000; color: #fff; }
+        canvas { display: block; cursor: default; } 
+        .infoPanel {
+            position: absolute;
+            bottom: 10px; 
+            padding: 10px;
+            background-color: rgba(0,0,0,0.6);
+            border-radius: 8px;
+            font-size: 14px;
+            color: #fff;
+            line-height: 1.6;
+        }
+        #scoreBoard { position: absolute; top: 10px; left: 10px; padding: 10px; background-color: rgba(0,0,0,0.5); border-radius: 5px; font-size: 20px; color: #fff; }
+        #crashCounter { position: absolute; top: 50px; left: 10px; padding: 10px; background-color: rgba(255,0,0,0.4); border-radius: 5px; font-size: 16px; color: #fff; display: none; }
+        #gearStatus { position: absolute; top: 90px; left: 10px; padding: 10px; background-color: rgba(0,100,0,0.5); border-radius: 5px; font-size: 16px; color: #fff; display: none; }
+        #crosshair { position: absolute; top: 50%; left: 50%; width: 20px; height: 20px; border: 2px solid rgba(255, 255, 255, 0.7); border-radius: 50%; transform: translate(-50%, -50%); pointer-events: none; display: block; }
+        #messageBox { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); padding: 15px; background-color: rgba(0, 150, 255, 0.8); color: white; font-size: 24px; border-radius: 8px; text-align: center; opacity: 0; transition: opacity 0.5s ease-in-out; pointer-events: none; }
+        
+        #flightControlsInfo { display: none; left: 10px; }
+        #onFootControlsInfo { display: block; right: 10px; }
+        #carControlsInfo { display: none; left: 10px; bottom: 100px; }
+
+    </style>
+</head>
+<body>
+    <div id="scoreBoard">Score: 0</div>
+    <div id="crashCounter">Crashes: 0/3</div>
+    <div id="gearStatus">Gear: UP</div>
+    <div id="crosshair"></div>
+    <div id="messageBox"></div>
+
+    <div id="flightControlsInfo" class="infoPanel">
+        <b>Flight Controls:</b><br>
+        F: Toggle Flight Mode<br>
+        G: Toggle Landing Gear<br>
+        W: Thrust | S: Brake<br>
+        A: Yaw Left | D: Yaw Right<br>
+        ArrowUp: Pitch Down | ArrowDown: Pitch Up<br>
+        Space: Fire Missile
+    </div>
+    <div id="onFootControlsInfo" class="infoPanel">
+        <b>On-Foot Controls:</b><br>
+        Click Game to Aim<br>
+        F: Toggle Flight/Enter Plane<br>
+        E: Enter/Exit Car<br>
+        W: Forward | S: Backward<br>
+        A: Strafe Left | D: Strafe Right<br>
+        Mouse: Aim | Click (while aiming): Fire
+    </div>
+    <div id="carControlsInfo" class="infoPanel">
+        <b>Car Controls:</b><br>
+        E: Exit Car<br>
+        W: Accelerate | S: Brake/Reverse<br>
+        A: Steer Left | D: Steer Right
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+    <script>
+        // --- Global Variables ---
+        let scene, camera, renderer;
+        let ground;
+        let missiles = [];
+        let jets = [];
+        let score = 0;
+        const clock = new THREE.Clock();
+        let targetRotation = new THREE.Euler(0, 0, 0, 'YXZ');
+
+        const JET_SPEED = 20;
+        const MISSILE_SPEED = 100;
+        const JET_SPAWN_INTERVAL = 2500;
+        let lastJetSpawnTime = 0;
+        const MAX_MISSILES = 10;
+        const MAX_JETS = 8;
+
+        // Player Aircraft Variables
+        let playerAircraft;
+        let isPlayerFlying = false;
+        let playerAircraftTexture;
+        const INITIAL_PLAYER_AIRCRAFT_MAX_SPEED = 50;
+        const INITIAL_PLAYER_AIRCRAFT_ACCELERATION = 30;
+        const INITIAL_PLAYER_AIRCRAFT_DECELERATION = 40;
+        const INITIAL_PLAYER_AIRCRAFT_YAW_RATE = 1.5; 
+        const INITIAL_PLAYER_AIRCRAFT_PITCH_RATE = 1.5;
+        let playerAircraftCurrentSpeed = 0;
+        let playerAircraftCrashes = 0;
+        const MAX_PLAYER_CRASHES = 3;
+        let lastPlayerCrashTime = 0;
+        const PLAYER_CRASH_COOLDOWN = 1500; 
+        let playerSmokeEmitter = null;
+        let smokeParticles = [];
+        let areWheelsDown = false;
+        let playerWheels = []; 
+        let playerAircraftPreviousY = 0; 
+
+
+        // On-Foot Player Model & Movement
+        let playerOnFootModel;
+        let playerOnFootTexture; 
+        const PLAYER_ON_FOOT_SPEED = 10; 
+        const PLAYER_EYE_HEIGHT = 1.7; 
+        const PLAYER_ON_FOOT_RADIUS = 0.3; 
+        let isPlayerFalling = false;
+        let playerFallVelocityY = 0;
+        const GRAVITY = 25; 
+
+        // Roads and Cars
+        let roadSegments = []; 
+        let cars = []; 
+        const CAR_SPEED = 15;
+        const MAX_CARS_AI = 8; 
+        const CAR_SPAWN_INTERVAL = 3000; 
+        let lastCarSpawnTime = 0;
+
+        // Player Driving State
+        let isPlayerDriving = false;
+        let playerControlledCar = null; 
+        const PLAYER_CAR_MAX_SPEED = 30;
+        const PLAYER_CAR_ACCELERATION = 25;
+        const PLAYER_CAR_BRAKE_FORCE = 40;
+        const PLAYER_CAR_STEER_ANGLE = Math.PI / 60; 
+        let playerCarCurrentSpeed = 0;
+
+        // Input state for aircraft & on-foot
+        const keyStates = {};
+
+        // Texture Loader
+        const textureLoader = new THREE.TextureLoader();
+        let jetTexture, groundTexture, mountainTexture, runwayTexture, terminalTexture, wheelTexture, homerTexture, roadTexture;
+        
+        // Scenery Collision Objects
+        let runwayObjects = []; 
+        let mountainObjects = [];
+        let treeObjects = [];
+        let buildingObjects = [];
+
+
+        // --- Initialization ---
+        function init() {
+            scene = new THREE.Scene();
+            scene.fog = new THREE.Fog(0x87CEEB, 200, 1000); 
+
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1500); 
+            camera.position.set(0, PLAYER_EYE_HEIGHT, 0); 
+            camera.rotation.order = 'YXZ';
+
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setClearColor(0x87CEEB);
+            renderer.shadowMap.enabled = true;
+            document.body.appendChild(renderer.domElement);
+
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
+            scene.add(ambientLight);
+
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 1.0);
+            directionalLight.position.set(70, 120, 90);
+            directionalLight.castShadow = true;
+            directionalLight.shadow.mapSize.width = 2048;
+            directionalLight.shadow.mapSize.height = 2048;
+            directionalLight.shadow.camera.near = 0.5;
+            directionalLight.shadow.camera.far = 600; 
+            directionalLight.shadow.camera.left = -250; 
+            directionalLight.shadow.camera.right = 250;
+            directionalLight.shadow.camera.top = 250;
+            directionalLight.shadow.camera.bottom = -250;
+            scene.add(directionalLight);
+            
+            groundTexture = textureLoader.load('https://placehold.co/1024x1024/556B2F/FFFFFF?text=Grass', (t) => { t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(80,80); console.log("Ground texture loaded.");}, undefined, (e) => console.error("Error loading ground texture", e));
+            jetTexture = textureLoader.load('https://placehold.co/512x512/708090/FFFFFF?text=Enemy+Metal', () => console.log("Enemy jet texture loaded."), undefined, (e) => console.error("Error loading enemy jet texture", e));
+            playerAircraftTexture = textureLoader.load('https://placehold.co/512x512/ADD8E6/000000?text=Player+Jet+Blue', () => console.log("Player aircraft texture loaded."), undefined, (e) => console.error("Error loading player aircraft texture", e));
+            mountainTexture = textureLoader.load('https://placehold.co/1024x1024/A9A9A9/333333?text=Rock', (t) => {t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(2,2); console.log("Mountain texture loaded.");}, undefined, (e) => console.error("Error loading mountain texture", e));
+            playerOnFootTexture = textureLoader.load('https://placehold.co/256x256/0077BE/FFFFFF?text=P+Outfit', () => console.log("Player on-foot texture loaded."), undefined, (e) => console.error("Error loading player on-foot texture", e));
+            runwayTexture = textureLoader.load('https://placehold.co/1024x128/444444/FFFFFF?text=Runway', (t) => {t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(5,1); console.log("Runway texture loaded.");}, undefined, (e) => console.error("Error loading runway texture", e));
+            terminalTexture = textureLoader.load('https://placehold.co/512x512/CCCCCC/000000?text=Building', () => console.log("Terminal texture loaded."), undefined, (e) => console.error("Error loading terminal texture", e));
+            wheelTexture = textureLoader.load('https://placehold.co/128x128/333333/FFFFFF?text=Wheel', () => console.log("Wheel texture loaded."), undefined, (e) => console.error("Error loading wheel texture", e));
+            homerTexture = textureLoader.load('https://upload.wikimedia.org/wikipedia/en/0/02/Homer_Simpson_2006.png', () => console.log("Homer texture loaded."), undefined, (e) => { console.error("Error loading Homer texture. Using fallback.", e); homerTexture = textureLoader.load('https://placehold.co/200x300/FFDB58/000000?text=Homer+Fallback');});
+            roadTexture = textureLoader.load('https://placehold.co/512x512/696969/505050?text=Asphalt', (t) => {t.wrapS = t.wrapT = THREE.RepeatWrapping; console.log("Road texture loaded.");}, undefined, (e) => console.error("Error loading road texture", e));
+            
+            const groundGeometry = new THREE.PlaneGeometry(1500, 1500); 
+            const groundMaterial = new THREE.MeshStandardMaterial({ map: groundTexture, side: THREE.DoubleSide, roughness: 0.9, metalness: 0.1 });
+            ground = new THREE.Mesh(groundGeometry, groundMaterial);
+            ground.rotation.x = -Math.PI / 2;
+            ground.receiveShadow = true; 
+            scene.add(ground);
+
+            createPlayerAircraft(); 
+            createPlayerOnFootModel(); 
+            resetPlayerAircraftState(); 
+
+            createMountains(); 
+            createTrees();     
+            createAirports(); 
+            createRoads(); 
+
+            renderer.domElement.addEventListener('click', () => {
+                if (!document.pointerLockElement && !isPlayerFlying && !isPlayerDriving) {
+                    renderer.domElement.requestPointerLock()
+                        .catch(err => console.error("Pointer Lock request failed:", err));
+                }
+            }, false);
+
+            document.addEventListener('pointerlockchange', handlePointerLockChange, false);
+            document.addEventListener('mozpointerlockchange', handlePointerLockChange, false);
+            document.addEventListener('webkitpointerlockchange', handlePointerLockChange, false);
+            document.addEventListener('pointerlockerror', () => console.error("Pointer Lock Error"), false);
+
+
+            document.addEventListener('mousemove', onMouseMove, false);
+            document.addEventListener('click', onMouseClick, false); 
+            document.addEventListener('keydown', onKeyDown, false);
+            document.addEventListener('keyup', onKeyUp, false);
+            window.addEventListener('resize', onWindowResize, false);
+            animate();
+        }
+        
+        function handlePointerLockChange() {
+            const crosshairEl = document.getElementById('crosshair');
+            if (document.pointerLockElement === renderer.domElement ||
+                document.mozPointerLockElement === renderer.domElement ||
+                document.webkitPointerLockElement === renderer.domElement) {
+                console.log('Pointer locked');
+                if (crosshairEl) crosshairEl.style.borderColor = 'rgba(0, 255, 0, 0.9)'; 
+            } else {
+                console.log('Pointer unlocked');
+                if (crosshairEl) crosshairEl.style.borderColor = 'rgba(255, 255, 255, 0.7)'; 
+            }
+        }
+
+
+        // --- Landscape Creation ---
+        function createMountains() {
+            const numMountains = 15;
+            const mountainMaterial = new THREE.MeshStandardMaterial({
+                map: mountainTexture,
+                color: 0x8B8989, 
+                roughness: 0.8,
+                metalness: 0.1
+            });
+
+            for (let i = 0; i < numMountains; i++) {
+                const radius = Math.random() * 100 + 80; 
+                const height = Math.random() * 250 + 150; 
+                const segments = Math.floor(Math.random() * 5) + 8; 
+                const mountainGeo = new THREE.ConeGeometry(radius, height, segments);
+                const mountain = new THREE.Mesh(mountainGeo, mountainMaterial.clone()); 
+                const angle = Math.random() * Math.PI * 2;
+                const distance = 600 + Math.random() * 150; 
+                mountain.position.x = Math.cos(angle) * distance;
+                mountain.position.z = Math.sin(angle) * distance;
+                mountain.position.y = height / 2 - 1; 
+                mountain.rotation.y = Math.random() * Math.PI * 2; 
+                mountain.castShadow = true;
+                mountain.receiveShadow = true;
+                scene.add(mountain);
+                mountainObjects.push(mountain); 
+            }
+        }
+        function createTrees() {
+            const numTrees = 100; 
+            const trunkMaterial = new THREE.MeshStandardMaterial({ color: 0x8B4513, roughness: 0.9 }); 
+            const foliageMaterial = new THREE.MeshStandardMaterial({ color: 0x228B22, roughness: 0.8 }); 
+
+            for (let i = 0; i < numTrees; i++) {
+                const treeGroup = new THREE.Group();
+                const trunkHeight = Math.random() * 5 + 5;
+                const trunkRadius = Math.random() * 0.5 + 0.3;
+                const trunkGeo = new THREE.CylinderGeometry(trunkRadius * 0.7, trunkRadius, trunkHeight, 8);
+                const trunk = new THREE.Mesh(trunkGeo, trunkMaterial);
+                trunk.castShadow = true;
+                treeGroup.add(trunk);
+                const foliageHeight = Math.random() * 6 + 6;
+                const foliageRadius = Math.random() * 2 + 2;
+                const foliageGeo = new THREE.ConeGeometry(foliageRadius, foliageHeight, 8);
+                const foliage = new THREE.Mesh(foliageGeo, foliageMaterial);
+                foliage.position.y = trunkHeight / 2 + foliageHeight / 2 - 0.5; 
+                foliage.castShadow = true;
+                treeGroup.add(foliage);
+                const angle = Math.random() * Math.PI * 2;
+                const distance = 50 + Math.random() * 500; 
+                treeGroup.position.x = Math.cos(angle) * distance;
+                treeGroup.position.z = Math.sin(angle) * distance;
+                treeGroup.position.y = trunkHeight / 2; 
+                if (distance < 550) { 
+                     scene.add(treeGroup);
+                     treeObjects.push(treeGroup); 
+                }
+            }
+        }
+
+        function createAirports() {
+            const numAirports = 2;
+            const airportLocations = [
+                new THREE.Vector3(300, 0.1, 0),  
+                new THREE.Vector3(-400, 0.1, -300) 
+            ];
+
+            for (let i = 0; i < numAirports; i++) {
+                const airportGroup = new THREE.Group();
+                airportGroup.position.copy(airportLocations[i]);
+                
+                const runwayGeo = new THREE.BoxGeometry(300, 0.2, 40); 
+                const runwayMat = new THREE.MeshStandardMaterial({ map: runwayTexture, color: 0x555555, roughness: 0.8 });
+                const runway = new THREE.Mesh(runwayGeo, runwayMat);
+                runway.receiveShadow = true; 
+                airportGroup.add(runway);
+                runwayObjects.push(runway); 
+
+                const terminalHeight = 15;
+                const terminalGeo = new THREE.BoxGeometry(30, terminalHeight, 20);
+                const terminalMat = new THREE.MeshStandardMaterial({ map: terminalTexture, color: 0xD3D3D3, roughness: 0.7 });
+                const terminal = new THREE.Mesh(terminalGeo, terminalMat);
+                terminal.position.set(-20, terminalHeight / 2, runway.geometry.parameters.width / 2 + 10 + 10); 
+                terminal.castShadow = true;
+                terminal.receiveShadow = true;
+                airportGroup.add(terminal);
+                buildingObjects.push(terminal); 
+
+                if (i === 0) {
+                    const homerPlaneWidth = 5; 
+                    const homerPlaneHeight = 7.5;
+                    const homerPlaneGeo = new THREE.PlaneGeometry(homerPlaneWidth, homerPlaneHeight);
+                    const homerMaterial = new THREE.MeshBasicMaterial({ 
+                        map: homerTexture, 
+                        transparent: true, 
+                        side: THREE.DoubleSide 
+                    });
+                    const homerPlane = new THREE.Mesh(homerPlaneGeo, homerMaterial);
+                    homerPlane.position.set(terminal.position.x, terminal.position.y + terminalHeight / 2 + homerPlaneHeight / 2, terminal.position.z);
+                    homerPlane.rotation.y = Math.PI; 
+                    airportGroup.add(homerPlane);
+                }
+
+                const hangarGeo = new THREE.BoxGeometry(50, 20, 40);
+                const hangar = new THREE.Mesh(hangarGeo, terminalMat.clone()); 
+                hangar.position.set(80, 10, runway.geometry.parameters.width / 2 + 20 + 15);
+                hangar.castShadow = true;
+                hangar.receiveShadow = true;
+                airportGroup.add(hangar);
+                buildingObjects.push(hangar); 
+
+                airportGroup.rotation.y = (i === 0) ? -Math.PI / 12 : Math.PI / 3; 
+                scene.add(airportGroup);
+            }
+        }
+        
+        function createRoads() {
+            const roadWidth = 10;
+            const roadHeight = 0.1; 
+            const roadMaterial = new THREE.MeshStandardMaterial({
+                map: roadTexture,
+                color: 0x4A4A4A, 
+                roughness: 0.8,
+                metalness: 0.05
+            });
+
+            const segmentsData = [
+                [-500, 0, 500, 0],    
+                [0, -500, 0, 500],    
+                [280, -200, 280, 200], 
+                [-420, -150, -420, 150] 
+            ];
+
+            segmentsData.forEach(data => {
+                const start = new THREE.Vector3(data[0], roadHeight / 2, data[1]);
+                const end = new THREE.Vector3(data[2], roadHeight / 2, data[3]);
+                const direction = new THREE.Vector3().subVectors(end, start).normalize();
+                const length = start.distanceTo(end);
+
+                const roadGeo = new THREE.BoxGeometry(length, roadHeight, roadWidth);
+                const roadMesh = new THREE.Mesh(roadGeo, roadMaterial);
+                
+                roadMesh.position.lerpVectors(start, end, 0.5); 
+                roadMesh.lookAt(end); 
+                roadMesh.receiveShadow = true;
+                scene.add(roadMesh);
+
+                roadSegments.push({
+                    mesh: roadMesh, 
+                    start: start.clone(), 
+                    end: end.clone(),
+                    direction: direction.clone(),
+                    length: length
+                });
+            });
+        }
+
+        // --- Car Creation ---
+        function createCar(isAI = true) { 
+            if (isAI && cars.filter(c => c.originalAI).length >= MAX_CARS_AI) return; 
+            if (roadSegments.length === 0) return;
+
+            const carColors = [0xff0000, 0x0000ff, 0x00ff00, 0xffff00, 0xffa500, 0x800080, 0x00ffff, 0x888888, 0xeeeeee];
+            const carMaterial = new THREE.MeshStandardMaterial({
+                color: carColors[Math.floor(Math.random() * carColors.length)],
+                roughness: 0.4,
+                metalness: 0.3
+            });
+
+            const carBodyGeo = new THREE.BoxGeometry(4, 1.5, 2); 
+            const carCabinGeo = new THREE.BoxGeometry(2.5, 1, 1.8);
+
+            const carMesh = new THREE.Group();
+            const body = new THREE.Mesh(carBodyGeo, carMaterial);
+            body.castShadow = true;
+            carMesh.add(body);
+
+            const cabin = new THREE.Mesh(carCabinGeo, carMaterial);
+            cabin.position.y = 0.75 + 0.5; 
+            cabin.position.x = -0.3; 
+            cabin.castShadow = true;
+            carMesh.add(cabin);
+
+            const segmentIndex = Math.floor(Math.random() * roadSegments.length);
+            const segment = roadSegments[segmentIndex];
+
+            carMesh.position.copy(segment.start);
+            carMesh.position.y = 1.5 / 2 + 0.1; 
+            carMesh.lookAt(segment.end); 
+
+            cars.push({
+                mesh: carMesh,
+                segmentIndex: segmentIndex,
+                progress: 0,
+                speed: CAR_SPEED * (0.8 + Math.random() * 0.4),
+                originalAI: isAI, 
+                isPlayerControlled: false 
+            });
+            scene.add(carMesh);
+            return carMesh; 
+        }
+
+
+        // --- Player On-Foot Model Creation ---
+        function createPlayerOnFootModel() { 
+            if (playerOnFootModel && playerOnFootModel.parent) {
+                scene.remove(playerOnFootModel);
+                playerOnFootModel.traverse(child => {
+                    if (child.isMesh) {
+                        if (child.geometry) child.geometry.dispose();
+                    }
+                });
+            }
+            playerOnFootModel = new THREE.Group();
+            const playerBodyMaterial = new THREE.MeshStandardMaterial({
+                map: playerOnFootTexture, 
+                color: 0x0077BE, 
+                roughness: 0.7,
+                metalness: 0.1
+            });
+            const torsoGeo = new THREE.BoxGeometry(0.6, 0.8, 0.3);
+            const torso = new THREE.Mesh(torsoGeo, playerBodyMaterial);
+            torso.position.y = 0.4; 
+            torso.castShadow = true;
+            playerOnFootModel.add(torso);
+            const headGeo = new THREE.SphereGeometry(0.25, 16, 12);
+            const head = new THREE.Mesh(headGeo, playerBodyMaterial); 
+            head.position.y = torso.position.y + 0.4 + 0.25; 
+            head.castShadow = true;
+            playerOnFootModel.add(head);
+            const limbGeo = new THREE.BoxGeometry(0.2, 0.7, 0.2);
+            const leftArm = new THREE.Mesh(limbGeo, playerBodyMaterial);
+            leftArm.position.set(-0.4, torso.position.y + 0.2, 0);
+            leftArm.castShadow = true;
+            playerOnFootModel.add(leftArm);
+            const rightArm = new THREE.Mesh(limbGeo, playerBodyMaterial);
+            rightArm.position.set(0.4, torso.position.y + 0.2, 0);
+            rightArm.castShadow = true;
+            playerOnFootModel.add(rightArm);
+            const leftLeg = new THREE.Mesh(limbGeo, playerBodyMaterial);
+            leftLeg.position.set(-0.2, torso.position.y - 0.4 - 0.35, 0);
+            leftLeg.castShadow = true;
+            playerOnFootModel.add(leftLeg);
+            const rightLeg = new THREE.Mesh(limbGeo, playerBodyMaterial);
+            rightLeg.position.set(0.2, torso.position.y - 0.4 - 0.35, 0);
+            rightLeg.castShadow = true;
+            playerOnFootModel.add(rightLeg);
+            playerOnFootModel.visible = !isPlayerFlying; 
+            playerOnFootModel.position.set(camera.position.x, 0, camera.position.z); 
+            scene.add(playerOnFootModel);
+        }
+        
+        // --- Player Aircraft Creation ---
+        function createPlayerAircraft() { 
+             if (playerAircraft && playerAircraft.parent) { 
+                scene.remove(playerAircraft);
+                 playerAircraft.traverse(child => {
+                    if (child.isMesh) {
+                        if (child.geometry) child.geometry.dispose();
+                    }
+                });
+                playerWheels = []; 
+            }
+            if (playerSmokeEmitter && playerSmokeEmitter.parent) {
+                 scene.remove(playerSmokeEmitter); 
+                 smokeParticles.forEach(p => {
+                    if(p.geometry) p.geometry.dispose();
+                    if(p.material) p.material.dispose();
+                });
+                smokeParticles = [];
+                 playerSmokeEmitter = null;
+            }
+
+            playerAircraft = new THREE.Group();
+            const aircraftMat = new THREE.MeshStandardMaterial({ map: playerAircraftTexture, color: 0xADD8E6, metalness: 0.5, roughness: 0.4 });
+            const fuselageGeom = new THREE.BoxGeometry(1.8, 1.2, 7); 
+            const fuselage = new THREE.Mesh(fuselageGeom, aircraftMat);
+            fuselage.castShadow = true; fuselage.receiveShadow = true;
+            playerAircraft.add(fuselage);
+            const wingGeom = new THREE.BoxGeometry(9, 0.25, 2); 
+            const wing1 = new THREE.Mesh(wingGeom, aircraftMat);
+            wing1.castShadow = true; wing1.receiveShadow = true;
+            playerAircraft.add(wing1);
+            const tailFinGeom = new THREE.BoxGeometry(0.25, 1.8, 1.2); 
+            const tailFin = new THREE.Mesh(tailFinGeom, aircraftMat);
+            tailFin.position.set(0, 0.9, - (7/2 - 1.2/2) - 0.2 ); 
+            tailFin.castShadow = true; tailFin.receiveShadow = true;
+            playerAircraft.add(tailFin);
+
+            const wheelRadius = 0.4;
+            const wheelWidth = 0.2;
+            const wheelGeo = new THREE.CylinderGeometry(wheelRadius, wheelRadius, wheelWidth, 16);
+            const wheelMat = new THREE.MeshStandardMaterial({ map: wheelTexture, color: 0x333333, metalness: 0.2, roughness: 0.6 });
+
+            const frontWheel = new THREE.Mesh(wheelGeo, wheelMat);
+            frontWheel.rotation.z = Math.PI / 2; 
+            frontWheel.position.set(0, -0.6, 2.5); 
+            playerAircraft.add(frontWheel);
+            playerWheels.push(frontWheel);
+
+            const rearWheelLeft = new THREE.Mesh(wheelGeo, wheelMat);
+            rearWheelLeft.rotation.z = Math.PI / 2;
+            rearWheelLeft.position.set(-1.2, -0.7, -1.5); 
+            playerAircraft.add(rearWheelLeft);
+            playerWheels.push(rearWheelLeft);
+
+            const rearWheelRight = new THREE.Mesh(wheelGeo, wheelMat);
+            rearWheelRight.rotation.z = Math.PI / 2;
+            rearWheelRight.position.set(1.2, -0.7, -1.5);
+            playerAircraft.add(rearWheelRight);
+            playerWheels.push(rearWheelRight);
+
+            playerWheels.forEach(wheel => wheel.visible = areWheelsDown); 
+
+            playerAircraft.boundingRadius = 5; 
+            playerAircraft.visible = false; 
+            playerAircraft.position.set(0, 15, 0); 
+            playerAircraft.previousY = playerAircraft.position.y; 
+        }
+
+        // --- Enemy Jet Creation ---
+        function createJet() { 
+            if (jets.length >= MAX_JETS) return;
+            const jetGroup = new THREE.Group();
+            const fuselageGeometry = new THREE.BoxGeometry(1.5, 1, 6); 
+            const fuselageMaterial = new THREE.MeshStandardMaterial({ map: jetTexture, color: 0xAAAAAA, metalness: 0.6, roughness: 0.4 });
+            const fuselage = new THREE.Mesh(fuselageGeometry, fuselageMaterial);
+            fuselage.castShadow = true; fuselage.receiveShadow = true;
+            jetGroup.add(fuselage);
+
+            const wingGeometry = new THREE.BoxGeometry(8, 0.2, 1.5); 
+            const wingMaterial = new THREE.MeshStandardMaterial({ map: jetTexture, color: 0xBBBBBB, metalness: 0.6, roughness: 0.4 });
+            const wing1 = new THREE.Mesh(wingGeometry, wingMaterial);
+            wing1.castShadow = true; wing1.receiveShadow = true;
+            jetGroup.add(wing1);
+
+            const tailFinGeometry = new THREE.BoxGeometry(0.2, 1.5, 1); 
+            const tailFin = new THREE.Mesh(tailFinGeometry, wingMaterial);
+            tailFin.position.set(0, 0.75, -(6/2 - 1/2) - 0.1); 
+            tailFin.castShadow = true; tailFin.receiveShadow = true;
+            jetGroup.add(tailFin);
+            
+            const side = Math.random() < 0.5 ? -1 : 1;
+            jetGroup.position.set(side * (Math.random() * 150 + 400) , Math.random() * 50 + 25, Math.random() * 350 - 175); 
+            const targetPoint = new THREE.Vector3( (Math.random() - 0.5) * 100, Math.random() * 30 + 10, (Math.random() - 0.5) * 100);
+            jetGroup.lookAt(targetPoint);
+            const directionToTarget = new THREE.Vector3().subVectors(targetPoint, jetGroup.position).normalize();
+            jetGroup.velocity = directionToTarget.multiplyScalar(JET_SPEED + Math.random()*5 - 2.5);
+
+            jetGroup.boundingRadius = 4;
+            jets.push(jetGroup);
+            scene.add(jetGroup);
+        }
+        // --- Fire Missile ---
+        function fireMissile() { 
+            if (missiles.length >= MAX_MISSILES) return;
+
+            const missileGeometry = new THREE.CylinderGeometry(0.25, 0.25, 2.5, 12); 
+            const missileMaterial = new THREE.MeshStandardMaterial({ color: 0xff6347, emissive: 0xff0000, metalness: 0.4, roughness: 0.6 }); 
+            const missile = new THREE.Mesh(missileGeometry, missileMaterial);
+            missile.castShadow = true;
+
+            const direction = new THREE.Vector3();
+
+            if (isPlayerFlying && playerAircraft && playerAircraft.visible) {
+                playerAircraft.getWorldPosition(missile.position);
+                playerAircraft.getWorldDirection(direction); 
+                missile.position.add(direction.clone().multiplyScalar(playerAircraft.boundingRadius || 4)); 
+            } else {
+                camera.getWorldPosition(missile.position); 
+                const camDir = new THREE.Vector3();
+                camera.getWorldDirection(camDir);
+                missile.position.add(camDir.multiplyScalar(0.5)); 
+                
+                camera.getWorldDirection(direction); 
+            }
+            
+            missile.velocity = direction.multiplyScalar(MISSILE_SPEED);
+            missile.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), direction.clone().normalize()); 
+
+            const flameGeometry = new THREE.ConeGeometry(0.2, 0.6, 8);
+            const flameMaterial = new THREE.MeshBasicMaterial({ color: 0xffd700, transparent: true, opacity: 0.85 }); 
+            const flame = new THREE.Mesh(flameGeometry, flameMaterial);
+            flame.position.y = -1.4; flame.rotation.x = Math.PI;
+            missile.add(flame);
+            missile.boundingRadius = 0.4;
+            missiles.push(missile);
+            scene.add(missile);
+        }
+        // --- Event Handlers ---
+        function onMouseMove(event) { 
+            if (!isPlayerFlying && !isPlayerDriving) { 
+                if (document.pointerLockElement === renderer.domElement ||
+                    document.mozPointerLockElement === renderer.domElement ||
+                    document.webkitPointerLockElement === renderer.domElement) {
+                    targetRotation.y -= event.movementX * 0.0025; 
+                    targetRotation.x -= event.movementY * 0.0025;
+                    targetRotation.x = Math.max(-Math.PI / 2.1, Math.min(Math.PI / 2.1, targetRotation.x));
+                }
+            }
+        }
+        function onMouseClick(event) { 
+            if (!isPlayerFlying && !isPlayerDriving && 
+                (document.pointerLockElement === renderer.domElement ||
+                 document.mozPointerLockElement === renderer.domElement ||
+                 document.webkitPointerLockElement === renderer.domElement)) { 
+                fireMissile();
+            }
+        }
+        function onKeyDown(event) { 
+            keyStates[event.key.toLowerCase()] = true;
+            keyStates[event.code] = true; 
+
+            if (event.key.toLowerCase() === 'f') {
+                if (isPlayerDriving) return; 
+                toggleFlightMode();
+            }
+            if (event.key.toLowerCase() === 'g' && isPlayerFlying) { 
+                toggleLandingGear();
+            }
+            if (event.key.toLowerCase() === 'e') { 
+                if (isPlayerFlying) return; 
+                if (isPlayerDriving) {
+                    exitCar();
+                } else {
+                    tryEnterCar();
+                }
+            }
+            if (isPlayerFlying && (event.key === ' ' || event.code === 'Space')) { 
+                fireMissile();
+            }
+        }
+        function onKeyUp(event) { 
+            keyStates[event.key.toLowerCase()] = false;
+            keyStates[event.code] = false;
+        }
+        
+        function updateCrashCounterUI() { 
+            const crashCounterEl = document.getElementById('crashCounter');
+            if (isPlayerFlying && playerAircraftCrashes < MAX_PLAYER_CRASHES) {
+                crashCounterEl.innerText = `Crashes: ${playerAircraftCrashes}/${MAX_PLAYER_CRASHES}`;
+                crashCounterEl.style.display = 'block';
+            } else {
+                crashCounterEl.style.display = 'none';
+            }
+        }
+        function resetPlayerAircraftState() { 
+            playerAircraftCrashes = 0;
+            playerAircraftCurrentSpeed = 0; 
+            areWheelsDown = false; 
+            if (playerWheels) playerWheels.forEach(wheel => wheel.visible = false);
+            updateGearStatusUI();
+
+            if (playerSmokeEmitter && playerSmokeEmitter.parent) { 
+                playerAircraft.remove(playerSmokeEmitter); 
+                smokeParticles.forEach(p => {
+                    if(p.geometry) p.geometry.dispose();
+                    if(p.material) p.material.dispose();
+                });
+                smokeParticles = [];
+                playerSmokeEmitter = null; 
+            }
+             updateCrashCounterUI();
+        }
+        function handlePlayerCrash() {
+            const currentTime = clock.getElapsedTime() * 1000;
+            if (currentTime - lastPlayerCrashTime < PLAYER_CRASH_COOLDOWN) {
+                return; 
+            }
+            lastPlayerCrashTime = currentTime;
+
+            playerAircraftCrashes++;
+            updateCrashCounterUI();
+            playerAircraftCurrentSpeed *= 0.3; 
+
+            if (playerAircraftCrashes >= MAX_PLAYER_CRASHES) {
+                handlePlayerAircraftDestruction();
+            } else {
+                showMessage(`Aircraft Damaged! Crash ${playerAircraftCrashes}/${MAX_PLAYER_CRASHES}`, 2500);
+                updatePlayerSmokeEffect();
+            }
+        }
+        function updatePlayerSmokeEffect() { 
+            if (!playerAircraft || !playerAircraft.visible) return;
+
+            if (playerAircraftCrashes > 0 && !playerSmokeEmitter) {
+                playerSmokeEmitter = new THREE.Group();
+                playerSmokeEmitter.position.z = - (playerAircraft.children[0].geometry.parameters.depth / 2 || 3.5); 
+                playerAircraft.add(playerSmokeEmitter); 
+            } else if (playerAircraftCrashes === 0 && playerSmokeEmitter) {
+                 playerAircraft.remove(playerSmokeEmitter);
+                 smokeParticles.forEach(p => {
+                    if(p.geometry) p.geometry.dispose();
+                    if(p.material) p.material.dispose();
+                });
+                smokeParticles = [];
+                playerSmokeEmitter = null;
+                return;
+            }
+
+            if (playerSmokeEmitter) {
+                let numNewSmoke = playerAircraftCrashes * 3 - smokeParticles.length; 
+                numNewSmoke = Math.max(0, numNewSmoke); 
+
+                for (let i = 0; i < numNewSmoke; i++) {
+                    const smokeGeo = new THREE.SphereGeometry(0.2 + Math.random() * 0.3, 6, 6);
+                    const smokeMat = new THREE.MeshBasicMaterial({
+                        color: 0x444444, 
+                        transparent: true,
+                        opacity: 0.2 + Math.random() * 0.15 
+                    });
+                    const particle = new THREE.Mesh(smokeGeo, smokeMat);
+                    particle.position.set(
+                        (Math.random() - 0.5) * 0.5, 
+                        (Math.random() - 0.5) * 0.3,
+                        (Math.random() - 0.5) * 0.5 
+                    );
+                    particle.velocity = new THREE.Vector3(
+                        (Math.random() - 0.5) * 0.3, 
+                        0.3 + Math.random() * 0.3, 
+                        -(0.5 + Math.random() * 0.5) 
+                    ); 
+                    particle.life = 0.8 + Math.random() * 1.2;
+                    particle.timer = 0;
+                    smokeParticles.push(particle);
+                    playerSmokeEmitter.add(particle);
+                }
+            }
+        }
+        function handlePlayerAircraftDestruction() { 
+            showMessage("AIRCRAFT DESTROYED!", 3000);
+            const lastAircraftPos = playerAircraft ? playerAircraft.position.clone() : new THREE.Vector3(0, PLAYER_EYE_HEIGHT, 0);
+            const aircraftAltitude = playerAircraft ? playerAircraft.position.y : PLAYER_EYE_HEIGHT;
+
+            if (playerAircraft && playerAircraft.parent) {
+                createExplosion(playerAircraft.position.clone());
+                playerAircraft.visible = false; 
+                scene.remove(playerAircraft); 
+                if(playerSmokeEmitter && playerSmokeEmitter.parent) scene.remove(playerSmokeEmitter); 
+            }
+            
+            isPlayerFlying = false; 
+            if (document.pointerLockElement) document.exitPointerLock(); 
+
+            document.getElementById('crosshair').style.display = 'block';
+            document.getElementById('flightControlsInfo').style.display = 'none';
+            document.getElementById('crashCounter').style.display = 'none';
+            document.getElementById('onFootControlsInfo').style.display = 'block';
+            updateGearStatusUI(); 
+
+            resetPlayerAircraftState(); 
+            createPlayerAircraft(); 
+            
+            if (aircraftAltitude > PLAYER_EYE_HEIGHT + 1.0) { 
+                isPlayerFalling = true;
+                playerFallVelocityY = 0; 
+                camera.position.copy(lastAircraftPos); 
+                if (playerOnFootModel) {
+                    playerOnFootModel.position.set(lastAircraftPos.x, lastAircraftPos.y - PLAYER_EYE_HEIGHT, lastAircraftPos.z); 
+                    playerOnFootModel.rotation.y = camera.rotation.y; 
+                    playerOnFootModel.visible = true;
+                }
+                showMessage("Bailing out!", 2000);
+            } else { 
+                isPlayerFalling = false;
+                camera.position.set(lastAircraftPos.x, PLAYER_EYE_HEIGHT, lastAircraftPos.z);
+                if (playerOnFootModel) {
+                    playerOnFootModel.position.set(lastAircraftPos.x, 0, lastAircraftPos.z); 
+                    playerOnFootModel.rotation.y = camera.rotation.y;
+                    playerOnFootModel.visible = true;
+                }
+            }
+            targetRotation.y = camera.rotation.y; 
+            targetRotation.x = 0;
+            camera.rotation.x = 0; 
+        }
+         function toggleLandingGear() {
+            if (!isPlayerFlying || !playerAircraft) return;
+            areWheelsDown = !areWheelsDown;
+            playerWheels.forEach(wheel => wheel.visible = areWheelsDown);
+            updateGearStatusUI();
+            showMessage(`Landing Gear: ${areWheelsDown ? 'DOWN' : 'UP'}`, 1500);
+        }
+
+        function updateGearStatusUI() {
+            const gearStatusEl = document.getElementById('gearStatus');
+            if (isPlayerFlying) {
+                gearStatusEl.innerText = `Gear: ${areWheelsDown ? 'DOWN' : 'UP'}`;
+                gearStatusEl.style.display = 'block';
+                gearStatusEl.style.backgroundColor = areWheelsDown ? 'rgba(0,150,0,0.6)' : 'rgba(150,0,0,0.6)';
+            } else {
+                gearStatusEl.style.display = 'none';
+            }
+        }
+        function tryEnterCar() {
+            if (isPlayerFlying || isPlayerDriving) return; 
+
+            const interactionDistance = 5; 
+            let closestCar = null;
+            let minDistance = Infinity;
+
+            cars.forEach(carData => {
+                if (carData.isPlayerControlled) return; 
+                const distance = playerOnFootModel.position.distanceTo(carData.mesh.position);
+                if (distance < minDistance && distance < interactionDistance) {
+                    minDistance = distance;
+                    closestCar = carData;
+                }
+            });
+
+            if (closestCar) {
+                enterCar(closestCar);
+            }
+        }
+
+        function enterCar(carData) {
+            isPlayerDriving = true;
+            playerControlledCar = carData.mesh;
+            carData.isPlayerControlled = true; 
+            playerCarCurrentSpeed = 0; 
+
+            if (playerOnFootModel) playerOnFootModel.visible = false;
+            if (playerAircraft) playerAircraft.visible = false; 
+            isPlayerFlying = false; 
+            if (document.pointerLockElement) document.exitPointerLock(); 
+
+            document.getElementById('onFootControlsInfo').style.display = 'none';
+            document.getElementById('flightControlsInfo').style.display = 'none';
+            document.getElementById('carControlsInfo').style.display = 'block';
+            document.getElementById('crosshair').style.display = 'none';
+            showMessage("Entered Car!", 1500);
+        }
+
+        function exitCar() {
+            if (!isPlayerDriving || !playerControlledCar) return;
+            isPlayerDriving = false;
+            
+            const carData = cars.find(cd => cd.mesh === playerControlledCar);
+            if (carData) carData.isPlayerControlled = false; 
+
+            if (playerOnFootModel) {
+                const exitOffset = new THREE.Vector3(1.5, 0, 0); 
+                const worldOffset = exitOffset.applyQuaternion(playerControlledCar.quaternion);
+                playerOnFootModel.position.copy(playerControlledCar.position).add(worldOffset);
+                playerOnFootModel.position.y = 0; 
+                playerOnFootModel.rotation.y = playerControlledCar.rotation.y;
+                playerOnFootModel.visible = true;
+            }
+            camera.position.set(playerOnFootModel.position.x, PLAYER_EYE_HEIGHT, playerOnFootModel.position.z);
+            targetRotation.y = playerOnFootModel.rotation.y;
+            targetRotation.x = 0;
+            camera.rotation.x = 0;
+            camera.rotation.y = playerOnFootModel.rotation.y;
+
+            playerControlledCar = null;
+
+            document.getElementById('carControlsInfo').style.display = 'none';
+            document.getElementById('onFootControlsInfo').style.display = 'block';
+            document.getElementById('crosshair').style.display = 'block';
+            showMessage("Exited Car", 1500);
+        }
+
+
+        function toggleFlightMode() { 
+            if (isPlayerDriving) return; 
+
+            isPlayerFlying = !isPlayerFlying;
+            const crosshairEl = document.getElementById('crosshair');
+            const flightControlsInfoEl = document.getElementById('flightControlsInfo');
+            const onFootControlsInfoEl = document.getElementById('onFootControlsInfo');
+            const carControlsInfoEl = document.getElementById('carControlsInfo');
+
+            onFootControlsInfoEl.style.display = (!isPlayerFlying && !isPlayerDriving) ? 'block' : 'none';
+            flightControlsInfoEl.style.display = isPlayerFlying ? 'block' : 'none';
+            carControlsInfoEl.style.display = isPlayerDriving ? 'block' : 'none'; 
+            updateGearStatusUI(); 
+
+            if (playerOnFootModel) playerOnFootModel.visible = !isPlayerFlying;
+            
+            if (isPlayerFlying) { 
+                 if (playerAircraftCrashes >= MAX_PLAYER_CRASHES || !playerAircraft || !playerAircraft.parent) {
+                    resetPlayerAircraftState(); 
+                    if (!playerAircraft || !playerAircraft.parent) createPlayerAircraft(); 
+                }
+                if (playerOnFootModel) playerOnFootModel.visible = false;
+                if (document.pointerLockElement) document.exitPointerLock(); 
+                
+                const forwardVec = new THREE.Vector3();
+                camera.getWorldDirection(forwardVec); 
+                playerAircraft.position.copy(camera.position).add(forwardVec.multiplyScalar(10)).setY(20); 
+                playerAircraft.rotation.set(0, camera.rotation.y, 0); 
+                playerAircraftCurrentSpeed = INITIAL_PLAYER_AIRCRAFT_MAX_SPEED / 3;
+                playerAircraft.visible = true;
+                if (!playerAircraft.parent) scene.add(playerAircraft); 
+                playerAircraft.previousY = playerAircraft.position.y; 
+
+                crosshairEl.style.display = 'none';
+                updateCrashCounterUI(); 
+                showMessage("Flight Mode Activated!", 2000);
+            } else { 
+                if (playerAircraft) playerAircraft.visible = false;
+                crosshairEl.style.display = 'block';
+                updateCrashCounterUI(); 
+                
+                const lastAircraftPos = playerAircraft ? playerAircraft.position.clone() : new THREE.Vector3(camera.position.x, PLAYER_EYE_HEIGHT, camera.position.z);
+                const aircraftAltitude = playerAircraft ? playerAircraft.position.y : PLAYER_EYE_HEIGHT; 
+
+                if (aircraftAltitude > PLAYER_EYE_HEIGHT + 2.0) { 
+                    isPlayerFalling = true;
+                    playerFallVelocityY = 0; 
+                    camera.position.copy(lastAircraftPos); 
+                    
+                    if (playerOnFootModel) {
+                        playerOnFootModel.position.set(lastAircraftPos.x, lastAircraftPos.y - PLAYER_EYE_HEIGHT, lastAircraftPos.z); 
+                        playerOnFootModel.rotation.y = playerAircraft ? playerAircraft.rotation.y : camera.rotation.y;
+                        playerOnFootModel.visible = true;
+                    }
+                    showMessage("Bailing out! Brace for impact!", 2500);
+                } else { 
+                    isPlayerFalling = false;
+                    playerFallVelocityY = 0;
+                    camera.position.set(lastAircraftPos.x, PLAYER_EYE_HEIGHT, lastAircraftPos.z);
+                    if (playerOnFootModel) {
+                        playerOnFootModel.position.set(lastAircraftPos.x, 0, lastAircraftPos.z); 
+                        playerOnFootModel.rotation.y = playerAircraft ? playerAircraft.rotation.y : camera.rotation.y;
+                        playerOnFootModel.visible = true;
+                    }
+                    showMessage("On-Foot Mode Activated!", 2000);
+                }
+                targetRotation.y = playerAircraft ? playerAircraft.rotation.y : camera.rotation.y;
+                targetRotation.x = 0; camera.rotation.x = 0; 
+            }
+        }
+
+        function onWindowResize() { 
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+        function updateScore(newScore) { 
+            score = newScore;
+            document.getElementById('scoreBoard').innerText = `Score: ${score}`;
+        }
+        function showMessage(text, duration = 2000) { 
+            const messageBox = document.getElementById('messageBox');
+            messageBox.textContent = text;
+            messageBox.style.opacity = '1';
+            setTimeout(() => {
+                messageBox.style.opacity = '0';
+            }, duration);
+        }
+        
+        function handleCollisions(deltaTime) { 
+            for (let i = missiles.length - 1; i >= 0; i--) {
+                const missile = missiles[i];
+                for (let j = jets.length - 1; j >= 0; j--) {
+                    const enemyJet = jets[j];
+                    if (!missile || !enemyJet) continue; 
+                    const distance = missile.position.distanceTo(enemyJet.position);
+                    if (distance < (missile.boundingRadius || 0.4) + (enemyJet.boundingRadius || 4)) {
+                        scene.remove(missile);
+                        missiles.splice(i, 1);
+                        if (missile.geometry) missile.geometry.dispose();
+                        if (missile.material) missile.material.dispose();
+                        missile.children.forEach(child => {
+                            if (child.geometry) child.geometry.dispose();
+                            if (child.material) child.material.dispose();
+                        });
+
+                        createExplosion(enemyJet.position.clone());
+                        scene.remove(enemyJet);
+                        jets.splice(j, 1);
+                        enemyJet.traverse(child => { 
+                            if (child.isMesh) {
+                                if (child.geometry) child.geometry.dispose();
+                            }
+                        });
+                        updateScore(score + 10);
+                        showMessage("Enemy Hit! +10", 1500);
+                        break; 
+                    }
+                }
+            }
+
+            if (isPlayerFlying && playerAircraft && playerAircraft.visible && playerAircraftCrashes < MAX_PLAYER_CRASHES) {
+                for (let j = jets.length - 1; j >= 0; j--) {
+                    const enemyJet = jets[j];
+                    if (!enemyJet) continue;
+                    const distance = playerAircraft.position.distanceTo(enemyJet.position);
+                    if (distance < (playerAircraft.boundingRadius || 5) + (enemyJet.boundingRadius || 4)) {
+                        handlePlayerCrash(); 
+                        
+                        createExplosion(enemyJet.position.clone());
+                        scene.remove(enemyJet);
+                        jets.splice(j, 1);
+                        enemyJet.traverse(child => { 
+                            if (child.isMesh) {
+                                if (child.geometry) child.geometry.dispose();
+                            }
+                        });
+                        showMessage("Mid-air collision!", 2000);
+                        break; 
+                    }
+                }
+                 // Aircraft vs Scenery Collision
+                const aircraftSphere = new THREE.Sphere(playerAircraft.position, playerAircraft.boundingRadius);
+                const aircraftCenter = playerAircraft.position;
+
+                // Check against Mountains (more accurate)
+                for (const mountain of mountainObjects) {
+                    const mountainParams = mountain.geometry.parameters; 
+                    const mountainWorldPos = mountain.position; 
+
+                    const mountainBaseY = mountainWorldPos.y - mountainParams.height / 2;
+                    const mountainTipY = mountainWorldPos.y + mountainParams.height / 2;
+                    const aircraftBottomY = aircraftCenter.y - playerAircraft.boundingRadius;
+                    const aircraftTopY = aircraftCenter.y + playerAircraft.boundingRadius;
+
+                    if (aircraftTopY < mountainBaseY || aircraftBottomY > mountainTipY) {
+                        continue; 
+                    }
+
+                    const dx = aircraftCenter.x - mountainWorldPos.x;
+                    const dz = aircraftCenter.z - mountainWorldPos.z;
+                    const horizontalDistanceSq = dx * dx + dz * dz;
+                    
+                    let overlapCenterY = (Math.max(aircraftBottomY, mountainBaseY) + Math.min(aircraftTopY, mountainTipY)) / 2;
+                    let heightFromBase = overlapCenterY - mountainBaseY;
+                    heightFromBase = Math.max(0, Math.min(heightFromBase, mountainParams.height)); 
+
+                    const coneRadiusAtOverlapY = mountainParams.radius * (1 - (heightFromBase / mountainParams.height));
+
+                    if (Math.sqrt(horizontalDistanceSq) < coneRadiusAtOverlapY + playerAircraft.boundingRadius) {
+                        handlePlayerCrash();
+                        showMessage("Aircraft crashed into a mountain!", 2000);
+                        return; 
+                    }
+                }
+
+                // Check against Trees and Buildings (AABB is fine for these)
+                const otherScenery = [...treeObjects, ...buildingObjects];
+                for (const sceneryObj of otherScenery) {
+                    const sceneryBox = new THREE.Box3().setFromObject(sceneryObj);
+                    if (sceneryBox.intersectsSphere(aircraftSphere)) {
+                        handlePlayerCrash();
+                        showMessage("Aircraft crashed into scenery!", 2000);
+                        return; 
+                    }
+                }
+            }
+        }
+        function createExplosion(position) { 
+            const explosionParticles = 30; 
+            const particleGeometry = new THREE.SphereGeometry(0.4, 8, 8); 
+            const baseParticleMaterial = new THREE.MeshBasicMaterial(); 
+
+            for (let k = 0; k < explosionParticles; k++) { 
+                const particleMaterial = baseParticleMaterial.clone(); 
+                particleMaterial.color.setHSL(Math.random() * 0.1 + 0.05, 1, 0.5 + Math.random() * 0.2); 
+
+                const particle = new THREE.Mesh(particleGeometry, particleMaterial);
+                particle.position.copy(position);
+                
+                const velocity = new THREE.Vector3(
+                    (Math.random() - 0.5) * 35, 
+                    (Math.random() - 0.5) * 35,
+                    (Math.random() - 0.5) * 35
+                );
+                particle.velocity = velocity;
+                particle.life = 1.0 + Math.random() * 0.8; 
+                particle.timer = 0; 
+
+                scene.add(particle);
+                
+                function animateExplosionParticle() { 
+                    if (!particle.parent) return; 
+                    if (particle.timer < particle.life) {
+                        const particleDeltaTime = 0.016; 
+                        
+                        particle.position.add(particle.velocity.clone().multiplyScalar(particleDeltaTime));
+                        
+                        const lifeRatio = particle.timer / particle.life;
+                        particle.material.opacity = 1 - lifeRatio * lifeRatio; 
+                        particle.material.transparent = true;
+                        
+                        const scale = 1.2 - lifeRatio; 
+                        particle.scale.set(scale, scale, scale);
+
+                        particle.timer += particleDeltaTime;
+                        requestAnimationFrame(animateExplosionParticle);
+                    } else {
+                        scene.remove(particle);
+                        if (particle.material) particle.material.dispose();
+                    }
+                }
+                setTimeout(animateExplosionParticle, Math.random() * 60); 
+            }
+        }
+
+        // --- Update Player On-Foot Model ---
+        function updatePlayerOnFootModel(deltaTime) {
+            if (playerOnFootModel && playerOnFootModel.visible) {
+                playerOnFootModel.position.set(camera.position.x, camera.position.y - PLAYER_EYE_HEIGHT, camera.position.z); 
+                playerOnFootModel.rotation.y = camera.rotation.y;
+            }
+        }
+
+        // --- Update Player Aircraft ---
+        function updatePlayerAircraft(deltaTime) { 
+            if (!playerAircraft || !playerAircraft.visible || playerAircraftCrashes >= MAX_PLAYER_CRASHES) {
+                if (playerAircraft && playerAircraftCrashes >= MAX_PLAYER_CRASHES && playerAircraft.visible){
+                    handlePlayerAircraftDestruction();
+                }
+                return;
+            }
+
+            let verticalSpeed = 0;
+            if (playerAircraft.previousY !== undefined && deltaTime > 0) {
+                verticalSpeed = (playerAircraft.position.y - playerAircraft.previousY) / deltaTime;
+            }
+            
+            let speedFactor = 1.0;
+            let controlFactor = 1.0;
+            if (playerAircraftCrashes === 1) { 
+                speedFactor = 0.75; 
+                controlFactor = 0.8; 
+            } else if (playerAircraftCrashes === 2) { 
+                speedFactor = 0.5; 
+                controlFactor = 0.6; 
+            }
+
+            let currentMaxSpeed = INITIAL_PLAYER_AIRCRAFT_MAX_SPEED * speedFactor;
+            let currentAcceleration = INITIAL_PLAYER_AIRCRAFT_ACCELERATION * speedFactor;
+            let currentDeceleration = INITIAL_PLAYER_AIRCRAFT_DECELERATION; 
+            let currentYawRate = INITIAL_PLAYER_AIRCRAFT_YAW_RATE * controlFactor;
+            let currentPitchRate = INITIAL_PLAYER_AIRCRAFT_PITCH_RATE * controlFactor;
+
+            let yawChange = 0;
+            let pitchChange = 0;
+            if (keyStates['a']) yawChange += currentYawRate * deltaTime;
+            if (keyStates['d']) yawChange -= currentYawRate * deltaTime;
+            if (keyStates['ArrowUp']) pitchChange -= currentPitchRate * deltaTime; 
+            if (keyStates['ArrowDown']) pitchChange += currentPitchRate * deltaTime; 
+            playerAircraft.rotateY(yawChange); 
+            playerAircraft.rotateX(pitchChange); 
+
+            if (keyStates['w']) { 
+                playerAircraftCurrentSpeed += currentAcceleration * deltaTime;
+            } else if (keyStates['s']) { 
+                playerAircraftCurrentSpeed -= currentDeceleration * deltaTime;
+            } else { 
+                 playerAircraftCurrentSpeed *= (1 - 0.3 * deltaTime); 
+            }
+            playerAircraftCurrentSpeed = Math.max(0, Math.min(playerAircraftCurrentSpeed, currentMaxSpeed));
+
+            const forward = new THREE.Vector3();
+            playerAircraft.getWorldDirection(forward); 
+            playerAircraft.position.add(forward.multiplyScalar(playerAircraftCurrentSpeed * deltaTime));
+
+            const WHEEL_RADIUS = 0.4; 
+            const FUSELAGE_BOTTOM_Y_OFFSET = -0.6; 
+            const GEAR_ATTACH_POINT_Y_OFFSET = -0.7; 
+
+            const GEAR_LANDED_AIRCRAFT_CENTER_Y = Math.abs(GEAR_ATTACH_POINT_Y_OFFSET) + WHEEL_RADIUS; 
+            const BELLY_LANDED_AIRCRAFT_CENTER_Y = Math.abs(FUSELAGE_BOTTOM_Y_OFFSET); 
+            
+            let currentGroundContactY = areWheelsDown ? GEAR_LANDED_AIRCRAFT_CENTER_Y : BELLY_LANDED_AIRCRAFT_CENTER_Y;
+            const SAFE_LANDING_VERTICAL_SPEED = -8; 
+            const SAFE_LANDING_PITCH_THRESHOLD = Math.PI / 10; 
+
+            if (playerAircraft.position.y < currentGroundContactY + 0.2 && playerAircraft.position.y > 0.1) { 
+                let onRunway = false;
+                if (areWheelsDown) { 
+                    const aircraftWorldPosition = new THREE.Vector3();
+                    playerAircraft.getWorldPosition(aircraftWorldPosition);
+
+                    for (const runwayMesh of runwayObjects) {
+                        const runwayBox = new THREE.Box3().setFromObject(runwayMesh);
+                        if (runwayBox.containsPoint(new THREE.Vector3(aircraftWorldPosition.x, runwayBox.getCenter(new THREE.Vector3()).y, aircraftWorldPosition.z))) {
+                            onRunway = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (areWheelsDown && onRunway) {
+                    playerAircraft.position.y = GEAR_LANDED_AIRCRAFT_CENTER_Y;
+                    playerAircraftCurrentSpeed *= (1 - 3.0 * deltaTime); 
+                    if (playerAircraftCurrentSpeed < 0.1) playerAircraftCurrentSpeed = 0;
+                    if (verticalSpeed < -0.5) { 
+                        showMessage("Landed on runway!", 1200);
+                    }
+                } else { 
+                    let isSoftLandingOffRunway = false;
+                    if (areWheelsDown && 
+                        verticalSpeed > SAFE_LANDING_VERTICAL_SPEED && 
+                        verticalSpeed < 1.0 && 
+                        Math.abs(playerAircraft.rotation.x) < SAFE_LANDING_PITCH_THRESHOLD &&
+                        Math.abs(playerAircraft.rotation.z || 0) < SAFE_LANDING_PITCH_THRESHOLD) {
+                        isSoftLandingOffRunway = true;
+                    }
+
+                    if (isSoftLandingOffRunway) {
+                        playerAircraft.position.y = GEAR_LANDED_AIRCRAFT_CENTER_Y;
+                        playerAircraftCurrentSpeed *= (1 - 2.5 * deltaTime); 
+                        if (playerAircraftCurrentSpeed < 0.5) playerAircraftCurrentSpeed = 0;
+                        if (verticalSpeed < -1) showMessage("Landed (off-runway)!", 1000);
+                    } else { 
+                        const contactHeightBeforeCrash = areWheelsDown ? GEAR_LANDED_AIRCRAFT_CENTER_Y : BELLY_LANDED_AIRCRAFT_CENTER_Y;
+                        playerAircraft.position.y = contactHeightBeforeCrash - 0.1; 
+                        handlePlayerCrash(); 
+                    }
+                }
+            }
+            
+            if (playerAircraft.position.y > 350) { 
+                 playerAircraft.position.y = 350;
+                 playerAircraftCurrentSpeed *= 0.9; 
+            }
+            playerAircraft.previousY = playerAircraft.position.y; 
+
+            if (playerSmokeEmitter && playerAircraftCrashes > 0 && playerAircraft.visible) {
+                if(!playerSmokeEmitter.parent) playerAircraft.add(playerSmokeEmitter); 
+                smokeParticles.forEach((particle, index) => {
+                    particle.timer += deltaTime;
+                    if (particle.timer >= particle.life) {
+                        playerSmokeEmitter.remove(particle);
+                        if(particle.geometry) particle.geometry.dispose();
+                        if(particle.material) particle.material.dispose();
+                        smokeParticles.splice(index, 1);
+                    } else {
+                        const worldVelocity = particle.velocity.clone();
+                         particle.position.add(particle.velocity.clone().multiplyScalar(deltaTime));
+                        particle.material.opacity = (1 - (particle.timer / particle.life)) * (0.2 + playerAircraftCrashes * 0.15); 
+                    }
+                });
+            } else if (playerSmokeEmitter && playerAircraftCrashes === 0) {
+                 playerAircraft.remove(playerSmokeEmitter); 
+            }
+
+            const offset = new THREE.Vector3(0, 5, -15); 
+            const cameraPosition = offset.applyMatrix4(playerAircraft.matrixWorld);
+            camera.position.lerp(cameraPosition, deltaTime * 5); 
+            const lookAtOffset = new THREE.Vector3(0, 1, 10); 
+            const lookAtPosition = lookAtOffset.applyMatrix4(playerAircraft.matrixWorld);
+            camera.lookAt(lookAtPosition);
+        }
+
+        // --- Update Player Car Controls ---
+        function updatePlayerCarControls(deltaTime) {
+            if (!isPlayerDriving || !playerControlledCar) return;
+
+            if (keyStates['w']) {
+                playerCarCurrentSpeed += PLAYER_CAR_ACCELERATION * deltaTime;
+            } else if (keyStates['s']) {
+                playerCarCurrentSpeed -= PLAYER_CAR_BRAKE_FORCE * deltaTime;
+            } else {
+                playerCarCurrentSpeed *= (1 - 1.5 * deltaTime); 
+            }
+            playerCarCurrentSpeed = Math.max(-PLAYER_CAR_MAX_SPEED / 2, Math.min(playerCarCurrentSpeed, PLAYER_CAR_MAX_SPEED)); 
+            if (Math.abs(playerCarCurrentSpeed) < 0.1) playerCarCurrentSpeed = 0;
+
+            if (Math.abs(playerCarCurrentSpeed) > 0.2) {
+                let steerDirection = playerCarCurrentSpeed > 0 ? 1 : -1; 
+                if (keyStates['a']) {
+                    playerControlledCar.rotation.y += PLAYER_CAR_STEER_ANGLE * steerDirection;
+                }
+                if (keyStates['d']) {
+                    playerControlledCar.rotation.y -= PLAYER_CAR_STEER_ANGLE * steerDirection;
+                }
+            }
+
+            const carForward = new THREE.Vector3();
+            playerControlledCar.getWorldDirection(carForward);
+            playerControlledCar.position.add(carForward.multiplyScalar(playerCarCurrentSpeed * deltaTime));
+            playerControlledCar.position.y = 1.5 / 2 + 0.1; 
+
+            const carOffset = new THREE.Vector3(0, 4, -10); 
+            const carCameraPosition = carOffset.applyMatrix4(playerControlledCar.matrixWorld);
+            camera.position.lerp(carCameraPosition, deltaTime * 5);
+            
+            const carLookAtOffset = new THREE.Vector3(0, 1, 5); 
+            const carLookAtPosition = carLookAtOffset.applyMatrix4(playerControlledCar.matrixWorld);
+            camera.lookAt(carLookAtPosition);
+        }
+
+
+        // --- Update Cars (AI) ---
+        function updateCars(deltaTime) {
+            if (Date.now() - lastCarSpawnTime > CAR_SPAWN_INTERVAL) {
+                createCar(true); 
+                lastCarSpawnTime = Date.now();
+            }
+
+            for (let i = cars.length - 1; i >= 0; i--) {
+                const carData = cars[i];
+                if (carData.isPlayerControlled) continue; 
+
+                const segment = roadSegments[carData.segmentIndex];
+                if (!segment) { 
+                    scene.remove(carData.mesh);
+                    cars.splice(i, 1);
+                    continue;
+                }
+
+                carData.progress += carData.speed * deltaTime;
+
+                if (carData.progress >= segment.length) {
+                    scene.remove(carData.mesh);
+                    carData.mesh.traverse(child => { 
+                        if (child.isMesh) {
+                            if (child.geometry) child.geometry.dispose();
+                            if (child.material) child.material.dispose();
+                        }
+                    });
+                    cars.splice(i, 1);
+                    continue; 
+                }
+                const newPosition = segment.start.clone().add(segment.direction.clone().multiplyScalar(carData.progress));
+                carData.mesh.position.set(newPosition.x, carData.mesh.position.y, newPosition.z); 
+            }
+        }
+
+
+        // --- Animation Loop ---
+        function animate() {
+            requestAnimationFrame(animate);
+            const deltaTime = clock.getDelta(); 
+
+            if (isPlayerFlying) {
+                updatePlayerAircraft(deltaTime);
+                if (playerOnFootModel) playerOnFootModel.visible = false; 
+            } else if (isPlayerDriving) {
+                updatePlayerCarControls(deltaTime);
+                if (playerOnFootModel) playerOnFootModel.visible = false;
+                if (playerAircraft) playerAircraft.visible = false;
+            }
+            else { 
+                 if (isPlayerFalling) {
+                    playerFallVelocityY -= GRAVITY * deltaTime;
+                    camera.position.y += playerFallVelocityY * deltaTime;
+
+                    if (camera.position.y <= PLAYER_EYE_HEIGHT) {
+                        camera.position.y = PLAYER_EYE_HEIGHT;
+                        isPlayerFalling = false;
+                        playerFallVelocityY = 0;
+                        showMessage("Landed!", 1200);
+                    }
+                    updatePlayerOnFootModel(deltaTime); 
+                } else { 
+                    if (document.pointerLockElement === renderer.domElement ||
+                        document.mozPointerLockElement === renderer.domElement ||
+                        document.webkitPointerLockElement === renderer.domElement) {
+                        camera.rotation.y = targetRotation.y; 
+                        camera.rotation.x = targetRotation.x;
+                    }
+
+                    const moveDirection = new THREE.Vector3();
+                    const rightDirection = new THREE.Vector3();
+                    camera.getWorldDirection(moveDirection);
+                    moveDirection.y = 0; 
+                    moveDirection.normalize();
+                    rightDirection.crossVectors(camera.up, moveDirection).normalize(); 
+                    let actualMoveSpeed = PLAYER_ON_FOOT_SPEED * deltaTime;
+                    
+                    let intendedMoveX = 0;
+                    let intendedMoveZ = 0;
+
+                    if (keyStates['w']) {
+                        intendedMoveX += moveDirection.x * actualMoveSpeed;
+                        intendedMoveZ += moveDirection.z * actualMoveSpeed;
+                    }
+                    if (keyStates['s']) {
+                        intendedMoveX -= moveDirection.x * actualMoveSpeed;
+                        intendedMoveZ -= moveDirection.z * actualMoveSpeed;
+                    }
+                    if (keyStates['a']) {
+                        intendedMoveX -= rightDirection.x * actualMoveSpeed;
+                        intendedMoveZ -= rightDirection.z * actualMoveSpeed;
+                    }
+                    if (keyStates['d']) {
+                        intendedMoveX += rightDirection.x * actualMoveSpeed;
+                        intendedMoveZ += rightDirection.z * actualMoveSpeed;
+                    }
+
+                    let finalMove = new THREE.Vector3();
+                    const playerSphere = new THREE.Sphere(new THREE.Vector3(), PLAYER_ON_FOOT_RADIUS);
+                    const sceneryForCollision = [...mountainObjects, ...treeObjects, ...buildingObjects];
+
+                    // Check X movement
+                    playerSphere.center.set(camera.position.x + intendedMoveX, PLAYER_EYE_HEIGHT - PLAYER_ON_FOOT_RADIUS, camera.position.z);
+                    let canMoveX = true;
+                    for (const obj of sceneryForCollision) {
+                        const objBox = new THREE.Box3().setFromObject(obj);
+                        if (objBox.intersectsSphere(playerSphere)) {
+                            canMoveX = false;
+                            break;
+                        }
+                    }
+                    if (canMoveX) finalMove.x = intendedMoveX;
+
+                    // Check Z movement (from potentially updated X or original X if X was blocked)
+                    playerSphere.center.set(camera.position.x + finalMove.x, PLAYER_EYE_HEIGHT - PLAYER_ON_FOOT_RADIUS, camera.position.z + intendedMoveZ);
+                    let canMoveZ = true;
+                    for (const obj of sceneryForCollision) {
+                        const objBox = new THREE.Box3().setFromObject(obj);
+                        if (objBox.intersectsSphere(playerSphere)) {
+                            canMoveZ = false;
+                            break;
+                        }
+                    }
+                    if (canMoveZ) finalMove.z = intendedMoveZ;
+                    
+                    camera.position.x += finalMove.x;
+                    camera.position.z += finalMove.z;
+                    camera.position.y = PLAYER_EYE_HEIGHT; 
+                    updatePlayerOnFootModel(deltaTime); 
+                }
+                if (playerOnFootModel) playerOnFootModel.visible = true; 
+            }
+
+            updateCars(deltaTime); 
+
+            if (Date.now() - lastJetSpawnTime > JET_SPAWN_INTERVAL && 
+                groundTexture?.image && jetTexture?.image && 
+                playerAircraftTexture?.image && mountainTexture?.image &&
+                playerOnFootTexture?.image && runwayTexture?.image && terminalTexture?.image && 
+                wheelTexture?.image && homerTexture?.image && roadTexture?.image) { 
+                createJet();
+                lastJetSpawnTime = Date.now();
+            }
+
+            for (let i = missiles.length - 1; i >= 0; i--) { 
+                const missile = missiles[i];
+                if (!missile) { missiles.splice(i,1); continue; } 
+                missile.position.add(missile.velocity.clone().multiplyScalar(deltaTime));
+                if (missile.position.lengthSq() > 1000*1000) { 
+                    scene.remove(missile); 
+                    if (missile.geometry) missile.geometry.dispose();
+                    if (missile.material) missile.material.dispose();
+                    missile.children.forEach(child => {
+                        if (child.geometry) child.geometry.dispose();
+                        if (child.material) child.material.dispose();
+                    });
+                    missiles.splice(i, 1);
+                }
+            }
+            for (let i = jets.length - 1; i >= 0; i--) { 
+                const jet = jets[i];
+                if (!jet) { jets.splice(i,1); continue; } 
+                if (jet && jet.velocity) {
+                    jet.position.add(jet.velocity.clone().multiplyScalar(deltaTime));
+                } else {
+                    console.warn("Undefined jet or jet velocity encountered, removing jet.", jet);
+                    if(jet && jet.parent) scene.remove(jet);
+                    jets.splice(i,1);
+                    continue; 
+                }
+                if (jet.position.lengthSq() > 700*700) { 
+                    scene.remove(jet); 
+                    jet.traverse(child => { 
+                        if (child.isMesh) {
+                            if (child.geometry) child.geometry.dispose();
+                        }
+                    });
+                    jets.splice(i, 1);
+                }
+            }
+            
+            handleCollisions(deltaTime); 
+            renderer.render(scene, camera);
+        }
+        window.onload = init;
+    </script>
+</body>
+</html>
