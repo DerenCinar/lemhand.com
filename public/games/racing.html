@@ -109,9 +109,26 @@
         }
 
     </style>
+        <script src="https://cdn.tailwindcss.com"></script>
+
 </head>
 <body>
+    
     <div id="kartSelectionScreen" class="selection-screen">
+        <!-- Return to Hub Banner -->
+<div id="return-banner" class="fixed top-0 left-0 right-0 bg-gray-800 bg-opacity-90 backdrop-blur-sm z-50">
+    <div class="container mx-auto px-4 py-2 flex justify-between items-center">
+        <a href="/games/index.html" class="text-sm font-semibold text-purple-300 hover:text-purple-200 transition-colors">
+            &larr; Return to GameHub
+        </a>
+        <button onclick="document.getElementById('return-banner').style.display='none'" class="text-gray-400 hover:text-white transition-colors">
+            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+        </button>
+    </div>
+</div>
+<!-- End of Banner -->
         <h1 class="screen-title">Select Your Kart</h1>
         <div class="options-grid">
             <div class="option-card" data-kart="sporty_red">
@@ -143,6 +160,20 @@
     </div>
 
     <div id="trackSelectionScreen" class="selection-screen" style="display: none;">
+        <!-- Return to Hub Banner -->
+<div id="return-banner" class="fixed top-0 left-0 right-0 bg-gray-800 bg-opacity-90 backdrop-blur-sm z-50">
+    <div class="container mx-auto px-4 py-2 flex justify-between items-center">
+        <a href="/games/index.html" class="text-sm font-semibold text-purple-300 hover:text-purple-200 transition-colors">
+            &larr; Return to GameHub
+        </a>
+        <button onclick="document.getElementById('return-banner').style.display='none'" class="text-gray-400 hover:text-white transition-colors">
+            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+        </button>
+    </div>
+</div>
+<!-- End of Banner -->
         <h1 class="screen-title">Select Your Track</h1>
         <div class="options-grid">
             <div class="option-card" data-track="us_101_day">
@@ -157,6 +188,20 @@
     </div>
 
     <div id="difficultySelectionScreen" class="selection-screen" style="display: none;">
+        <!-- Return to Hub Banner -->
+<div id="return-banner" class="fixed top-0 left-0 right-0 bg-gray-800 bg-opacity-90 backdrop-blur-sm z-50">
+    <div class="container mx-auto px-4 py-2 flex justify-between items-center">
+        <a href="/games/index.html" class="text-sm font-semibold text-purple-300 hover:text-purple-200 transition-colors">
+            &larr; Return to GameHub
+        </a>
+        <button onclick="document.getElementById('return-banner').style.display='none'" class="text-gray-400 hover:text-white transition-colors">
+            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+        </button>
+    </div>
+</div>
+<!-- End of Banner -->
         <h1 class="screen-title">Select Difficulty</h1>
         <div class="options-grid">
             <div class="option-card" data-difficulty="easy">
@@ -178,6 +223,20 @@
     </div>
 
     <div id="gameContainer">
+        <!-- Return to Hub Banner -->
+<div id="return-banner" class="fixed top-0 left-0 right-0 bg-gray-800 bg-opacity-90 backdrop-blur-sm z-50">
+    <div class="container mx-auto px-4 py-2 flex justify-between items-center">
+        <a href="/games/index.html" class="text-sm font-semibold text-purple-300 hover:text-purple-200 transition-colors">
+            &larr; Return to GameHub
+        </a>
+        <button onclick="document.getElementById('return-banner').style.display='none'" class="text-gray-400 hover:text-white transition-colors">
+            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+        </button>
+    </div>
+</div>
+<!-- End of Banner -->
         <canvas id="gameCanvas"></canvas>
          <div id="gameOverScreen">
             <h1 class="screen-title">Game Over!</h1>

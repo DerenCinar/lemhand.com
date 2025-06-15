@@ -3,6 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <script src="https://cdn.tailwindcss.com"></script>
+
     <title>3D Missile Command - Scenery Collision</title>
     <style>
         body { margin: 0; overflow: hidden; font-family: Arial, sans-serif; background-color: #000; color: #fff; }
@@ -28,6 +30,20 @@
         #carControlsInfo { display: none; left: 10px; bottom: 100px; }
 
     </style>
+     <!-- Return to Hub Banner -->
+<div id="return-banner" class="fixed top-0 left-0 right-0 bg-gray-800 bg-opacity-90 backdrop-blur-sm z-50">
+    <div class="container mx-auto px-4 py-2 flex justify-between items-center">
+        <a href="/games/index.html" class="text-sm font-semibold text-purple-300 hover:text-purple-200 transition-colors">
+            &larr; Return to GameHub
+        </a>
+        <button onclick="document.getElementById('return-banner').style.display='none'" class="text-gray-400 hover:text-white transition-colors">
+            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+        </button>
+    </div>
+</div>
+<!-- End of Banner -->
 </head>
 <body>
     <div id="scoreBoard">Score: 0</div>

@@ -60,8 +60,24 @@
             box-shadow: 0 5px 15px rgba(0,0,0,0.4);
         }
     </style>
+        <script src="https://cdn.tailwindcss.com"></script>
+<!-- Return to Hub Banner -->
+<div id="return-banner" class="fixed top-0 left-0 right-0 bg-gray-800 bg-opacity-90 backdrop-blur-sm z-50">
+    <div class="container mx-auto px-4 py-2 flex justify-between items-center">
+        <a href="/games/index.html" class="text-sm font-semibold text-purple-300 hover:text-purple-200 transition-colors">
+            &larr; Return to GameHub
+        </a>
+        <button onclick="document.getElementById('return-banner').style.display='none'" class="text-gray-400 hover:text-white transition-colors">
+            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+        </button>
+    </div>
+</div>
+<!-- End of Banner -->
 </head>
 <body>
+    
     <div id="controls-info">
         Controls:<br>
         Arrow Up: Pitch Down<br>
