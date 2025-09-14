@@ -1,7 +1,8 @@
 // Import the functions you need from the SDKs you need
+import { getFirestore, collection, addDoc, onSnapshot, setLogLevel } from "https://www.gstatic.com/firebasejs/10.3.1/firebase-firestore.js";
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.3.1/firebase-app.js";
 import { getDatabase } from "https://www.gstatic.com/firebasejs/10.3.1/firebase-database.js";
-import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.3.1/firebase-auth.js";
+import { getAuth, createUserWithEmailAndPassword, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.3.1/firebase-auth.js";
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
@@ -31,6 +32,8 @@ const app = Vue.createApp({
             test: 'hello',
             name: '', // For logged-in user's name or email
             currentpage: 'home', // Default page
+            accountStatus: false,
+            availableArticlesCount: 5,
             lheName: '', // Input for LHE login name
             lheCode: 'Krabat', // Predefined LHE access code
             lheCodeInput: '', // Input for LHE access code
@@ -39,13 +42,27 @@ const app = Vue.createApp({
             lheNameDisplay: '', // To display the name after LHE login
             osName: 'Unknown OS',
             drop: false,
+
+             // NEW Blog system data
+                    blogs: [],
+                    blogView: 'list', // 'list', 'create', 'single'
+                    selectedBlog: null,
+                    newBlog: {
+                        title: '',
+                        description: '',
+                        bannerImage: '',
+                        icon: '',
+                        mainText: ''
+                    },
+                    isLoadingBlogs: false,
+                    isSavingBlog: false,
+                    blogError: '',
+                    db: null,
+                    auth: null,
+                    userId: null,
+                    unsubscribeBlogs: null, // To hold the onSnapshot listener
             
-            // Data for AI News functionality (moved from HTML)
-            articles: [], // Will be populated by AI news; replaces static articles
-            isLoadingNews: false,
-            newsError: '',
-            showArticleModal: false,
-            selectedArticle: null,
+            
         }
     },
     computed: {
@@ -133,93 +150,104 @@ const app = Vue.createApp({
             this.currentpage = page;
         },
 
-        // Methods for AI News functionality (moved from HTML)
-        async fetchRealNews() {
-            this.isLoadingNews = true;
-            this.newsError = '';
-            // this.articles = []; // Clear previous articles if you want fresh list each time
-                               // Or append, depending on desired behavior. Current code replaces.
+        // NEW Blog methods
+                async initFirebase() {
+                    const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+                    // Fallback to empty object if firebase config is not available
+                    const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+                    
+                    // Basic check for valid config
+                    if (!firebaseConfig.apiKey) {
+                        this.blogError = "Firebase configuration is missing. Blog cannot be loaded.";
+                        console.error("Firebase configuration is missing.");
+                        return;
+                    }
 
-            const prompt = "Fetch 5 recent and diverse technology news headlines from around the world. Focus on topics like software, hardware, AI, gadgets, and the tech industry. For each headline, provide the title, a brief snippet (summary that can act as a subtitle), the original source name, and the direct URL to the article. Also include an estimated publication time if available.";
-            
-            let chatHistory = [{ role: "user", parts: [{ text: prompt }] }];
-            const payload = {
-                contents: chatHistory,
-                generationConfig: {
-                    responseMimeType: "application/json",
-                    responseSchema: {
-                        type: "ARRAY",
-                        items: {
-                            type: "OBJECT",
-                            properties: {
-                                "title": { "type": "STRING" },
-                                "snippet": { "type": "STRING" },
-                                "source": { "type": "STRING" },
-                                "url": { "type": "STRING" },
-                                "publication_time": { "type": "STRING" }
-                            },
-                            required: ["title", "snippet", "source", "url"]
+                    try {
+                        const app = initializeApp(firebaseConfig);
+                        this.db = getFirestore(app);
+                        this.auth = getAuth(app);
+                        setLogLevel('Debug');
+
+                        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                            await signInWithCustomToken(this.auth, __initial_auth_token);
+                        } else {
+                            await signInAnonymously(this.auth);
                         }
+                    } catch (error) {
+                        console.error("Firebase Initialization Error:", error);
+                        this.blogError = "Could not connect to the database.";
+                        return;
                     }
-                }
-            };
-            const apiKey = "AIzaSyDnJhrLehPNgODff7gS5mQsnpO0mY414wc"; // API key will be injected by the environment
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
 
-            try {
-                const response = await fetch(apiUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(`API request failed: ${errorData?.error?.message || response.statusText}`);
-                }
-                const result = await response.json();
-                if (result.candidates && result.candidates[0]?.content?.parts[0]?.text) {
-                    const rawJson = result.candidates[0].content.parts[0].text;
-                    const parsedArticles = JSON.parse(rawJson);
-                    // Filter for valid URLs and assign to articles
-                    this.articles = parsedArticles.filter(article => article.url && article.url.startsWith('http'));
-                    if (this.articles.length === 0 && parsedArticles.length > 0) {
-                        throw new Error("AI provided data, but no valid article URLs were found.");
+                    onAuthStateChanged(this.auth, (user) => {
+                        if (user) {
+                            this.userId = user.uid;
+                            this.listenForBlogs(); // Start listening for blogs after user is authenticated
+                        } else {
+                            this.userId = null;
+                            if (this.unsubscribeBlogs) this.unsubscribeBlogs(); // Stop listening if user logs out
+                            this.blogs = [];
+                        }
+                    });
+                },
+
+                listenForBlogs() {
+                    if (this.unsubscribeBlogs) this.unsubscribeBlogs(); // Unsubscribe from any previous listener
+                    if (!this.db) return;
+                    
+                    this.isLoadingBlogs = true;
+                    const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+                    const blogsCollection = collection(this.db, `/artifacts/${appId}/public/data/blogs`);
+
+                    this.unsubscribeBlogs = onSnapshot(blogsCollection, (querySnapshot) => {
+                        const blogs = [];
+                        querySnapshot.forEach((doc) => {
+                            blogs.push({ id: doc.id, ...doc.data() });
+                        });
+                        this.blogs = blogs;
+                        this.isLoadingBlogs = false;
+                    }, (error) => {
+                        console.error("Error fetching blogs:", error);
+                        this.blogError = "Failed to load blog posts.";
+                        this.isLoadingBlogs = false;
+                    });
+                },
+
+                async saveBlog() {
+                    if (!this.newBlog.title || !this.newBlog.mainText) {
+                        this.blogError = "Title and Main Content are required.";
+                        setTimeout(() => this.blogError = '', 3000);
+                        return;
                     }
-                } else {
-                    throw new Error("Unexpected AI response structure for tech news.");
-                }
-            } catch (error) {
-                console.error("Error fetching tech news:", error);
-                this.newsError = error.message || "An unknown error occurred while fetching news.";
-            } finally {
-                this.isLoadingNews = false;
-            }
-        },
-        openArticleModal(article) {
-            this.selectedArticle = { 
-                title: article.title || "No Title",
-                snippet: article.snippet || "No snippet available.", 
-                source: article.source || "Unknown Source",
-                url: article.url || "#",
-                published: article.publication_time || "N/A"
-            };
-            this.showArticleModal = true;
-            // Call resetCount here if opening modal means "reading" an article
-            // This depends on how `readArticles` is intended to work with `availableArticlesCount`
-            // If an article is "read" upon opening its details:
-            // this.resetCount(); 
-            // For now, let's assume original `resetCount` on button was for this.
-            // The button now calls this method, so it's a good place to call it.
-             if (this.articles.find(a => a.url === article.url && !a.isRead)) {
-                this.resetCount(); // Increment read articles count
-                const foundArticle = this.articles.find(a => a.url === article.url);
-                if (foundArticle) foundArticle.isRead = true; // Mark as read to avoid double counting if modal is reopened
-            }
-        },
-        closeArticleModal() {
-            this.showArticleModal = false;
-            this.selectedArticle = null;
-        },
+                    this.isSavingBlog = true;
+                    const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+                    const blogsCollection = collection(this.db, `/artifacts/${appId}/public/data/blogs`);
+
+                    try {
+                        await addDoc(blogsCollection, {
+                            ...this.newBlog,
+                            createdAt: new Date().toISOString() // Add a timestamp
+                        });
+                        this.cancelCreate();
+                    } catch (error) {
+                        console.error("Error saving blog:", error);
+                        this.blogError = "Failed to save the blog post.";
+                    } finally {
+                        this.isSavingBlog = false;
+                    }
+                },
+
+                selectBlog(blog) {
+                    this.selectedBlog = blog;
+                    this.blogView = 'single';
+                },
+
+                cancelCreate() {
+                    this.newBlog = { title: '', description: '', bannerImage: '', icon: '', mainText: '' };
+                    this.blogView = 'list';
+                },
+
     },
 });
 

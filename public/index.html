@@ -43,8 +43,8 @@
             <a v-on:click="this.currentpage = 'services'" :class="{'has-text-success':currentpage === 'services'}">Services</a>
             <a v-on:click="this.currentpage = 'blog'" :class="{'has-text-success':currentpage === 'blog'}">Blogs</a>
             <a href="search/index.html">Search</a>
-            <a v-if="accountStatus" href="lemlog.html">{{ myname }}</a>
-            <a v-else v-on:click="">{{ myname }}</a>
+            <a v-if="accountStatus" href="lemlog.html">{{ name }}</a>
+            <a v-else v-on:click="">{{ name }}</a>
         </nav>
     </header>
     <div class="nav-bg"></div>
@@ -252,7 +252,7 @@
         </main>
     </div>
 
-    <script type="module">
+   <!-- <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.3.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.3.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, onSnapshot, setLogLevel } from "https://www.gstatic.com/firebasejs/10.3.1/firebase-firestore.js";
@@ -413,7 +413,7 @@
                 }
             }
         }).mount('#app');
-    </script>
+    </script>-->
 </body>
 
 </html>
