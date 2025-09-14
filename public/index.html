@@ -1,162 +1,38 @@
-\<!DOCTYPE html>
+<!DOCTYPE html>
 <html>
 
 <head>
     <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>LemHand</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>LemHand - Tech News</title>
-    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
-        <link href="style.css" rel="stylesheet" type="text/css" />
-    <link href="bulma.css" rel="stylesheet" type="text/css" /> 
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script> 
     <script src="app.js" defer="" type="module"></script>
-
     <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <link href="style.css" rel="stylesheet" type="text/css" />
+    <link href="bulma.css" rel="stylesheet" type="text/css" /> 
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <link rel="apple-touch-icon" sizes="57x57" href="/apple-icon-57x57.png">
+    <link rel="apple-touch-icon" sizes="60x60" href="/apple-icon-60x60.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="/apple-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="76x76" href="/apple-icon-76x76.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="/apple-icon-114x114.png">
+    <link rel="apple-touch-icon" sizes="120x120" href="/apple-icon-120x120.png">
+    <link rel="apple-touch-icon" sizes="144x144" href="/apple-icon-144x144.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="/apple-icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-icon-180x180.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="/android-icon-192x192.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="manifest" href="/manifest.json">
+    <meta name="msapplication-TileColor" content="#ffffff">
+    <meta name="msapplication-TileImage" content="/ms-icon-144x144.png">
+    <meta name="theme-color" content="#ffffff">
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
-    <style>
-        /* Basic styles from previous version, slightly adapted */
-        body {
-            font-family: 'Inter', sans-serif; /* Default font, Times New Roman will be applied specifically */
-            margin: 0;
-            /* background-color: #f4f7f6; */ /* Will be overridden by Tailwind bg-gray-900 */
-        }
-        .header { /* Original header styling from user's full code */
-            background-color: #333; /* Assuming this was intended or defined in style.css */
-            color: white;
-            padding: 1rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            position: sticky;
-            top: 0;
-            z-index: 1001; 
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        .header .logo {
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: white;
-            text-decoration: none;
-        }
-       
-        .navbar a {
-            color: white;
-            margin-left: 1rem;
-            text-decoration: none;
-            cursor: pointer;
-            padding: 0.5rem 0.75rem;
-            border-radius: 4px;
-            transition: background-color 0.3s ease;
-        }
-        .navbar a:hover {
-            background-color: #555;
-        }
-        .navbar a.has-text-success { /* This class was in user's nav */
-            color: #48c774 !important; /* Bulma success color */
-            /* font-weight: bold; */ /* Original didn't have bold here, but often used with active links */
-        }
-        #menu-icon { /* From user's HTML */
-            display: none; /* Assuming mobile logic is in app.js */
-        }
 
-        .nav-bg { /* From user's HTML */
-            /* Assuming styles are in style.css */
-        }
-
-        /* Styles for the news section to match original user code */
-        /* .hero.is-danger is a Bulma class */
-        /* .box is a Bulma class */
-        /* .ddw seems to be a custom class, assuming it's for display/layout, not adding specific styles here */
-        
-        .loading-spinner {
-            border: 4px solid #f3f3f3; /* Light grey */
-            border-top: 4px solid #3498db; /* Blue */
-            border-radius: 50%;
-            width: 30px;
-            height: 30px;
-            animation: spin 1s linear infinite;
-            margin: 20px auto;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        /* Modal Styles (kept for functionality) */
-        .modal {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.7);
-            z-index: 1000;
-            padding: 20px;
-            overflow-y: auto;
-        }
-        .modal-background {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-        }
-        .modal-content {
-            background-color: white;
-            padding: 30px;
-            border-radius: 8px; /* Original box was not rounded, but modal benefits from it */
-            max-width: 700px;
-            width: 100%;
-            position: relative;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-            max-height: 90vh;
-            overflow-y: auto;
-        }
-        .modal-close {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            background: none;
-            border: none;
-            font-size: 1.8rem;
-            cursor: pointer;
-            color: #777;
-        }
-        .modal-close:hover {
-            color: #333;
-        }
-        .article-content-real-news {
-            line-height: 1.6;
-            color: #333; /* Text color inside modal */
-            margin-bottom: 1.5rem;
-        }
-        .article-source-modal { /* Specific class for modal source */
-            font-size: 0.9em;
-            color: #555;
-            margin-bottom: 0.5rem;
-            font-family: "Times New Roman", Times, serif;
-        }
-        .article-published-modal { /* Specific class for modal published date */
-            font-size: 0.9em;
-            color: #777;
-            margin-bottom: 1.5rem;
-            font-family: "Times New Roman", Times, serif;
-        }
-        .button.is-link-to-source { /* Kept for modal functionality */
-            background-color: #48c774; 
-            color: white;
-        }
-        .button.is-link-to-source:hover {
-            background-color: #3aaa62;
-        }
-
-        /* Ensure Times New Roman is applied where specified inline in original HTML */
-        .font-times { 
-            font-family: "Times New Roman", Times, serif;
-        }
-    </style>
 </head>
 
 <body class="bg-gray-900" id="app"> <header class="header">
@@ -165,7 +41,7 @@
         <nav class="navbar">
             <a v-on:click="this.currentpage = 'home'" :class="{'has-text-success':currentpage === 'home'}">Home</a>
             <a v-on:click="this.currentpage = 'services'" :class="{'has-text-success':currentpage === 'services'}">Services</a>
-            <a v-on:click="this.currentpage = 'news'" :class="{'has-text-success':currentpage === 'news'}">News</a>
+            <a v-on:click="this.currentpage = 'blog'" :class="{'has-text-success':currentpage === 'blog'}">Blogs</a>
             <a href="search/index.html">Search</a>
             <a v-if="accountStatus" href="lemlog.html">{{ myname }}</a>
             <a v-else v-on:click="">{{ myname }}</a>
@@ -174,10 +50,10 @@
     <div class="nav-bg"></div>
     <br> 
     <br>
-   
-    
-    <div> 
-        <main v-if="currentpage === 'home'" >
+
+
+    <div>
+        <main v-if="currentpage === 'home'">
             <div class="hero is-info" style="background-color:#e2f0d5">
                 <div class="hero-body">
                     <div class="columns">
@@ -189,22 +65,22 @@
                                     <button class="button is-fullwidth">Learn More</button>
                                     <button class="button is-fullwidth">Create an Account</button>
                                     <button class="button is-fullwidth">Help Center</button>
-                                    <div class="relative inline-flex ddw" v-if="availableArticlesCount > 0"> <button @click="setCurrentPage('news')" class="button is-fullwidth is-danger" style="background-color:#399351">New Articles available</button>
+                                    <div class="relative inline-flex ddw" v-if="availableArticlesCount > 0"> <button @click="setCurrentPage('blog')" class="button is-fullwidth is-danger" style="background-color:#399351">New Blog Posts available</button>
                                         <span class="absolute top-0.5 right-0.5 grid min-h-[24px] min-w-[24px] translate-x-2/4 -translate-y-2/4 place-items-center rounded-full bg-red-600 py-1 px-1 text-xs text-white">
-                                            {{availableArticlesCount}}
+                                            {{blogs.length}}
                                         </span>
                                     </div>
                                     <div class="relative inline-flex ddw" v-else>
-                                        <button @click="setCurrentPage('news')" class="button is-fullwidth is-danger" style="background-color:#399351">Woo Hoo! All Articles Finished</button>
+                                        <button @click="setCurrentPage('blog')" class="button is-fullwidth is-danger" style="background-color:#399351">Check out the blog!</button>
                                     </div>
                                 </div>
                             </div>
                         </div>
                         <div class="column">
                             <div class="box">
-                                 <h1 class="title" style="color:black">LemHand Software</h1>
-                                 <h1 class="subtitle is-6" style="color:black">The best apps by LemHand</h1>
-                                 <div class="buttons">
+                                <h1 class="title" style="color:black">LemHand Software</h1>
+                                <h1 class="subtitle is-6" style="color:black">The best apps by LemHand</h1>
+                                <div class="buttons">
                                     <a class="button is-fullwidth" href="/software">LemHand Software</a>
                                     <a class="button is-white is-fullwidth" href="/software/internet" style="background: linear-gradient(90deg, #2563eb 0%, #7c3aed 100%); /* Blue to violet gradient */ color:white">LemHand Internet</a>
                                     <a class="button is-danger is-fullwidth" disabled href="/software/draw.html">LemHand Draw</a>
@@ -217,8 +93,8 @@
         </main>
 
         <main v-if="currentpage === 'lemhandemployees'" class="p-4">
-             <div class="hero is-primary">
-                <div class="hero-body"> 
+            <div class="hero is-primary">
+                <div class="hero-body">
                     <div class="box">
                         <h1 class="title" style="color:black">Log In</h1>
                         <h1 class="subtitle is-6" style="color:black">Please enter your LemConnect credentials</h1>
@@ -226,24 +102,24 @@
                             <div class="field">
                                 <label class="label">Name</label>
                                 <div class="control">
-                                  <input :class="{ 'is-danger': lheErrorName}"  v-model="lheName" class="input" type="text" placeholder="Type Here">
+                                    <input :class="{ 'is-danger': lheErrorName}" v-model="lheName" class="input" type="text" placeholder="Type Here">
                                 </div>
                                 <p v-if="lheErrorName" class="help is-danger">Please enter a name</p>
                             </div>
                             <div class="field">
                                 <label class="label">Access Code</label>
                                 <div class="control">
-                                  <input :class="{ 'is-danger': lheErrorMessage}" v-model="lheCodeInput" class="input" type="text" placeholder="Type Here">
+                                    <input :class="{ 'is-danger': lheErrorMessage}" v-model="lheCodeInput" class="input" type="text" placeholder="Type Here">
                                 </div>
                                 <p v-if="lheErrorMessage" class="help is-danger">This access code is invalid</p>
-                            </div>                        
+                            </div>
                             <div class="buttons">
                                 <button class="button is-fullwidth is-outlined is-success" @click="lheLogin()">Log In</button>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div> 
+            </div>
         </main>
 
         <main v-if="currentpage === 'lhe'" class="p-4">
@@ -262,56 +138,282 @@
             </div>
         </main>
 
-        <main v-if="currentpage === 'news'">
-            <div class="hero is-danger"> <div class="hero-body">
-                    <div class="box"> <h1 class="title has-text-centered" style='color:black; font-family: "Times New Roman", Times, serif;'>The LemHand Times</h1> <h1 class="subtitle is-6 has-text-centered" style="color:black; font-family: 'Times New Roman', Times, serif;"> The latest news about LemHand </h1> <div class="field has-addons has-addons-centered my-5"> <div class="control">
-                                <button @click="fetchRealNews" class="button is-link is-medium rounded-md" :disabled="isLoadingNews"> <span class="icon is-small" v-if="!isLoadingNews">
-                                        <i class="bx bx-chip"></i> 
-                                    </span>
-                                    <span>{{ isLoadingNews ? 'Fetching...' : 'Fetch Latest Tech News' }}</span>
-                                </button>
+        <!-- New Blog Main Section -->
+        <main v-if="currentpage === 'blog'">
+            <div class="hero is-danger">
+                <div class="hero-body">
+                    <div class="box">
+                        <!-- Blog List View -->
+                        <div v-if="blogView === 'list'">
+                            <div class="is-flex is-justify-content-space-between is-align-items-center mb-5">
+                                <div>
+                                    <h1 class="title" style='color:black; font-family: "Times New Roman", Times, serif;'>The LemHand Blog</h1>
+                                    <h1 class="subtitle is-6" style="color:black; font-family: 'Times New Roman', Times, serif;">The latest updates from the team</h1>
+                                </div>
+                                <button @click="blogView = 'create'" class="button is-success">Create New Post</button>
+                            </div>
+
+                            <div v-if="isLoadingBlogs" class="loading-spinner"></div>
+                            <div v-if="blogError" class="notification is-warning">
+                                {{ blogError }}
+                            </div>
+                            <div v-if="!blogs.length && !isLoadingBlogs" class="has-text-centered p-5">
+                                <p style="color:black;">No blog posts yet. Be the first to create one!</p>
+                            </div>
+
+                            <div class="columns is-multiline">
+                                <div v-for="blog in blogs" :key="blog.id" class="column is-one-third">
+                                    <div class="card">
+                                        <div class="card-image">
+                                            <figure class="image is-4by3">
+                                                <img :src="blog.bannerImage || 'https://placehold.co/600x450/e2f0d5/333?text=Blog+Post'" :alt="blog.title" onerror="this.onerror=null;this.src='https://placehold.co/600x450/e2f0d5/333?text=Image+Error'">
+                                            </figure>
+                                        </div>
+                                        <div class="card-content">
+                                            <div class="media">
+                                                <div class="media-left">
+                                                    <figure class="image is-48x48">
+                                                        <img :src="blog.icon || 'https://placehold.co/48x48/399351/fff?text=LH'" alt="Icon" class="is-rounded" onerror="this.onerror=null;this.src='https://placehold.co/48x48/399351/fff?text=LH'">
+                                                    </figure>
+                                                </div>
+                                                <div class="media-content">
+                                                    <p class="title is-4" style="color:black;">{{ blog.title }}</p>
+                                                </div>
+                                            </div>
+                                            <div class="content" style="color:black;">
+                                                {{ blog.description }}
+                                            </div>
+                                        </div>
+                                        <footer class="card-footer">
+                                            <a @click="selectBlog(blog)" class="card-footer-item">Read More</a>
+                                        </footer>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                        
-                        <div v-if="isLoadingNews" class="loading-spinner"></div>
-                        
-                        <div v-if="newsError" class="notification is-warning is-light p-3 rounded-md mb-4"> <button class="delete" @click="newsError = ''"></button>
-                            Error fetching news: {{ newsError }}
-                        </div>
 
-                        <div v-if="!articles.length && !isLoadingNews && !newsError" class="has-text-centered p-5 text-white"> <p>Click "Fetch Latest Tech News" to see headlines!</p>
-                        </div>
-
-                        <ul v-for="article in articles" class="ddw" :key="article.url || article.title">
-                            <li class="ddw">
-                            <div class="ddw mb-4 box is-white"> <h1 class="title is-4" style='color:black; font-family: "Times New Roman", Times, serif;'>{{article.title}}</h1>
-                                <h1 class="subtitle is-6" style='color:black; font-family: "Times New Roman", Times, serif;'>{{article.snippet}}</h1> 
-                                <button @click="openArticleModal(article)" class="button is-fullwidth is-outlined is-success">Read Article</button>
+                        <!-- Create Blog View -->
+                        <div v-else-if="blogView === 'create'">
+                            <h1 class="title" style="color:black;">Create New Blog Post</h1>
+                            <div class="field">
+                                <label class="label">Title</label>
+                                <div class="control">
+                                    <input v-model="newBlog.title" class="input" type="text" placeholder="Blog Post Title">
+                                </div>
                             </div>
-                            </li> 
-                        </ul>
+                            <div class="field">
+                                <label class="label">Banner Image URL</label>
+                                <div class="control">
+                                    <input v-model="newBlog.bannerImage" class="input" type="text" placeholder="https://example.com/image.png">
+                                </div>
+                            </div>
+                            <div class="field">
+                                <label class="label">Icon URL</label>
+                                <div class="control">
+                                    <input v-model="newBlog.icon" class="input" type="text" placeholder="https://example.com/icon.png">
+                                </div>
+                            </div>
+                            <div class="field">
+                                <label class="label">Description (Short Snippet)</label>
+                                <div class="control">
+                                    <textarea v-model="newBlog.description" class="textarea" placeholder="A brief summary of the post..."></textarea>
+                                </div>
+                            </div>
+                            <div class="field">
+                                <label class="label">Main Content</label>
+                                <div class="control">
+                                    <textarea v-model="newBlog.mainText" class="textarea" placeholder="Write your full blog post here..." rows="10"></textarea>
+                                </div>
+                            </div>
+                            <div class="field is-grouped">
+                                <div class="control">
+                                    <button @click="saveBlog" class="button is-link" :disabled="isSavingBlog">
+                                        {{ isSavingBlog ? 'Saving...' : 'Save Post' }}
+                                    </button>
+                                </div>
+                                <div class="control">
+                                    <button @click="cancelCreate" class="button is-link is-light">Cancel</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Single Blog View -->
+                        <div v-else-if="blogView === 'single' && selectedBlog">
+                            <button @click="blogView = 'list'; selectedBlog = null" class="button is-light mb-4">← Back to Blog</button>
+                            <h1 class="title is-2" style="color:black;">{{ selectedBlog.title }}</h1>
+                            <figure class="image is-16by9 mb-5">
+                                <img :src="selectedBlog.bannerImage || 'https://placehold.co/1280x720/e2f0d5/333?text=Blog+Post'" :alt="selectedBlog.title" onerror="this.onerror=null;this.src='https://placehold.co/1280x720/e2f0d5/333?text=Image+Error'">
+                            </figure>
+                            <div class="content blog-content">{{ selectedBlog.mainText }}</div>
+                        </div>
                     </div>
                 </div>
             </div>
         </main>
     </div>
 
-    <div v-if="showArticleModal" class="modal is-active">
-        <div class="modal-background" @click="closeArticleModal"></div>
-        <div class="modal-content box p-6"> <button class="modal-close is-large" aria-label="close" @click="closeArticleModal">&times;</button>
-            <h2 class="title is-3 mb-2" style='color:black; font-family: "Times New Roman", Times, serif;'>{{ selectedArticle.title }}</h2>
-            <p v-if="selectedArticle.source" class="article-source-modal">Source: {{ selectedArticle.source }}</p>
-            <p v-if="selectedArticle.published" class="article-published-modal">Published: {{ selectedArticle.published }}</p>
-            <div class="content article-content-real-news" style='font-family: "Times New Roman", Times, serif; color:black;'>
-                <p>{{ selectedArticle.snippet }}</p> </div>
-            <a :href="selectedArticle.url" target="_blank" rel="noopener noreferrer" class="button is-link-to-source is-fullwidth rounded-md">
-                <span class="icon is-small mr-2">
-                    <i class="bx bx-link-external"></i>
-                </span>
-                Read Full Article at Source
-            </a>
-        </div>
-    </div>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.3.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.3.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot, setLogLevel } from "https://www.gstatic.com/firebasejs/10.3.1/firebase-firestore.js";
 
+        
+        const { createApp } = Vue
+
+        createApp({
+            data() {
+                return {
+                    currentpage: 'home',
+                    accountStatus: false,
+                    myname: 'My Account',
+                    availableArticlesCount: 5,
+                    lheName: '',
+                    lheCodeInput: '',
+                    lheErrorName: false,
+                    lheErrorMessage: false,
+                    lheNameDisplay: '',
+
+                    // NEW Blog system data
+                    blogs: [],
+                    blogView: 'list', // 'list', 'create', 'single'
+                    selectedBlog: null,
+                    newBlog: {
+                        title: '',
+                        description: '',
+                        bannerImage: '',
+                        icon: '',
+                        mainText: ''
+                    },
+                    isLoadingBlogs: false,
+                    isSavingBlog: false,
+                    blogError: '',
+                    db: null,
+                    auth: null,
+                    userId: null,
+                    unsubscribeBlogs: null, // To hold the onSnapshot listener
+                }
+            },
+            methods: {
+                setCurrentPage(page) {
+                    this.currentpage = page;
+                },
+                lheLogin() {
+                    this.lheErrorName = this.lheName.trim() === '';
+                    this.lheErrorMessage = this.lheCodeInput !== '1234';
+
+                    if (!this.lheErrorName && !this.lheErrorMessage) {
+                        this.lheNameDisplay = this.lheName;
+                        this.currentpage = 'lhe';
+                    }
+                },
+                // NEW Blog methods
+                async initFirebase() {
+                    const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+                    // Fallback to empty object if firebase config is not available
+                    const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+                    
+                    // Basic check for valid config
+                    if (!firebaseConfig.apiKey) {
+                        this.blogError = "Firebase configuration is missing. Blog cannot be loaded.";
+                        console.error("Firebase configuration is missing.");
+                        return;
+                    }
+
+                    try {
+                        const app = initializeApp(firebaseConfig);
+                        this.db = getFirestore(app);
+                        this.auth = getAuth(app);
+                        setLogLevel('Debug');
+
+                        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                            await signInWithCustomToken(this.auth, __initial_auth_token);
+                        } else {
+                            await signInAnonymously(this.auth);
+                        }
+                    } catch (error) {
+                        console.error("Firebase Initialization Error:", error);
+                        this.blogError = "Could not connect to the database.";
+                        return;
+                    }
+
+                    onAuthStateChanged(this.auth, (user) => {
+                        if (user) {
+                            this.userId = user.uid;
+                            this.listenForBlogs(); // Start listening for blogs after user is authenticated
+                        } else {
+                            this.userId = null;
+                            if (this.unsubscribeBlogs) this.unsubscribeBlogs(); // Stop listening if user logs out
+                            this.blogs = [];
+                        }
+                    });
+                },
+
+                listenForBlogs() {
+                    if (this.unsubscribeBlogs) this.unsubscribeBlogs(); // Unsubscribe from any previous listener
+                    if (!this.db) return;
+                    
+                    this.isLoadingBlogs = true;
+                    const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+                    const blogsCollection = collection(this.db, `/artifacts/${appId}/public/data/blogs`);
+
+                    this.unsubscribeBlogs = onSnapshot(blogsCollection, (querySnapshot) => {
+                        const blogs = [];
+                        querySnapshot.forEach((doc) => {
+                            blogs.push({ id: doc.id, ...doc.data() });
+                        });
+                        this.blogs = blogs;
+                        this.isLoadingBlogs = false;
+                    }, (error) => {
+                        console.error("Error fetching blogs:", error);
+                        this.blogError = "Failed to load blog posts.";
+                        this.isLoadingBlogs = false;
+                    });
+                },
+
+                async saveBlog() {
+                    if (!this.newBlog.title || !this.newBlog.mainText) {
+                        this.blogError = "Title and Main Content are required.";
+                        setTimeout(() => this.blogError = '', 3000);
+                        return;
+                    }
+                    this.isSavingBlog = true;
+                    const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+                    const blogsCollection = collection(this.db, `/artifacts/${appId}/public/data/blogs`);
+
+                    try {
+                        await addDoc(blogsCollection, {
+                            ...this.newBlog,
+                            createdAt: new Date().toISOString() // Add a timestamp
+                        });
+                        this.cancelCreate();
+                    } catch (error) {
+                        console.error("Error saving blog:", error);
+                        this.blogError = "Failed to save the blog post.";
+                    } finally {
+                        this.isSavingBlog = false;
+                    }
+                },
+
+                selectBlog(blog) {
+                    this.selectedBlog = blog;
+                    this.blogView = 'single';
+                },
+
+                cancelCreate() {
+                    this.newBlog = { title: '', description: '', bannerImage: '', icon: '', mainText: '' };
+                    this.blogView = 'list';
+                },
+            },
+            mounted() {
+                this.initFirebase();
+            },
+            beforeUnmount() {
+                if (this.unsubscribeBlogs) {
+                    this.unsubscribeBlogs();
+                }
+            }
+        }).mount('#app');
+    </script>
 </body>
+
 </html>
