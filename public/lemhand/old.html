@@ -1,9 +1,15 @@
 <!DOCTYPE html>
 <html>
   <head>
+    <meta charset="utf-8">
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="preload" href="NotoSansSemiCondensed-Medium.woff2" as="font" type="font/woff2" crossorigin="">
+  <link rel="preload" href="Selawik-Regular.woff2" as="font" type="font/woff2" crossorigin="">
+  <link href="/supermium/rss/releases" rel="alternate" type="application/rss+xml" title="Supermium Web Browser">
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width" />
-    <title>LemHand - LemLegacy</title>
+    <title>LemHand</title>
     <link rel="apple-touch-icon" sizes="57x57" href="/apple-icon-57x57.png">
   <link rel="apple-touch-icon" sizes="60x60" href="/apple-icon-60x60.png">
   <link rel="apple-touch-icon" sizes="72x72" href="/apple-icon-72x72.png">
@@ -19,7 +25,6 @@
   <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
   <link rel="manifest" href="/manifest.json">
     <link href="styles.css" rel="stylesheet" type="text/css" />
-  <link href="bulma.css" rel="stylesheet" type="text/css" />
 
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <style>
@@ -36,28 +41,105 @@
   </head>
   <body>
     
-<div class="topnav">
-  <a class="active" href="/supermium/">Home</a>
-  <a class="" href="/supermium/releases/">Software</a>
-  <a class="" href="/supermium/faq/">News</a>
-  <a class="" href="/supermium/support/">Search</a>
-  <a class="">|</a>
-  <a class="" href="/supermium/extensions/">Return to LemHand</a>
-  <a class="" href="/supermium/about/">Account</a>
+<script src="scripts.js"></script>
+
+<div id="top">
+  <a id="#top"></a>
+  <ul></ul>
+  <header>
+    <a href="/supermium/" class="chromium-logo main-logo"></a><br>
+    <h1><span style="font-family: Selawik">LemHand</span></h1><br>
+  </header>
+</div>
+<div class="topnav" id="topnav">
+  <a class="active" href="old.html">Home</a>
+    <a class="" href="oldaccount.html">Account</a>
+  <a class="" href="oldsoftware.html">Software</a>
+  <a class="" href="oldblog.html">Blog</a>
+  <a class="" href="oldsearch.html">Search</a>
+  <div class="menu"><a href="javascript:void(0);" class="icon" onclick="menu()"><i class="fa fa-bars"></i></a></div>
+  <noscript><div class="sitemap"><a href="/supermium/sitemap/">Site Map</a></div><style>.menu { display: none; }</style></noscript>
 </div>
 
-    <img src="LemHand Kart 8.svg" class="center">
-    <section class="hero is-link">
-      <div class="hero-body">
-        <p class="title">Welcome to LemLegacy!</p>
-        <p class="subtitle">LemLegacy is a version of LemHand for older devices. This is made by LemHand. </p>
-        <p class="subtitle">  </p>
-        <p class="subtitle">LemLegacy is still in beta stages and might redirrect you to the normal version of LemHand!</p>
-      </div>
-    </section>
+<ul id="feedbar">
+  <li id="feed">
+    <a target="_blank" href="/supermium/rss/releases"><img class="icon" src="feed.png" width="49" height="48" alt="RSS"></a>
+  </li>
+</ul>
+<div class="sidebar">
+  <table class="topnews" width="100%" cellspacing="0" cellpadding="2" border="0">
+    <tbody>
+      <tr>
+        <td class="topnewstext">
+          <span class="bold">
+            <b>Work in Progress</b>
+            <br>
+            <br>
+            <small>
+			  <small>September 25th, 2025</small>
+			</small>
+			<br>
+            <b>LemLegacy Beta</b>
+            <br>
+            <br>
+            <b>Changes:</b>
+            <br>
+            <br>
+			The LemLegacy website has been redisigned to have a more glossy design. LemLegacy text has been replaced with LemHand
+			<br>
+            <br>
+            <b><a href="releases/v132-r5-02/">Show more</a></b>
+			<br>
+            <br>
+		  </span>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
 
+<div class="main">
+  <h2>Welcome to LemHand!</h2>
+  <b>The <i>official</i> homepage for LemHand on legacy devices</b>
+  <br>
+  <br>
+  <br>
+  <br>
+  
+  <noscript>
+    <center>
+      <a href="#top"><img src="/supermium/images/scroll-to-top.gif" width="132" height="64" alt="Go to top"></a>
+    </center>
+	<br>
+	<br>
+  </noscript>
+  <div class="canada"><img src="/supermium/images/canada-ball.png" width="216" height="70"></div><br>
+  <br>
+  <center>
+    <a href="/supermium/sitemap">Return to Site Map</a><br>
+    <br>
+    <a href="https://git.win32subsystem.live/?p=supermium;a=summary">Source Code</a><br>
+    <br>
+    <a href="https://bugs.win32subsystem.live">Bug Tracker</a><br>
+    <br>
+    <a href="/supermium/privacy/">Privacy Policy</a><br>
+	<br>
+	<a href="/supermium/contact/">Contact</a><br>
+	<br>
+	Follow @Supermium<br>
+	<br>
+	<a href="https://www.facebook.com/profile.php?id=61566577956701"><img src="/supermium/images/facebook.png" width="44" height="44" alt="Facebook"></a>
+	<a href="https://x.com/Supermium_"><img src="/supermium/images/x-logo.png" width="50" height="50" alt="X/Twitter"></a>
+	<a href="https://bsky.app/profile/supermium.net"><img src="/supermium/images/bluesky-logo.png" width="50" height="50" alt="Bluesky"></a>
+	<a rel="me" href="https://mastodon.social/@supermium"><img src="/supermium/images/mastodon-logo.png" width="50" height="50" alt="Mastodon"></a>
+	<a href="https://github.com/win32ss/supermium"><img src="/supermium/images/github.png" width="48" height="48" alt="GitHub"></a>
+  </center>
+  <br>
+  <br>
+</div>
+<div class="footer">Copyright © 2025 LemHand</div>
 
-    <script src="script.js"></script>
-  </body>
+</body>
+
 </html>
 
