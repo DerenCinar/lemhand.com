@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Chat DS</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Load Inter font (a clean, readable font) -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        /* Use a clean font, but fallback to a retro mono font */
+        body {
+            font-family: 'Inter', 'monospace', sans-serif;
+        }
+        /* Custom font for the title */
+        .font-pixel {
+            font-family: '"Press Start 2P"', cursive;
+        }
+        /* Custom scrollbar for the chat */
+        #chat-messages::-webkit-scrollbar {
+            width: 8px;
+        }
+        #chat-messages::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        #chat-messages::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 10px;
+        }
+        #chat-messages::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+        /* Canvas for meme generation, hidden by default */
+        #meme-canvas {
+            display: none;
+        }
+    </style>
+</head>
+<body class="bg-gray-200 flex items-center justify-center min-h-screen p-4">
+
+    <!-- Main DS-style container -->
+    <div id="ds-container" class="w-full max-w-4xl bg-blue-500 rounded-2xl shadow-2xl p-4 lg:p-6 border-4 border-b-8 border-blue-700">
+        <h1 class="font-pixel text-white text-center text-lg md:text-2xl mb-4 text-shadow">STUDENT CHAT DS</h1>
+        
+        <div class="flex flex-col lg:flex-row lg:space-x-4 space-y-4 lg:space-y-0">
+
+            <!-- Top Screen: Chat Display -->
+            <div class="lg:w-1/2 w-full flex-shrink-0">
+                <div id="top-screen-bezel" class="bg-gray-800 rounded-lg p-3 shadow-inner">
+                    <div id="chat-messages" class="h-80 lg:h-[450px] bg-white rounded-md overflow-y-auto p-3 space-y-3">
+                        <!-- Messages will be injected here by JavaScript -->
+                        <div class="text-center text-gray-400">Loading messages...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bottom Screen: Controls (Tabs) -->
+            <div class="lg:w-1/2 w-full flex-shrink-0">
+                <div id="bottom-screen-bezel" class="bg-gray-800 rounded-lg p-3 shadow-inner h-full">
+                    <div class="bg-white rounded-md h-full flex flex-col">
+                        <!-- Tab Buttons -->
+                        <div class="flex border-b border-gray-300">
+                            <button id="tab-chat" class="tab-btn flex-1 p-3 font-semibold bg-blue-100 border-r border-gray-300">Chat</button>
+                            <button id="tab-stickers" class="tab-btn flex-1 p-3 font-semibold text-gray-600 bg-gray-50 border-r border-gray-300">Stickers</button>
+                            <button id="tab-meme" class="tab-btn flex-1 p-3 font-semibold text-gray-600 bg-gray-50">Meme</button>
+                        </div>
+                        
+                        <!-- Tab Panels -->
+                        <div class="p-4 flex-1 overflow-y-auto">
+                            <!-- Chat Panel -->
+                            <div id="panel-chat" class="tab-panel flex flex-col h-full">
+                                <div class="flex-1">
+                                    <p class="text-xs text-gray-500 mb-2">Your User ID (share with friends!):</p>
+                                    <p id="user-id-display" class="text-sm font-mono bg-gray-100 p-2 rounded break-all select-all mb-4">loading...</p>
+                                </div>
+                                <div class="flex space-x-2">
+                                    <input type="text" id="message-input" placeholder="Type a message..." class="flex-1 p-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none">
+                                    <button id="send-button" class="bg-blue-600 hover:bg-blue-700 text-white font-bold p-3 rounded-lg shadow transition-transform active:scale-95">
+                                        Send
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Stickers Panel -->
+                            <div id="panel-stickers" class="tab-panel hidden">
+                                <h3 class="font-semibold mb-3 text-center">Send a Sticker!</h3>
+                                <div class="grid grid-cols-4 gap-3">
+                                    <!-- School-friendly stickers -->
+                                    <button class="sticker-btn text-4xl p-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition-transform active:scale-90">👍</button>
+                                    <button class="sticker-btn text-4xl p-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition-transform active:scale-90">🎉</button>
+                                    <button class="sticker-btn text-4xl p-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition-transform active:scale-90">📚</button>
+                                    <button class="sticker-btn text-4xl p-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition-transform active:scale-90">🍎</button>
+                                    <button class="sticker-btn text-4xl p-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition-transform active:scale-90">💡</button>
+                                    <button class="sticker-btn text-4xl p-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition-transform active:scale-90">⭐</button>
+                                    <button class="sticker-btn text-4xl p-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition-transform active:scale-90">🧠</button>
+                                    <button class="sticker-btn text-4xl p-2 bg-gray-100 rounded-lg hover:bg-gray-200 transition-transform active:scale-90">💯</button>
+                                </div>
+                            </div>
+
+                            <!-- Meme Maker Panel -->
+                            <div id="panel-meme" class="tab-panel hidden space-y-3">
+                                <p class="text-xs text-center text-gray-500">Note: Custom image uploads are not supported. Please select a template!</p>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">1. Select Template</label>
+                                    <select id="meme-template-select" class="mt-1 block w-full p-2 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                        <option value="https://placehold.co/300x300/EFEFEF/AAAAAA?text=Template+1">Template 1 (Light)</option>
+                                        <option value="https://placehold.co/300x300/333333/FFFFFF?text=Template+2">Template 2 (Dark)</option>
+                                        <option value="https://placehold.co/300x300/4299E1/FFFFFF?text=Blue+BG">Template 3 (Blue)</option>
+                                        <option value="https://placehold.co/300x300/F56565/FFFFFF?text=Red+BG">Template 4 (Red)</option>
+                                    </select>
+                                </div>
+                                
+                                <div>
+                                    <label for="meme-top-text" class="block text-sm font-medium text-gray-700">2. Top Text</label>
+                                    <input type="text" id="meme-top-text" placeholder="Top Text" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                </div>
+                                
+                                <div>
+                                    <label for="meme-bottom-text" class="block text-sm font-medium text-gray-700">3. Bottom Text</label>
+                                    <input type="text" id="meme-bottom-text" placeholder="Bottom Text" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                                </div>
+
+                                <button id="generate-meme-btn" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold p-2 rounded-lg shadow transition-transform active:scale-95">
+                                    Preview Meme
+                                </button>
+                                
+                                <img id="meme-preview" class="hidden w-full h-auto rounded-lg border-2 border-dashed border-gray-300 p-1">
+                                <canvas id="meme-canvas" width="300" height="300"></canvas>
+                                
+                                <button id="send-meme-btn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold p-2 rounded-lg shadow transition-transform active:scale-95 hidden">
+                                    Send Meme
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        // Import Firebase modules
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { 
+            getAuth, 
+            signInAnonymously, 
+            signInWithCustomToken, 
+            onAuthStateChanged 
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { 
+            getFirestore, 
+            collection, 
+            addDoc, 
+            query, 
+            onSnapshot, 
+            serverTimestamp,
+            setLogLevel
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // --- GLOBAL VARS ---
+        let db, auth;
+        let currentUserId = null;
+        let messagesColRef = null;
+        // const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-chatroom-app'; // No longer needed for self-hosting
+
+        // DOM Elements
+        const chatMessages = document.getElementById('chat-messages');
+        const messageInput = document.getElementById('message-input');
+        const sendButton = document.getElementById('send-button');
+        const userIdDisplay = document.getElementById('user-id-display');
+        
+        // Tab Elements
+        const tabs = {
+            chat: document.getElementById('tab-chat'),
+            stickers: document.getElementById('tab-stickers'),
+            meme: document.getElementById('tab-meme'),
+        };
+        const panels = {
+            chat: document.getElementById('panel-chat'),
+            stickers: document.getElementById('panel-stickers'),
+            meme: document.getElementById('panel-meme'),
+        };
+        
+        // Sticker Elements
+        const stickerButtons = document.querySelectorAll('.sticker-btn');
+
+        // Meme Elements
+        const templateSelect = document.getElementById('meme-template-select');
+        const topTextInput = document.getElementById('meme-top-text');
+        const bottomTextInput = document.getElementById('meme-bottom-text');
+        const generateMemeBtn = document.getElementById('generate-meme-btn');
+        const memePreview = document.getElementById('meme-preview');
+        const sendMemeBtn = document.getElementById('send-meme-btn');
+        const canvas = document.getElementById('meme-canvas');
+        const ctx = canvas.getContext('2d');
+
+        // --- FIREBASE INIT ---
+        async function initializeFirebase() {
+            try {
+                // --- PASTE YOUR FIREBASE CONFIG OBJECT HERE ---
+               const firebaseConfig = {
+    apiKey: "AIzaSyCWp6dqShdHCCtvLlJA03QMMqqb6LSePSU",
+    authDomain: "lemhand-6de2a.firebaseapp.com",
+    databaseURL: "https://lemhand-6de2a-default-rtdb.firebaseio.com",
+    projectId: "lemhand-6de2a",
+    storageBucket: "lemhand-6de2a.appspot.com",
+    messagingSenderId: "148302455321",
+    appId: "1:148302455321:web:4f899d96f460842e868088",
+    measurementId: "G-M96JLWHLSP"
+  };
+                // -----------------------------------------------
+
+                // Initialize Firebase app
+                const app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+                setLogLevel('Debug'); // Enable debug logging for Firestore
+
+                // Sign in
+                onAuthStateChanged(auth, async (user) => {
+                    if (user) {
+                        // User is signed in!
+                        console.log("User is signed in:", user.uid);
+                        currentUserId = user.uid;
+                        userIdDisplay.textContent = currentUserId;
+                        
+                        // Set up Firestore collection ref
+                        const messagesColPath = 'messages'; // Our new simple path
+                        messagesColRef = collection(db, messagesColPath);
+                        
+                        // Start listening for messages
+                        listenForMessages();
+                    } else {
+                        // User not signed in, sign them in anonymously
+                        console.log("User not signed in, attempting anonymous sign-in...");
+                        currentUserId = null;
+                        userIdDisplay.textContent = "Authenticating...";
+                        try {
+                            await signInAnonymously(auth);
+                        } catch (authError) {
+                            console.error("Error during anonymous sign-in:", authError);
+                            userIdDisplay.textContent = "Auth Error";
+                        }
+                    }
+                });
+            } catch (e) {
+                console.error("Error initializing Firebase:", e);
+                chatMessages.innerHTML = '<div class="text-center text-red-500">Error connecting to chat service.</div>';
+            }
+        }
+
+        // --- CHAT LOGIC ---
+
+        /**
+         * Listens for real-time messages from Firestore and renders them.
+         */
+        function listenForMessages() {
+            if (!messagesColRef) return;
+
+            const q = query(messagesColRef);
+            
+            onSnapshot(q, (snapshot) => {
+                // Sort docs by timestamp on the client side
+                const sortedDocs = snapshot.docs.sort((a, b) => {
+                    const tsA = a.data().timestamp?.seconds || 0;
+                    const tsB = b.data().timestamp?.seconds || 0;
+                    return tsA - tsB;
+                });
+                
+                renderMessages(sortedDocs);
+            }, (error) => {
+                console.error("Error listening to messages:", error);
+                chatMessages.innerHTML = '<div class="text-center text-red-500">Error loading messages.</div>';
+            });
+        }
+
+        /**
+         * Renders an array of message docs to the chat window.
+         * @param {Array} docs - Array of Firestore document snapshots.
+         */
+        function renderMessages(docs) {
+            chatMessages.innerHTML = ''; // Clear existing messages
+            
+            if (docs.length === 0) {
+                chatMessages.innerHTML = '<div class="text-center text-gray-400">No messages yet. Say hi!</div>';
+                return;
+            }
+
+            docs.forEach(doc => {
+                const data = doc.data();
+                const isMe = data.userId === currentUserId;
+
+                const msgWrapper = document.createElement('div');
+                msgWrapper.className = `flex flex-col ${isMe ? 'items-end' : 'items-start'}`;
+
+                const msgBubble = document.createElement('div');
+                msgBubble.className = `max-w-[75%] rounded-lg px-3 py-2 shadow ${isMe ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-800'}`;
+                
+                // Show User ID (helpful for public chat)
+                const userIdEl = document.createElement('p');
+                userIdEl.className = `text-xs font-semibold ${isMe ? 'text-blue-100' : 'text-gray-500'} mb-1 truncate`;
+                userIdEl.textContent = `User: ${data.userId.substring(0, 8)}...`;
+                
+                msgBubble.appendChild(userIdEl);
+
+                // Add message content (text, sticker, or meme)
+                if (data.text) {
+                    const textEl = document.createElement('p');
+                    textEl.textContent = data.text;
+                    textEl.className = 'break-words';
+                    msgBubble.appendChild(textEl);
+                } else if (data.sticker) {
+                    const stickerEl = document.createElement('p');
+                    stickerEl.textContent = data.sticker;
+                    stickerEl.className = 'text-5xl';
+                    msgBubble.appendChild(stickerEl);
+                } else if (data.memeDataUrl) {
+                    const memeImg = document.createElement('img');
+                    memeImg.src = data.memeDataUrl;
+                    memeImg.className = 'rounded-md w-48 h-48 object-cover';
+                    msgBubble.appendChild(memeImg);
+                }
+
+                msgWrapper.appendChild(msgBubble);
+                chatMessages.appendChild(msgWrapper);
+            });
+
+            // Scroll to the bottom
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        /**
+         * Sends a text message to Firestore.
+         */
+        async function sendMessage() {
+            const text = messageInput.value.trim();
+            if (text === '' || !messagesColRef || !currentUserId) return;
+
+            try {
+                await addDoc(messagesColRef, {
+                    text: text,
+                    userId: currentUserId,
+                    timestamp: serverTimestamp()
+                });
+                messageInput.value = ''; // Clear input
+            } catch (e) {
+                console.error("Error sending message:", e);
+                // Could show a temporary error message to the user
+            }
+        }
+
+        /**
+         * Sends a sticker to Firestore.
+         * @param {string} stickerEmoji - The emoji to send.
+         */
+        async function sendSticker(stickerEmoji) {
+            if (!messagesColRef || !currentUserId) return;
+            try {
+                await addDoc(messagesColRef, {
+                    sticker: stickerEmoji,
+                    userId: currentUserId,
+                    timestamp: serverTimestamp()
+                });
+                // Switch back to chat tab
+                handleTabClick('chat');
+            } catch (e) {
+                console.error("Error sending sticker:", e);
+            }
+        }
+
+        /**
+         * Sends a generated meme to Firestore.
+         * @param {string} dataUrl - The base64 data URL of the meme.
+         */
+        async function sendMeme(dataUrl) {
+            if (!dataUrl || !messagesColRef || !currentUserId) return;
+            try {
+                await addDoc(messagesColRef, {
+                    memeDataUrl: dataUrl,
+                    userId: currentUserId,
+                    timestamp: serverTimestamp()
+                });
+                // Reset meme maker and switch to chat
+                resetMemeMaker();
+                handleTabClick('chat');
+            } catch (e) {
+                console.error("Error sending meme:", e);
+            }
+        }
+
+        // --- TAB LOGIC ---
+        
+        /**
+         * Handles switching between tabs.
+         * @param {string} tabName - The name of the tab to switch to ('chat', 'stickers', 'meme').
+         */
+        function handleTabClick(tabName) {
+            // Reset all tabs and panels
+            Object.values(tabs).forEach(tab => {
+                tab.classList.remove('bg-blue-100');
+                tab.classList.add('bg-gray-50', 'text-gray-600');
+            });
+            Object.values(panels).forEach(panel => panel.classList.add('hidden'));
+
+            // Activate the selected tab and panel
+            tabs[tabName].classList.add('bg-blue-100');
+            tabs[tabName].classList.remove('bg-gray-50', 'text-gray-600');
+            panels[tabName].classList.remove('hidden');
+        }
+
+        // --- MEME MAKER LOGIC ---
+        
+        /**
+         * Draws the selected template and text onto the canvas.
+         */
+        function generateMeme() {
+            const templateUrl = templateSelect.value;
+            const topText = topTextInput.value;
+            const bottomText = bottomTextInput.value;
+
+            const img = new Image();
+            img.crossOrigin = "Anonymous"; // Required for placehold.co
+            img.onload = () => {
+                // Draw image
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+                // Style text
+                ctx.font = 'bold 30px Impact';
+                ctx.fillStyle = 'white';
+                ctx.strokeStyle = 'black';
+                ctx.lineWidth = 2;
+                ctx.textAlign = 'center';
+
+                // Draw Top Text
+                ctx.fillText(topText.toUpperCase(), canvas.width / 2, 40);
+                ctx.strokeText(topText.toUpperCase(), canvas.width / 2, 40);
+
+                // Draw Bottom Text
+                ctx.fillText(bottomText.toUpperCase(), canvas.width / 2, canvas.height - 20);
+                ctx.strokeText(bottomText.toUpperCase(), canvas.width / 2, canvas.height - 20);
+
+                // Show preview
+                const dataUrl = canvas.toDataURL('image/png');
+                memePreview.src = dataUrl;
+                memePreview.classList.remove('hidden');
+                sendMemeBtn.classList.remove('hidden');
+            };
+            img.onerror = (e) => {
+                console.error("Error loading meme template image:", e);
+                // We shouldn't use alert()
+                // alert("Error loading image template. Please try another.");
+                console.log("Showing a custom error message would be better here.");
+            };
+            img.src = templateUrl;
+        }
+
+        /**
+         * Resets the meme maker fields and preview.
+         */
+        function resetMemeMaker() {
+            topTextInput.value = '';
+            bottomTextInput.value = '';
+            memePreview.classList.add('hidden');
+            sendMemeBtn.classList.add('hidden');
+            memePreview.src = '';
+            templateSelect.selectedIndex = 0;
+        }
+
+        // --- EVENT LISTENERS ---
+        function setupEventListeners() {
+            // Send button
+            sendButton.addEventListener('click', sendMessage);
+            messageInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    sendMessage();
+                }
+            });
+            
+            // Tab buttons
+            tabs.chat.addEventListener('click', () => handleTabClick('chat'));
+            tabs.stickers.addEventListener('click', () => handleTabClick('stickers'));
+            tabs.meme.addEventListener('click', () => handleTabClick('meme'));
+
+            // Sticker buttons
+            stickerButtons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    sendSticker(btn.textContent);
+                });
+            });
+            
+            // Meme buttons
+            generateMemeBtn.addEventListener('click', generateMeme);
+            sendMemeBtn.addEventListener('click', () => {
+                sendMeme(memePreview.src);
+            });
+        }
+
+        // --- STARTUP ---
+        initializeFirebase();
+        setupEventListeners();
+
+    </script>
+</body>
+</html>
+
