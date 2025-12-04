@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VTA Live Tracker</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=JetBrains+Mono:wght@400;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f172a;
+            color: #e2e8f0;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569; 
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.3s ease-out forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Utility for rotation */
+        .rotate-icon {
+            transition: transform 0.3s ease;
+        }
+    </style>
+</head>
+<body class="overflow-hidden h-screen flex text-slate-200 selection:bg-blue-500/30">
+
+    <!-- Sidebar -->
+    <div class="w-80 flex flex-col border-r border-slate-700 bg-slate-900 z-10">
+        <!-- Header -->
+        <div class="p-4 border-b border-slate-700 bg-slate-900">
+            <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 bg-blue-600 rounded flex items-center justify-center">
+                        <i data-lucide="bus" class="text-white w-5 h-5"></i>
+                    </div>
+                    <h1 class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-cyan-400">
+                        VTA Tracker
+                    </h1>
+                </div>
+                <button onclick="toggleSettings()" class="text-slate-400 hover:text-white transition-colors p-2 hover:bg-slate-800 rounded-full">
+                    <i data-lucide="settings" class="w-4 h-4"></i>
+                </button>
+            </div>
+
+            <!-- Settings Panel (Hidden by default) -->
+            <div id="settings-panel" class="hidden mb-4 p-3 bg-slate-800 rounded-lg text-sm animate-fade-in border border-slate-700">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-slate-400 font-medium">Data Source</span>
+                    <button id="demo-toggle" onclick="toggleDemoMode()" class="px-2 py-1 rounded text-xs font-bold transition-colors bg-amber-600 text-white">
+                        DEMO MODE
+                    </button>
+                </div>
+                <div id="api-input-container" class="hidden">
+                    <input type="text" id="api-key-input" placeholder="511.org API Key" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs text-white focus:outline-none focus:border-blue-500 transition-colors">
+                </div>
+            </div>
+
+            <!-- Search -->
+            <div class="relative">
+                <i data-lucide="search" class="absolute left-3 top-2.5 text-slate-500 w-4 h-4"></i>
+                <input type="text" id="search-input" placeholder="Search route (e.g. 522)" class="w-full bg-slate-800 border-none rounded-lg pl-9 pr-4 py-2 text-sm focus:ring-2 focus:ring-blue-500 text-white placeholder-slate-500 transition-all outline-none">
+            </div>
+        </div>
+
+        <!-- Route List -->
+        <div id="route-list" class="flex-1 overflow-y-auto p-2 space-y-4">
+            <!-- Routes will be injected here by JS -->
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="flex-1 flex flex-col relative bg-slate-950">
+        
+        <!-- Top Bar -->
+        <div class="h-16 border-b border-slate-800 flex items-center justify-between px-6 bg-slate-900/50 backdrop-blur shrink-0 z-20">
+            <div class="flex items-center gap-4" id="top-bar-info">
+                <div class="text-slate-500 flex items-center gap-2">
+                    <i data-lucide="arrow-right" class="w-4 h-4"></i> Select a route to view live vehicles
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-4 hidden" id="refresh-controls">
+                <div class="text-right hidden sm:block">
+                    <div class="text-xs text-slate-400 font-medium">Active Buses</div>
+                    <div class="font-mono text-xl font-bold text-blue-400 leading-none" id="vehicle-count">0</div>
+                </div>
+                <button onclick="fetchVehicles()" class="w-10 h-10 rounded-full bg-slate-800 hover:bg-slate-700 flex items-center justify-center transition-all text-slate-300 hover:text-blue-400">
+                    <i data-lucide="refresh-cw" class="w-4 h-4" id="refresh-icon"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Visualization Area -->
+        <div class="flex-1 overflow-hidden relative flex">
+            
+            <!-- Left: Vehicle List -->
+            <div class="w-80 border-r border-slate-800 overflow-y-auto p-4 bg-slate-900/30 shrink-0" id="vehicle-list-container">
+                <div class="flex flex-col items-center justify-center h-full text-slate-600">
+                    <i data-lucide="map" class="mb-4 opacity-20 w-12 h-12"></i>
+                    <p>Select a route</p>
+                </div>
+            </div>
+
+            <!-- Right: Detail View -->
+            <div class="flex-1 bg-slate-950 p-8 flex items-center justify-center relative overflow-hidden">
+                <!-- Decorative Grid -->
+                <div class="absolute inset-0 opacity-[0.03]" style="background-image: linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px); background-size: 40px 40px;"></div>
+                <div class="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-blue-900/10 via-transparent to-slate-900/50 pointer-events-none"></div>
+
+                <!-- Content Container -->
+                <div id="detail-view" class="relative z-10 w-full max-w-2xl">
+                    <!-- Default State -->
+                    <div class="text-center z-10 opacity-60">
+                        <div class="inline-flex items-center justify-center w-24 h-24 rounded-full bg-slate-800/50 border border-slate-700 mb-6 relative">
+                            <i data-lucide="bus" class="w-10 h-10 text-slate-500"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-slate-300">VTA Command Center</h3>
+                        <p class="text-slate-500 mt-2 max-w-sm mx-auto">
+                            Select a vehicle from the list on the left to view live telemetry, model details, and status.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // --- Constants & Data ---
+        const BUS_IMAGES = {
+            "Gillig Low Floor": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/VTA_Bus_71.jpg/800px-VTA_Bus_71.jpg",
+            "Gillig BRT Hybrid": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/66/Santa_Clara_VTA_Gillig_BRT_Hybrid_9115.jpg/800px-Santa_Clara_VTA_Gillig_BRT_Hybrid_9115.jpg",
+            "New Flyer Xcelsior Articulated": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/23/VTA_Rapid_522_New_Flyer_XN60.jpg/800px-VTA_Rapid_522_New_Flyer_XN60.jpg",
+            "Proterra Catalyst": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e8/VTA_Proterra_Catalyst.jpg/800px-VTA_Proterra_Catalyst.jpg",
+            "Generic": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/VTA_Bus_71.jpg/800px-VTA_Bus_71.jpg"
+        };
+
+        const ROUTES_DB = [
+            { id: "500", name: "Rapid 500", type: "Rapid", desc: "Berryessa BART - Diridon" },
+            { id: "522", name: "Rapid 522", type: "Rapid", desc: "Palo Alto - Eastridge" },
+            { id: "523", name: "Rapid 523", type: "Rapid", desc: "Sunnyvale - Downtown SJ" },
+            { id: "568", name: "Rapid 568", type: "Rapid", desc: "Gilroy - Diridon" },
+            { id: "101", name: "Express 101", type: "Express", desc: "Camden/Hwy 85 - Stanford" },
+            { id: "102", name: "Express 102", type: "Express", desc: "South SJ - Stanford" },
+            { id: "103", name: "Express 103", type: "Express", desc: "Eastridge - Stanford" },
+            { id: "104", name: "Express 104", type: "Express", desc: "Milpitas BART - Stanford" },
+            { id: "20", name: "Route 20", type: "Local", desc: "Milpitas BART - Sunnyvale" },
+            { id: "21", name: "Route 21", type: "Local", desc: "Stanford - Santa Clara" },
+            { id: "22", name: "Route 22", type: "Local", desc: "Palo Alto - Eastridge" },
+            { id: "23", name: "Route 23", type: "Local", desc: "De Anza - Alum Rock" },
+            { id: "25", name: "Route 25", type: "Local", desc: "De Anza - Alum Rock (Valley Med)" },
+            { id: "26", name: "Route 26", type: "Local", desc: "West Valley - Eastridge" },
+            { id: "60", name: "Route 60", type: "Local", desc: "Milpitas - Winchester (SJC)" },
+            { id: "64", name: "Route 64", type: "Local", desc: "Almaden - McKee" },
+            { id: "66", name: "Route 66", type: "Local", desc: "North Milpitas - Santa Teresa" },
+            { id: "68", name: "Route 68", type: "Local", desc: "Diridon - Gilroy" },
+            { id: "70", name: "Route 70", type: "Local", desc: "Milpitas - Capitol" },
+        ];
+
+        // --- State ---
+        let appState = {
+            isDemo: true,
+            apiKey: "",
+            selectedRoute: null,
+            selectedVehicle: null,
+            vehicles: [],
+            searchQuery: "",
+            loading: false
+        };
+
+        // --- Helpers ---
+        function getBusModel(vehicleId) {
+            const id = parseInt(vehicleId);
+            if (!id) return { model: "Gillig Low Floor", type: "Standard 40ft" };
+            if (id >= 9000 && id < 9999) return { model: "Gillig BRT Hybrid", type: "Hybrid 40ft" };
+            if (id >= 8000 && id < 8999) return { model: "New Flyer Xcelsior Articulated", type: "Articulated 60ft" };
+            if (id >= 2000 && id < 2999) return { model: "Gillig Low Floor", type: "Diesel 40ft" };
+            if (id >= 6000 && id < 6999) return { model: "Gillig Hybrid", type: "Hybrid 40ft" };
+            if (id >= 3000 && id < 3999) return { model: "Proterra Catalyst", type: "Electric 40ft" };
+            return { model: "Gillig Low Floor", type: "Standard 40ft" };
+        }
+
+        function generateMockVehicles(routeId) {
+            const count = Math.floor(Math.random() * 5) + 2;
+            const vehicles = [];
+            const now = Date.now();
+            for (let i = 0; i < count; i++) {
+                const vid = Math.floor(Math.random() * 8000) + 2000;
+                vehicles.push({
+                    id: vid.toString(),
+                    routeId: routeId,
+                    lat: 37.3382 + (Math.random() * 0.1 - 0.05),
+                    lon: -121.8863 + (Math.random() * 0.1 - 0.05),
+                    bearing: Math.floor(Math.random() * 360),
+                    speed: Math.floor(Math.random() * 45),
+                    timestamp: now,
+                    occupancy: ["EMPTY", "MANY_SEATS_AVAILABLE", "FEW_SEATS_AVAILABLE", "STANDING_ROOM_ONLY"][Math.floor(Math.random() * 4)]
+                });
+            }
+            return vehicles;
+        }
+
+        // --- Initialization ---
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            renderRoutes();
+            
+            // Search Listener
+            document.getElementById('search-input').addEventListener('input', (e) => {
+                appState.searchQuery = e.target.value.toLowerCase();
+                renderRoutes();
+            });
+
+            // API Key Listener
+            document.getElementById('api-key-input').addEventListener('input', (e) => {
+                appState.apiKey = e.target.value;
+            });
+            
+            // Auto Refresh Loop
+            setInterval(() => {
+                if(appState.selectedRoute) fetchVehicles();
+            }, 30000);
+        });
+
+        // --- Rendering ---
+        
+        function renderRoutes() {
+            const container = document.getElementById('route-list');
+            container.innerHTML = '';
+            
+            const filtered = ROUTES_DB.filter(r => 
+                r.id.toLowerCase().includes(appState.searchQuery) || 
+                r.name.toLowerCase().includes(appState.searchQuery) ||
+                r.type.toLowerCase().includes(appState.searchQuery)
+            );
+
+            const groups = { Rapid: [], Express: [], Local: [] };
+            filtered.forEach(r => { if(groups[r.type]) groups[r.type].push(r); });
+
+            if (filtered.length === 0) {
+                container.innerHTML = `<div class="text-center py-8 text-slate-500"><p>No routes found</p></div>`;
+                return;
+            }
+
+            Object.entries(groups).forEach(([type, routes]) => {
+                if (routes.length === 0) return;
+                
+                const groupTitle = document.createElement('h3');
+                groupTitle.className = "text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 px-2 mt-2";
+                groupTitle.innerText = `${type} Routes`;
+                container.appendChild(groupTitle);
+
+                const list = document.createElement('div');
+                list.className = "space-y-1";
+                
+                routes.forEach(route => {
+                    const isActive = appState.selectedRoute?.id === route.id;
+                    const el = document.createElement('div');
+                    el.onclick = () => selectRoute(route);
+                    el.className = `p-3 rounded-lg cursor-pointer border transition-colors flex justify-between items-center ${
+                        isActive 
+                        ? "bg-blue-900/40 border-blue-500 text-white" 
+                        : "bg-slate-800/50 border-slate-700 hover:bg-slate-800 text-slate-300"
+                    }`;
+                    
+                    const badgeColor = route.type === "Rapid" ? "bg-red-600" : route.type === "Express" ? "bg-green-600" : "bg-blue-600";
+                    
+                    el.innerHTML = `
+                        <div class="flex items-center gap-3 overflow-hidden">
+                            <div class="w-10 h-10 rounded-lg flex items-center justify-center font-bold text-sm shadow-lg text-white shrink-0 ${badgeColor}">
+                                ${route.id}
+                            </div>
+                            <div class="min-w-0">
+                                <div class="font-semibold text-sm leading-tight truncate">${route.name}</div>
+                                <div class="text-xs text-slate-500 truncate max-w-[140px]">${route.desc}</div>
+                            </div>
+                        </div>
+                        ${isActive ? '<i data-lucide="chevron-right" class="text-blue-400 w-4 h-4"></i>' : ''}
+                    `;
+                    list.appendChild(el);
+                });
+                container.appendChild(list);
+            });
+            lucide.createIcons();
+        }
+
+        function renderHeader() {
+            const container = document.getElementById('top-bar-info');
+            const controls = document.getElementById('refresh-controls');
+            
+            if (!appState.selectedRoute) {
+                container.innerHTML = `<div class="text-slate-500 flex items-center gap-2"><i data-lucide="arrow-right" class="w-4 h-4"></i> Select a route to view live vehicles</div>`;
+                controls.classList.add('hidden');
+            } else {
+                const badgeColor = appState.selectedRoute.type === "Rapid" ? "bg-red-600" : appState.selectedRoute.type === "Express" ? "bg-green-600" : "bg-blue-600";
+                const demoBadge = appState.isDemo ? `<span class="bg-amber-500/20 text-amber-500 px-1.5 rounded text-[10px] font-bold ml-2">DEMO</span>` : '';
+                
+                container.innerHTML = `
+                    <div class="w-10 h-10 rounded flex items-center justify-center font-bold text-xl text-white shadow-lg ${badgeColor}">
+                        ${appState.selectedRoute.id}
+                    </div>
+                    <div>
+                        <h2 class="font-bold text-lg text-slate-100">${appState.selectedRoute.name}</h2>
+                        <div class="text-xs text-slate-400 flex items-center gap-1">${appState.selectedRoute.desc} ${demoBadge}</div>
+                    </div>
+                `;
+                controls.classList.remove('hidden');
+                document.getElementById('vehicle-count').innerText = appState.vehicles.length;
+            }
+            lucide.createIcons();
+        }
+
+        function renderVehicleList() {
+            const container = document.getElementById('vehicle-list-container');
+            container.innerHTML = '';
+
+            if (appState.loading) {
+                container.innerHTML = `<div class="flex justify-center py-10"><i data-lucide="refresh-cw" class="animate-spin text-blue-500 w-6 h-6"></i></div>`;
+                lucide.createIcons();
+                return;
+            }
+
+            if (appState.vehicles.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-10 text-slate-500">
+                        <i data-lucide="bus" class="mx-auto mb-3 opacity-20 w-8 h-8"></i>
+                        <p>No vehicles active</p>
+                    </div>`;
+                lucide.createIcons();
+                return;
+            }
+
+            appState.vehicles.forEach(vehicle => {
+                const info = getBusModel(vehicle.id);
+                const isSelected = appState.selectedVehicle?.id === vehicle.id;
+                
+                const card = document.createElement('div');
+                card.onclick = () => selectVehicle(vehicle);
+                card.className = `p-4 mb-3 rounded-lg cursor-pointer transition-all border ${
+                    isSelected 
+                    ? "bg-blue-600 border-blue-400 shadow-[0_0_15px_rgba(37,99,235,0.5)]" 
+                    : "bg-slate-800 border-slate-700 hover:bg-slate-700 hover:border-slate-600"
+                }`;
+
+                const occupancyColor = vehicle.occupancy === "STANDING_ROOM_ONLY" ? "bg-red-900 text-red-200" :
+                                       vehicle.occupancy === "FEW_SEATS_AVAILABLE" ? "bg-yellow-900 text-yellow-200" :
+                                       "bg-green-900 text-green-200";
+
+                card.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <span class="bg-slate-900 text-blue-400 px-2 py-0.5 rounded text-xs font-mono font-bold">#${vehicle.id}</span>
+                                <span class="text-xs text-slate-400">${info.type}</span>
+                            </div>
+                            <h4 class="font-bold mt-1 text-sm text-slate-100">${info.model}</h4>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-lg font-mono font-bold text-green-400">${vehicle.speed} <span class="text-xs text-slate-500">MPH</span></div>
+                        </div>
+                    </div>
+                    <div class="mt-3 flex items-center justify-between text-xs text-slate-400">
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="navigation" style="transform: rotate(${vehicle.bearing}deg)" class="w-3 h-3"></i>
+                            <span>${vehicle.bearing}° Heading</span>
+                        </div>
+                        <div class="px-2 py-0.5 rounded-full text-[10px] font-bold ${occupancyColor}">
+                            ${vehicle.occupancy.replace(/_/g, " ")}
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+            lucide.createIcons();
+        }
+
+        function renderDetailView() {
+            const container = document.getElementById('detail-view');
+            
+            if (!appState.selectedVehicle) {
+                container.innerHTML = `
+                    <div class="text-center z-10 opacity-60">
+                        <div class="inline-flex items-center justify-center w-24 h-24 rounded-full bg-slate-800/50 border border-slate-700 mb-6 relative">
+                            <i data-lucide="bus" class="w-10 h-10 text-slate-500"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-slate-300">VTA Command Center</h3>
+                        <p class="text-slate-500 mt-2 max-w-sm mx-auto">
+                            Select a vehicle from the list on the left to view live telemetry, model details, and status.
+                        </p>
+                    </div>`;
+                lucide.createIcons();
+                return;
+            }
+
+            const vehicle = appState.selectedVehicle;
+            const info = getBusModel(vehicle.id);
+            const imgUrl = BUS_IMAGES[info.model] || BUS_IMAGES["Generic"];
+
+            container.innerHTML = `
+                <div class="bg-slate-800/80 backdrop-blur-xl border border-slate-700 rounded-2xl overflow-hidden shadow-2xl animate-fade-in">
+                    <!-- Vehicle Image Header -->
+                    <div class="h-64 overflow-hidden relative group bg-slate-900">
+                        <img 
+                            src="${imgUrl}" 
+                            alt="Bus" 
+                            class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 opacity-90 group-hover:opacity-100"
+                        />
+                        <div class="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent"></div>
+                        <div class="absolute bottom-4 left-6">
+                            <span class="bg-blue-600/90 backdrop-blur text-white text-[10px] tracking-wider font-bold px-2 py-1 rounded mb-2 inline-block shadow-lg border border-blue-500/30">
+                                LIVE TRACKING
+                            </span>
+                            <h2 class="text-3xl font-bold text-white drop-shadow-md tracking-tight">
+                                ${info.model}
+                            </h2>
+                        </div>
+                    </div>
+
+                    <!-- Stats Grid -->
+                    <div class="p-6 grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div class="bg-slate-700/30 p-3 rounded-lg border border-slate-600/30 backdrop-blur-sm">
+                            <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 flex items-center gap-1"><i data-lucide="bus" class="w-3 h-3"></i> ID</div>
+                            <div class="text-xl font-mono font-bold text-white">#${vehicle.id}</div>
+                        </div>
+                        <div class="bg-slate-700/30 p-3 rounded-lg border border-slate-600/30 backdrop-blur-sm">
+                            <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 flex items-center gap-1"><i data-lucide="clock" class="w-3 h-3"></i> Speed</div>
+                            <div class="text-xl font-mono font-bold text-green-400">${vehicle.speed} <span class="text-sm">MPH</span></div>
+                        </div>
+                        <div class="bg-slate-700/30 p-3 rounded-lg border border-slate-600/30 backdrop-blur-sm">
+                            <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 flex items-center gap-1"><i data-lucide="users" class="w-3 h-3"></i> Occupancy</div>
+                            <div class="text-sm font-bold text-white mt-1 truncate">
+                                ${vehicle.occupancy.replace(/_/g, " ")}
+                            </div>
+                        </div>
+                        <div class="bg-slate-700/30 p-3 rounded-lg border border-slate-600/30 backdrop-blur-sm">
+                            <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 flex items-center gap-1"><i data-lucide="wifi" class="w-3 h-3"></i> Type</div>
+                            <div class="text-sm font-bold text-white mt-1 leading-tight">
+                                ${info.type}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Status Footer -->
+                    <div class="bg-slate-900/50 px-6 py-4 flex items-center justify-between border-t border-slate-700">
+                        <div class="flex items-center gap-2 text-sm text-slate-400">
+                            <span class="relative flex h-2.5 w-2.5">
+                                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                                <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-500"></span>
+                            </span>
+                            Sending real-time telemetry
+                        </div>
+                        <div class="text-xs text-slate-500 font-mono">
+                            ${vehicle.lat.toFixed(4)}, ${vehicle.lon.toFixed(4)}
+                        </div>
+                    </div>
+                </div>
+            `;
+            lucide.createIcons();
+        }
+
+        // --- Logic ---
+        
+        function selectRoute(route) {
+            appState.selectedRoute = route;
+            appState.selectedVehicle = null;
+            appState.vehicles = [];
+            renderRoutes(); // Re-render to update active state
+            renderHeader();
+            renderVehicleList();
+            renderDetailView();
+            fetchVehicles();
+        }
+
+        function selectVehicle(vehicle) {
+            appState.selectedVehicle = vehicle;
+            renderVehicleList(); // Update active
+            renderDetailView();
+        }
+
+        async function fetchVehicles() {
+            if (!appState.selectedRoute) return;
+            
+            appState.loading = true;
+            renderVehicleList();
+            
+            if (appState.isDemo) {
+                // Mock Delay
+                setTimeout(() => {
+                    appState.vehicles = generateMockVehicles(appState.selectedRoute.id);
+                    appState.loading = false;
+                    renderVehicleList();
+                    renderHeader();
+                }, 800);
+            } else {
+                if (!appState.apiKey) {
+                    alert("Please enter a 511.org API Key in settings.");
+                    appState.loading = false;
+                    renderVehicleList();
+                    return;
+                }
+
+                try {
+                    // NOTE: This call will likely fail in a pure local file context due to CORS
+                    // unless you use a browser extension that disables CORS or a proxy.
+                    const response = await fetch(`https://api.511.org/transit/VehiclePositions?api_key=${appState.apiKey}&agency=SC`);
+                    
+                    if (!response.ok) throw new Error("API Error or CORS block");
+                    
+                    // Note: 511.org returns GTFS-RT (Protobuf) or sometimes JSON depending on params/headers.
+                    // A proper implementation requires parsing that format.
+                    // For this HTML file, we assume JSON or catch the error.
+                    const data = await response.json(); 
+                    
+                    // Simple map if format matches (hypothetical structure)
+                    // In reality, you'd need a protobuf parser library like pbf included in the scripts.
+                    appState.vehicles = []; // Fill with parsed data
+                    
+                } catch (err) {
+                    console.error(err);
+                    alert("Unable to fetch live data directly from browser (CORS). Please use Demo Mode.");
+                    toggleDemoMode(); // Force back to demo
+                } finally {
+                    appState.loading = false;
+                    renderVehicleList();
+                }
+            }
+        }
+
+        function toggleSettings() {
+            const panel = document.getElementById('settings-panel');
+            panel.classList.toggle('hidden');
+        }
+
+        function toggleDemoMode() {
+            appState.isDemo = !appState.isDemo;
+            const btn = document.getElementById('demo-toggle');
+            const inputContainer = document.getElementById('api-input-container');
+            
+            if (appState.isDemo) {
+                btn.innerText = "DEMO MODE";
+                btn.className = "px-2 py-1 rounded text-xs font-bold transition-colors bg-amber-600 text-white";
+                inputContainer.classList.add('hidden');
+            } else {
+                btn.innerText = "LIVE API";
+                btn.className = "px-2 py-1 rounded text-xs font-bold transition-colors bg-green-600 text-white";
+                inputContainer.classList.remove('hidden');
+            }
+            
+            // Refresh data
+            if(appState.selectedRoute) fetchVehicles();
+            renderHeader();
+        }
+    </script>
+</body>
+</html>
