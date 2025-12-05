@@ -162,8 +162,6 @@
         }
 
         /* --- CSS Overrides to apply variables to Tailwind Utility Classes --- */
-        /* This effectively "themes" the hardcoded tailwind classes without changing HTML structure */
-        
         .bg-gray-100, .bg-gray-50, .bg-f3f4f6 { background-color: var(--bg-main) !important; }
         .bg-white { background-color: var(--bg-card) !important; color: var(--text-main) !important; }
         .text-gray-800, .text-gray-900 { color: var(--text-main) !important; }
@@ -175,27 +173,29 @@
         .text-blue-600, .text-blue-700 { color: var(--primary-color) !important; }
         .text-blue-200 { color: rgba(255,255,255,0.7) !important; }
         
-        /* Specific overrides for Green/VTA themes */
-        .bg-blue-100 { background-color: rgba(var(--primary-color), 0.1) !important; } /* Approximation */
+        .bg-blue-100 { background-color: rgba(var(--primary-color), 0.1) !important; } 
         .bg-blue-50 { background-color: rgba(var(--primary-color), 0.05) !important; }
         
-        /* Dark mode specific tweaks */
         [data-theme="dark"] .bus-card { border-color: #374151; }
-        [data-theme="dark"] input, [data-theme="dark"] select { 
-            background-color: #374151; 
-            color: white; 
-            border-color: #4b5563; 
-        }
-        [data-theme="dark"] .bg-gray-200 { background-color: #4b5563 !important; } /* Placeholders */
+        [data-theme="dark"] input, [data-theme="dark"] select { background-color: #374151; color: white; border-color: #4b5563; }
+        [data-theme="dark"] .bg-gray-200 { background-color: #4b5563 !important; }
 
-        /* --- Mobile Specific Overrides --- */
+        /* --- Mobile Specific Overrides (UPDATED FOR BOTTOM SHEET) --- */
         @media (max-width: 768px) {
-            #sidebarContainer { width: 100% !important; border: none; display: flex; flex-direction: column; }
+            #sidebarContainer { 
+                display: block !important; 
+                position: relative; 
+                height: 100vh; 
+                width: 100% !important;
+                overflow: hidden; 
+                border: none;
+            }
             #mobileHomeMapContainer {
                 display: block !important;
-                height: 35vh;
+                height: 100% !important;
                 width: 100%;
-                position: relative;
+                position: absolute;
+                top: 0; left: 0; right: 0; bottom: 0;
                 z-index: 0;
             }
             #listContainerWrapper {
@@ -203,27 +203,53 @@
                 background: var(--bg-card);
                 border-top-left-radius: 1.5rem;
                 border-top-right-radius: 1.5rem;
-                margin-top: -1.5rem; 
-                position: relative;
-                z-index: 10;
-                box-shadow: 0 -4px 10px rgba(0,0,0,0.1);
-                overflow: hidden; /* Important for flex scrolling */
+                /* Bottom Sheet Positioning */
+                position: absolute;
+                bottom: 0; left: 0; right: 0;
+                height: 60%; /* Default State */
+                z-index: 20;
+                box-shadow: 0 -4px 20px rgba(0,0,0,0.2);
+                overflow: hidden; 
                 display: flex;
                 flex-direction: column;
+                margin-top: 0 !important;
+                transition: height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            }
+            #listContainerWrapper.minimized {
+                height: 40px; /* Minimized State */
             }
             #searchBarArea {
                 position: absolute;
                 top: 10px;
                 left: 10px;
                 right: 10px;
-                z-index: 20;
+                z-index: 10;
                 background: transparent;
+                pointer-events: none; /* Let clicks pass through if needed, but input needs pointer-events auto */
             }
+            #searchBarArea > div { pointer-events: auto; }
             #searchBarArea input {
                 box-shadow: 0 4px 6px rgba(0,0,0,0.1);
                 border: none;
                 background-color: var(--bg-card);
                 color: var(--text-main);
+            }
+            /* Handle Bar */
+            #listHandle {
+                width: 100%;
+                height: 24px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                background: var(--bg-card);
+            }
+            #listHandle::after {
+                content: '';
+                width: 40px;
+                height: 4px;
+                background-color: #d1d5db;
+                border-radius: 99px;
             }
         }
     </style>
@@ -439,6 +465,9 @@
 
             <!-- List Container Wrapper -->
             <div id="listContainerWrapper" class="flex-1 flex flex-col relative overflow-hidden">
+                <!-- Mobile Handle -->
+                <div id="listHandle" class="md:hidden" onclick="toggleListState()"></div>
+
                 <!-- Loading Indicator -->
                 <div class="text-center py-4 text-gray-500" id="routeLoading">
                     <div class="loader mx-auto mb-2"></div>
@@ -557,6 +586,7 @@
         let currentLang = localStorage.getItem('vta_lang') || 'en';
         let currentTheme = localStorage.getItem('vta_theme') || 'default';
         let easyMode = localStorage.getItem('vta_easy_mode') === 'true';
+        let isListMinimized = false; // State for mobile list
 
         // Map variables
         let mapInstance = null;
@@ -565,11 +595,12 @@
         let viewingBusId = null; 
         let currentBusTimestamp = null; 
         let routeLayer = null; 
-        let busLayer = null; // NEW: Separate layer for buses
+        let busLayer = null; 
+        let homeBusLayer = null; // NEW: Layer for home map buses
         let timerInterval = null; 
         let currentVehicles = []; 
 
-        // --- Translations ---
+        // --- Translations (Same as previous) ---
         const translations = {
             en: {
                 enterApiKey: "Enter 511.org API Key",
@@ -769,7 +800,25 @@
                 timerInterval = setInterval(() => {
                     updateBusTimer();
                     checkHunterWatchlist(); // Check for bus hunter matches
+                    updateHomeMapFavorites(); // Update home map with favorites
                 }, 1000); 
+                // Initial fetch for home map
+                updateHomeMapFavorites();
+            }
+        }
+
+        // --- List Toggle Logic (Mobile) ---
+        function toggleListState() {
+            const list = document.getElementById('listContainerWrapper');
+            isListMinimized = !isListMinimized;
+            if (isListMinimized) {
+                list.classList.add('minimized');
+            } else {
+                list.classList.remove('minimized');
+            }
+            // Trigger map resize if needed (though map is full screen)
+            if (homeMapInstance) {
+                setTimeout(() => homeMapInstance.invalidateSize(), 300);
             }
         }
 
@@ -825,6 +874,7 @@
                 favoriteRoutes = [];
                 localStorage.removeItem('vta_favorites');
                 if (currentMode === 'routes') renderRoutes(allRoutes);
+                if (homeBusLayer) homeBusLayer.clearLayers();
                 alert("Favorites cleared.");
             }
         }
@@ -967,6 +1017,8 @@
             if (!homeMapInstance && document.getElementById('homeMap')) {
                 homeMapInstance = L.map('homeMap', { zoomControl: false }).setView([37.3382, -121.8863], 12);
                 L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { maxZoom: 19, attribution: '' }).addTo(homeMapInstance);
+                homeBusLayer = L.layerGroup().addTo(homeMapInstance);
+                
                 if (navigator.geolocation) {
                     navigator.geolocation.getCurrentPosition(pos => {
                         const lat = pos.coords.latitude;
@@ -976,6 +1028,57 @@
                     });
                 }
             }
+        }
+
+        // --- Home Map Favorites Logic ---
+        let lastHomeFetch = 0;
+        async function updateHomeMapFavorites() {
+            // Rate limit to every 20s
+            const now = Date.now();
+            if (now - lastHomeFetch < 20000) return;
+            lastHomeFetch = now;
+
+            if (favoriteRoutes.length === 0) {
+                if (homeBusLayer) homeBusLayer.clearLayers();
+                return;
+            }
+
+            // Only fetch if we are actually viewing the home map (mobile minimized or desktop sidebar)
+            // Ideally, but let's just fetch for responsiveness
+            
+            try {
+                // Fetch vehicles for all favorites
+                // Note: API doesn't support multiple routes well in one call usually, loop is safer
+                // To avoid spamming, we do one by one or small batches
+                if (homeBusLayer) homeBusLayer.clearLayers();
+                
+                const busIcon = createBusIcon(); 
+
+                for (const routeId of favoriteRoutes) {
+                    fetch511('VehicleMonitoring', `&agency=${AGENCY_ID}&route=${routeId}`).then(data => {
+                        let activities = [];
+                        if (data && data.Siri) {
+                            const delivery = data.Siri.ServiceDelivery.VehicleMonitoringDelivery.VehicleActivity || 
+                                             data.Siri.ServiceDelivery.VehicleMonitoringDelivery[0].VehicleActivity || [];
+                            activities = Array.isArray(delivery) ? delivery : [delivery];
+                        }
+                        
+                        activities.forEach(act => {
+                            const mv = act.MonitoredVehicleJourney || act.monitoredVehicleJourney;
+                            if (String(mv.LineRef) !== String(routeId)) return; // Strict check
+                            
+                            const lat = parseFloat(mv.VehicleLocation?.Latitude);
+                            const lon = parseFloat(mv.VehicleLocation?.Longitude);
+                            
+                            if (!isNaN(lat) && !isNaN(lon)) {
+                                const marker = L.marker([lat, lon], {icon: busIcon}).addTo(homeBusLayer);
+                                // Simple popup for home map
+                                marker.bindPopup(`<b>${routeId}</b> to ${mv.DestinationName || 'Unknown'}`);
+                            }
+                        });
+                    });
+                }
+            } catch (e) { console.error("Home favorites update failed", e); }
         }
 
         // --- Favorites Logic ---
@@ -988,6 +1091,9 @@
                 favoriteRoutes.splice(idx, 1);
             }
             localStorage.setItem('vta_favorites', JSON.stringify(favoriteRoutes));
+            
+            // Trigger update immediately
+            updateHomeMapFavorites();
             
             if (currentMode === 'routes') {
                 renderRoutes(allRoutes); // Re-render to sort favorites to top
@@ -1416,7 +1522,7 @@
                 <div class="bus-card w-full h-full bg-white flex flex-col">
                     <div class="relative h-64 md:h-56 bg-gray-200 shrink-0">
                         <img src="${info.image}" alt="${info.model}" class="w-full h-full object-cover" onerror="this.src='https://commons.wikimedia.org/wiki/Special:FilePath/VTA_bus_0132_serving_route_26_in_downtown_Campbell.jpg'">
-                        <div class="absolute top-2 right-14 bg-black bg-opacity-70 text-white text-xs px-2 py-1 rounded z-20">ID: ${vehicleRef}</div>
+                        <div class="absolute top-2 right-14 bg-black bg-opacity-70 text-white text-xs px-2 py-1 rounded">ID: ${vehicleRef}</div>
                         <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent p-4 pt-10">
                             <h3 class="text-white font-bold text-2xl leading-tight mb-1">${info.model}</h3>
                             <div class="flex items-center space-x-2">
@@ -1571,10 +1677,7 @@
             if (viewingBusId && mapMarker && mapInstance) {
                 const viewedBus = currentVehicles.find(act => { const mv = act.MonitoredVehicleJourney || act.monitoredVehicleJourney; return mv && mv.VehicleRef === viewingBusId; });
                 if (viewedBus) {
-                    const mv = viewedBus.MonitoredVehicleJourney || viewedBus.monitoredVehicleJourney; 
-                    const veh = mv.VehicleLocation || {}; 
-                    const lat = parseFloat(veh.Latitude); 
-                    const lon = parseFloat(veh.Longitude);
+                    const mv = viewedBus.MonitoredVehicleJourney || viewedBus.monitoredVehicleJourney; const veh = mv.VehicleLocation || {}; const lat = parseFloat(veh.Latitude); const lon = parseFloat(veh.Longitude);
                     const recTime = mv.RecordedAtTime ? new Date(mv.RecordedAtTime) : new Date();
                     const dest = mv.DestinationName || "Unknown"; // Get destination for map update
 
