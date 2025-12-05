@@ -1379,28 +1379,70 @@
             const container = document.getElementById('vehicleGrid');
             const mobileContainer = document.getElementById('mobileContentArea');
             
+            // Handle Map Updates
             if (viewingBusId && mapMarker && mapInstance) {
                 const viewedBus = currentVehicles.find(act => { const mv = act.MonitoredVehicleJourney || act.monitoredVehicleJourney; return mv && mv.VehicleRef === viewingBusId; });
                 if (viewedBus) {
                     const mv = viewedBus.MonitoredVehicleJourney || viewedBus.monitoredVehicleJourney; const veh = mv.VehicleLocation || {}; const lat = parseFloat(veh.Latitude); const lon = parseFloat(veh.Longitude);
-                    
-                    if (mv.RecordedAtTime) {
-                        currentBusTimestamp = new Date(mv.RecordedAtTime);
-                        updateBusTimer();
-                    }
-
+                    const recTime = mv.RecordedAtTime ? new Date(mv.RecordedAtTime) : new Date();
+                    currentBusTimestamp = recTime;
+                    updateBusTimer();
                     if (!isNaN(lat) && !isNaN(lon)) { const newLatLng = [lat, lon]; mapMarker.setLatLng(newLatLng); document.getElementById('mapModalSubtitle').innerText = `Lat: ${lat.toFixed(4)}, Lon: ${lon.toFixed(4)} (Updated)`; }
                 }
             }
+
+            // --- EMPTY STATE LOGIC (UPDATED) ---
             if (activities.length === 0) {
-                const empty = `<div class="col-span-full text-center p-10 bg-white rounded-lg shadow"><i class="fas fa-ban text-4xl text-gray-300 mb-2"></i><h3 class="text-lg font-medium text-gray-700">No buses match your filter</h3><p class="text-sm text-gray-400">Try changing the vehicle type.</p></div>`;
-                container.innerHTML = empty; mobileContainer.innerHTML = empty; document.getElementById('headerRouteDesc').innerText = "0 vehicles"; return;
+                const filterType = document.getElementById('vehicleTypeFilter').value;
+                let emptyHtml = '';
+                let shouldCheckSchedule = false;
+
+                if (filterType !== 'all') {
+                    // Case 1: Filter is active, so buses might exist but are hidden
+                    emptyHtml = `
+                        <div class="col-span-full text-center p-10 bg-white rounded-lg shadow">
+                            <i class="fas fa-filter text-4xl text-gray-300 mb-2"></i>
+                            <h3 class="text-lg font-medium text-gray-700">No buses match your filter</h3>
+                            <p class="text-sm text-gray-400">Try changing the vehicle type to 'All Vehicle Types'.</p>
+                        </div>`;
+                } else {
+                    // Case 2: No buses on the route at all -> Check Schedule
+                    emptyHtml = `
+                        <div class="col-span-full text-center p-10 bg-white rounded-lg shadow" id="noBusContent">
+                            <i class="fas fa-bus-alt text-4xl text-gray-300 mb-2"></i>
+                            <h3 class="text-lg font-medium text-gray-700">No active buses found</h3>
+                            <p class="text-sm text-gray-400 mb-4">The route might be currently inactive.</p>
+                            <div id="nextSchedLoading" class="inline-block bg-blue-50 text-blue-600 px-4 py-2 rounded-full text-sm">
+                                <i class="fas fa-spinner fa-spin mr-2"></i> Checking next scheduled departure...
+                            </div>
+                        </div>`;
+                    
+                    shouldCheckSchedule = true;
+                }
+
+                container.innerHTML = emptyHtml; 
+                mobileContainer.innerHTML = emptyHtml; 
+                document.getElementById('headerRouteDesc').innerText = "0 vehicles"; 
+                
+                // FIXED: Call this AFTER updating innerHTML so the target div exists
+                if (shouldCheckSchedule) {
+                    findNextScheduledBus(currentSelectionId);
+                }
+                return;
             }
+
             const html = activities.map(act => {
-                const mv = act.MonitoredVehicleJourney || act.monitoredVehicleJourney; const veh = mv.VehicleLocation || {}; const vehicleRef = mv.VehicleRef || "Unknown"; const cat = categorizeRoute(mv.LineRef, ""); const info = getBusModelInfo(vehicleRef, cat); const fuelIcon = info.fuel.includes('Electric') ? 'fa-bolt' : (info.fuel.includes('Hybrid') ? 'fa-leaf' : 'fa-gas-pump');
+                const mv = act.MonitoredVehicleJourney || act.monitoredVehicleJourney; 
+                const veh = mv.VehicleLocation || {}; 
+                const vehicleRef = mv.VehicleRef || "Unknown"; 
+                const cat = categorizeRoute(mv.LineRef, ""); 
+                const info = getBusModelInfo(vehicleRef, cat); 
+                const fuelIcon = info.fuel.includes('Electric') ? 'fa-bolt' : (info.fuel.includes('Hybrid') ? 'fa-leaf' : 'fa-gas-pump');
                 const recTime = mv.RecordedAtTime || new Date().toISOString();
                 
-                // Note: Modified onclick to stop propagation for the schedule button
+                const destination = mv.DestinationName || "Unknown Destination";
+                const nextStop = mv.MonitoredCall ? mv.MonitoredCall.StopPointName : "Unknown Location";
+                
                 return `
                 <div onclick="showBusMap(${veh.Latitude}, ${veh.Longitude}, '${vehicleRef}', '${info.model}', '${recTime}')" class="bus-card w-full md:w-96 shrink-0 bg-white rounded-xl shadow-md overflow-hidden border border-gray-100 flex flex-col cursor-pointer group relative">
                     <div class="relative h-48 bg-gray-200 shrink-0">
@@ -1416,6 +1458,15 @@
                     </div>
                     <div class="p-4 flex-1 flex flex-col justify-between">
                         <div>
+                             <div class="mb-3 border-b border-gray-100 pb-2">
+                                <div class="text-xs text-gray-400 uppercase font-bold mb-0.5">To</div>
+                                <h4 class="font-bold text-gray-900 text-lg leading-tight truncate" title="${destination}">${destination}</h4>
+                                <div class="text-xs text-gray-500 mt-1 flex items-center truncate">
+                                    <i class="fas fa-arrow-circle-right text-blue-500 mr-1"></i> 
+                                    <span class="font-medium text-gray-700 mr-1">Next:</span> ${truncate(nextStop, 35)}
+                                </div>
+                             </div>
+
                              <div class="flex items-center justify-between mb-3">
                                 <span class="bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded">Active</span>
                                 <button onclick="event.stopPropagation(); viewBusSchedule('${vehicleRef}', '${info.model}', '${mv.LineRef}')" class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-2 py-1 rounded border border-gray-300 transition z-10 relative">
@@ -1430,6 +1481,107 @@
             }).join('');
             container.innerHTML = html; mobileContainer.innerHTML = html; document.getElementById('headerRouteDesc').innerText = `Live tracking ${activities.length} vehicle(s)`;
         }
+
+        // --- Logic to Find Next Scheduled Departure when no live buses exist ---
+        async function findNextScheduledBus(routeId) {
+            // Only proceed if the 'noBusContent' container exists (user hasn't navigated away)
+            const container = document.getElementById('noBusContent');
+            if (!container) return;
+
+            try {
+                // 1. Find a reference stop to check (Start of the line)
+                let targetStopId = null;
+                
+                // Try fetching pattern data to find the first stop in sequence
+                try {
+                    const patternData = await fetch511('patterns', `&operator_id=${AGENCY_ID}&line_id=${routeId}`);
+                    if (patternData) {
+                        const findFirstStop = (obj) => {
+                            if (targetStopId) return;
+                            // Look for the first scheduled stop point ref in the data structure
+                            if (obj.ScheduledStopPointRef) { targetStopId = obj.ScheduledStopPointRef; return; }
+                            // Recursively search
+                            if (Array.isArray(obj)) obj.forEach(findFirstStop);
+                            else if (typeof obj === 'object') Object.values(obj).forEach(findFirstStop);
+                        };
+                        findFirstStop(patternData);
+                    }
+                } catch (e) { console.warn("Pattern fetch failed", e); }
+
+                // Fallback: If pattern failed, fetch generic stops list and grab the first one
+                if (!targetStopId) {
+                     const stopsData = await fetch511('stops', `&operator_id=${AGENCY_ID}&line_id=${routeId}`);
+                     const findAnyStop = (obj) => {
+                         if (targetStopId) return;
+                         if (obj.id) { targetStopId = obj.id; return; }
+                         if (Array.isArray(obj)) obj.forEach(findAnyStop);
+                         else if (typeof obj === 'object') Object.values(obj).forEach(findAnyStop);
+                     };
+                     findAnyStop(stopsData);
+                }
+
+                if (!targetStopId) throw new Error("No stops found for this route.");
+
+                // 2. Fetch Predictions for this stop
+                // This includes scheduled times even if the bus isn't GPS tracking yet
+                const preds = await fetch511('StopMonitoring', `&agency=${AGENCY_ID}&stopCode=${targetStopId}`);
+                let nextTime = null;
+                let stopName = "Start of Route";
+
+                if (preds && preds.ServiceDelivery && preds.ServiceDelivery.StopMonitoringDelivery) {
+                    const visits = preds.ServiceDelivery.StopMonitoringDelivery.MonitoredStopVisit;
+                    const list = Array.isArray(visits) ? visits : (visits ? [visits] : []);
+                    
+                    // Filter for our route
+                    // Note: LineRef might have "Rapid" prefix or just the number, so we check loosely
+                    const relevant = list.find(v => {
+                        const line = String(v.MonitoredVehicleJourney.LineRef);
+                        return line === String(routeId) || line.includes(routeId); 
+                    });
+
+                    if (relevant) {
+                        nextTime = new Date(relevant.MonitoredVehicleJourney.MonitoredCall.ExpectedArrivalTime);
+                        stopName = relevant.MonitoredVehicleJourney.MonitoredCall.StopPointName;
+                    }
+                }
+
+                // 3. Update UI
+                const resultDiv = document.getElementById('noBusContent');
+                if (resultDiv) {
+                    if (nextTime) {
+                        const timeStr = nextTime.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+                        const now = new Date();
+                        const diff = Math.ceil((nextTime - now) / 60000);
+                        const relative = diff > 0 ? `in ${diff} min` : 'Due Now';
+                        
+                        resultDiv.innerHTML = `
+                            <div class="inline-block p-4 bg-blue-50 rounded-xl border border-blue-100">
+                                <div class="text-xs font-bold text-blue-400 uppercase tracking-wider mb-1">Next Scheduled Departure</div>
+                                <div class="text-3xl font-bold text-blue-700">${timeStr}</div>
+                                <div class="text-sm text-gray-600 mt-1">
+                                    <i class="fas fa-map-marker-alt text-red-400 mr-1"></i> ${stopName}
+                                </div>
+                                <div class="mt-2 text-xs bg-white border border-blue-200 text-blue-600 px-2 py-1 rounded inline-block font-semibold">
+                                    ${relative}
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        resultDiv.innerHTML = `
+                            <i class="fas fa-moon text-4xl text-gray-300 mb-2"></i>
+                            <h3 class="text-lg font-medium text-gray-700">Service Ended</h3>
+                            <p class="text-sm text-gray-400">No scheduled departures found for the near future.</p>
+                        `;
+                    }
+                }
+
+            } catch (e) {
+                console.error("Sched check failed", e);
+                const el = document.getElementById('nextSchedLoading');
+                if(el) el.innerHTML = `<span class="text-red-400"><i class="fas fa-exclamation-circle"></i> Schedule unavailable</span>`;
+            }
+        }
+
         function showBusMap(lat, lon, vehicleRef, model, recordedTime) {
             if(!lat || !lon) return alert("No location data");
             viewingBusId = vehicleRef;
@@ -1517,21 +1669,49 @@
                 // Fetch vehicle specific data with calls
                 const data = await fetch511('VehicleMonitoring', `&agency=${AGENCY_ID}&vehicleID=${vehicleRef}&VehicleMonitoringDetailLevel=calls`);
                 
-                let onwardCalls = [];
+                let scheduleStops = [];
+                
                 if (data && data.Siri) {
                     const delivery = data.Siri.ServiceDelivery.VehicleMonitoringDelivery.VehicleActivity || 
                                      data.Siri.ServiceDelivery.VehicleMonitoringDelivery[0].VehicleActivity;
                     
                     const activity = Array.isArray(delivery) ? delivery[0] : delivery;
                     
-                    if (activity && activity.MonitoredVehicleJourney && activity.MonitoredVehicleJourney.OnwardCalls) {
-                        const calls = activity.MonitoredVehicleJourney.OnwardCalls.OnwardCall;
-                        onwardCalls = Array.isArray(calls) ? calls : [calls];
+                    if (activity && activity.MonitoredVehicleJourney) {
+                        const mvj = activity.MonitoredVehicleJourney;
+
+                        // 1. Get Onward Calls (Future Stops)
+                        let onwardCalls = [];
+                        if (mvj.OnwardCalls && mvj.OnwardCalls.OnwardCall) {
+                            const calls = mvj.OnwardCalls.OnwardCall;
+                            onwardCalls = Array.isArray(calls) ? calls : [calls];
+                        }
+
+                        // 2. Get Monitored Call (The IMMEDIATE active stop)
+                        // This is often missing from OnwardCalls if the bus is "at" the stop
+                        if (mvj.MonitoredCall) {
+                            const current = mvj.MonitoredCall;
+                            
+                            // Deduplicate: Check if the current stop is already the first one in onwardCalls
+                            const firstOnward = onwardCalls.length > 0 ? onwardCalls[0] : null;
+                            const isDuplicate = firstOnward && (
+                                firstOnward.StopPointRef === current.StopPointRef || 
+                                (firstOnward.StopPointName === current.StopPointName && firstOnward.ExpectedArrivalTime === current.ExpectedArrivalTime)
+                            );
+
+                            if (!isDuplicate) {
+                                // Add current status as the first item
+                                scheduleStops.push(current);
+                            }
+                        }
+
+                        // Combine lists
+                        scheduleStops = scheduleStops.concat(onwardCalls);
                     }
                 }
 
                 const listDiv = document.getElementById('scheduleList');
-                if (onwardCalls.length === 0) {
+                if (scheduleStops.length === 0) {
                     listDiv.innerHTML = `
                         <div class="text-gray-400 italic text-sm mt-4 -ml-4 pl-0 text-center">
                             <i class="fas fa-info-circle mb-2"></i><br>
@@ -1540,7 +1720,7 @@
                     return;
                 }
 
-                listDiv.innerHTML = onwardCalls.map((call, index) => {
+                listDiv.innerHTML = scheduleStops.map((call, index) => {
                     const time = new Date(call.ExpectedArrivalTime);
                     const timeStr = time.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
                     const isNext = index === 0;
@@ -1551,7 +1731,7 @@
                             <div class="flex justify-between items-start">
                                 <div>
                                     <div class="font-bold text-gray-800 text-sm">${call.StopPointName}</div>
-                                    ${isNext ? '<span class="bg-blue-100 text-blue-700 text-[10px] px-2 py-0.5 rounded-full font-bold">NEXT STOP</span>' : ''}
+                                    ${isNext ? '<span class="bg-blue-100 text-blue-700 text-[10px] px-2 py-0.5 rounded-full font-bold">CURRENT / NEXT</span>' : ''}
                                 </div>
                                 <div class="text-right shrink-0 ml-4">
                                     <div class="font-mono font-bold text-blue-600 text-sm">${timeStr}</div>
