@@ -149,15 +149,15 @@
         }
 
         [data-theme="vta"] {
-            --primary-color: #008080; /* Teal */
-            --primary-hover: #006666; 
-            --bg-main: #e0f2f1; 
+            --primary-color: #29588C; /* Pantone 2945U (VTA Dark Blue) */
+            --primary-hover: #4CB4E7; /* Pantone 298U (VTA Light Blue) */
+            --bg-main: #f2f8fc; /* Very light blue tint */
             --bg-card: #ffffff;
-            --bg-hover: #b2dfdb; 
-            --text-main: #263238; 
+            --bg-hover: #e1f1fa; 
+            --text-main: #1f2937; 
             --text-sub: #546e7a; 
-            --border-color: #b0bec5;
-            --header-bg: #004d40; 
+            --border-color: #4CB4E7; /* Light blue borders */
+            --header-bg: #29588C; /* VTA Dark Blue */
             --header-text: #ffffff;
         }
 
@@ -294,7 +294,7 @@
                         <button onclick="changeTheme('default')" class="border p-2 rounded text-sm bg-blue-600 text-white font-bold">Default (Blue)</button>
                         <button onclick="changeTheme('dark')" class="border p-2 rounded text-sm bg-gray-900 text-white font-bold">Dark</button>
                         <button onclick="changeTheme('green')" class="border p-2 rounded text-sm bg-emerald-600 text-white font-bold">Green (Eco)</button>
-                        <button onclick="changeTheme('vta')" class="border p-2 rounded text-sm bg-[#008080] text-white font-bold">VTA (Teal)</button>
+                        <button onclick="changeTheme('vta')" class="border p-2 rounded text-sm bg-[#29588C] text-white font-bold">VTA (Official)</button>
                     </div>
                 </div>
 
@@ -337,7 +337,7 @@
             </div>
             
             <div class="mt-6 text-center text-xs text-gray-400">
-                v2.2 • VTA Live Tracker
+                v2.3 • VTA Live Tracker
             </div>
         </div>
     </div>
@@ -369,7 +369,8 @@
 
     <!-- Bus Detail Modal -->
     <div id="busDetailModal" class="fixed inset-0 z-50 hidden flex flex-col md:items-center md:justify-center md:p-4">
-        <div class="absolute inset-0 bg-white md:bg-black md:bg-opacity-75"></div>
+        <!-- FIXED: Removed bg-white, added bg-black/75 to fix mobile overlay issue -->
+        <div class="absolute inset-0 bg-black bg-opacity-75" onclick="closeBusDetail()"></div>
         <div class="relative w-full h-full md:h-auto md:max-w-md bg-white md:rounded-lg shadow-2xl overflow-y-auto md:overflow-hidden z-10 flex flex-col">
             <button onclick="closeBusDetail()" class="absolute top-4 right-4 z-20 bg-black bg-opacity-50 text-white rounded-full w-10 h-10 flex items-center justify-center hover:bg-opacity-70 focus:outline-none shadow-lg">
                 <i class="fas fa-times"></i>
@@ -1570,11 +1571,25 @@
             if (viewingBusId && mapMarker && mapInstance) {
                 const viewedBus = currentVehicles.find(act => { const mv = act.MonitoredVehicleJourney || act.monitoredVehicleJourney; return mv && mv.VehicleRef === viewingBusId; });
                 if (viewedBus) {
-                    const mv = viewedBus.MonitoredVehicleJourney || viewedBus.monitoredVehicleJourney; const veh = mv.VehicleLocation || {}; const lat = parseFloat(veh.Latitude); const lon = parseFloat(veh.Longitude);
+                    const mv = viewedBus.MonitoredVehicleJourney || viewedBus.monitoredVehicleJourney; 
+                    const veh = mv.VehicleLocation || {}; 
+                    const lat = parseFloat(veh.Latitude); 
+                    const lon = parseFloat(veh.Longitude);
                     const recTime = mv.RecordedAtTime ? new Date(mv.RecordedAtTime) : new Date();
+                    const dest = mv.DestinationName || "Unknown"; // Get destination for map update
+
                     currentBusTimestamp = recTime;
                     updateBusTimer();
-                    if (!isNaN(lat) && !isNaN(lon)) { const newLatLng = [lat, lon]; mapMarker.setLatLng(newLatLng); document.getElementById('mapModalSubtitle').innerText = `Lat: ${lat.toFixed(4)}, Lon: ${lon.toFixed(4)} (Updated)`; }
+                    
+                    if (!isNaN(lat) && !isNaN(lon)) { 
+                        const newLatLng = [lat, lon]; 
+                        mapMarker.setLatLng(newLatLng); 
+                        // Update popup content dynamically if open? For now just update position.
+                        document.getElementById('mapModalSubtitle').innerText = `Lat: ${lat.toFixed(4)}, Lon: ${lon.toFixed(4)} (Updated)`; 
+                        
+                        // Optional: Refresh popup content to show correct dest if it changed
+                        // mapMarker.setPopupContent(generatePopupContent(viewingBusId, ..., dest));
+                    }
                 }
             }
 
@@ -1630,8 +1645,11 @@
                 const destination = mv.DestinationName || "Unknown Destination";
                 const nextStop = mv.MonitoredCall ? mv.MonitoredCall.StopPointName : "Unknown Location";
                 
+                // Safe string for onclick
+                const safeDest = destination.replace(/'/g, "\\'"); 
+
                 return `
-                <div onclick="showBusMap(${veh.Latitude}, ${veh.Longitude}, '${vehicleRef}', '${info.model}', '${recTime}')" class="bus-card w-full md:w-96 shrink-0 bg-white rounded-xl shadow-md overflow-hidden border border-gray-100 flex flex-col cursor-pointer group relative">
+                <div onclick="showBusMap(${veh.Latitude}, ${veh.Longitude}, '${vehicleRef}', '${info.model}', '${recTime}', '${safeDest}')" class="bus-card w-full md:w-96 shrink-0 bg-white rounded-xl shadow-md overflow-hidden border border-gray-100 flex flex-col cursor-pointer group relative">
                     <div class="relative h-48 bg-gray-200 shrink-0">
                         <img src="${info.image}" alt="${info.model}" class="w-full h-full object-cover" onerror="this.src='https://commons.wikimedia.org/wiki/Special:FilePath/VTA_bus_0132_serving_route_26_in_downtown_Campbell.jpg'">
                         <div class="absolute top-2 right-2 bg-black bg-opacity-70 text-white text-xs px-2 py-1 rounded">ID: ${vehicleRef}</div>
@@ -1670,106 +1688,7 @@
         }
 
         // --- Logic to Find Next Scheduled Departure when no live buses exist ---
-        async function findNextScheduledBus(routeId) {
-            // Only proceed if the 'noBusContent' container exists (user hasn't navigated away)
-            const container = document.getElementById('noBusContent');
-            if (!container) return;
-
-            try {
-                // 1. Find a reference stop to check (Start of the line)
-                let targetStopId = null;
-                
-                // Try fetching pattern data to find the first stop in sequence
-                try {
-                    const patternData = await fetch511('patterns', `&operator_id=${AGENCY_ID}&line_id=${routeId}`);
-                    if (patternData) {
-                        const findFirstStop = (obj) => {
-                            if (targetStopId) return;
-                            // Look for the first scheduled stop point ref in the data structure
-                            if (obj.ScheduledStopPointRef) { targetStopId = obj.ScheduledStopPointRef; return; }
-                            // Recursively search
-                            if (Array.isArray(obj)) obj.forEach(findFirstStop);
-                            else if (typeof obj === 'object') Object.values(obj).forEach(findFirstStop);
-                        };
-                        findFirstStop(patternData);
-                    }
-                } catch (e) { console.warn("Pattern fetch failed", e); }
-
-                // Fallback: If pattern failed, fetch generic stops list and grab the first one
-                if (!targetStopId) {
-                     const stopsData = await fetch511('stops', `&operator_id=${AGENCY_ID}&line_id=${routeId}`);
-                     const findAnyStop = (obj) => {
-                         if (targetStopId) return;
-                         if (obj.id) { targetStopId = obj.id; return; }
-                         if (Array.isArray(obj)) obj.forEach(findAnyStop);
-                         else if (typeof obj === 'object') Object.values(obj).forEach(findAnyStop);
-                     };
-                     findAnyStop(stopsData);
-                }
-
-                if (!targetStopId) throw new Error("No stops found for this route.");
-
-                // 2. Fetch Predictions for this stop
-                // This includes scheduled times even if the bus isn't GPS tracking yet
-                const preds = await fetch511('StopMonitoring', `&agency=${AGENCY_ID}&stopCode=${targetStopId}`);
-                let nextTime = null;
-                let stopName = "Start of Route";
-
-                if (preds && preds.ServiceDelivery && preds.ServiceDelivery.StopMonitoringDelivery) {
-                    const visits = preds.ServiceDelivery.StopMonitoringDelivery.MonitoredStopVisit;
-                    const list = Array.isArray(visits) ? visits : (visits ? [visits] : []);
-                    
-                    // Filter for our route
-                    // Note: LineRef might have "Rapid" prefix or just the number, so we check loosely
-                    const relevant = list.find(v => {
-                        const line = String(v.MonitoredVehicleJourney.LineRef);
-                        return line === String(routeId) || line.includes(routeId); 
-                    });
-
-                    if (relevant) {
-                        nextTime = new Date(relevant.MonitoredVehicleJourney.MonitoredCall.ExpectedArrivalTime);
-                        stopName = relevant.MonitoredVehicleJourney.MonitoredCall.StopPointName;
-                    }
-                }
-
-                // 3. Update UI
-                const resultDiv = document.getElementById('noBusContent');
-                if (resultDiv) {
-                    if (nextTime) {
-                        const timeStr = nextTime.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
-                        const now = new Date();
-                        const diff = Math.ceil((nextTime - now) / 60000);
-                        const relative = diff > 0 ? `in ${diff} min` : 'Due Now';
-                        
-                        resultDiv.innerHTML = `
-                            <div class="inline-block p-4 bg-blue-50 rounded-xl border border-blue-100">
-                                <div class="text-xs font-bold text-blue-400 uppercase tracking-wider mb-1">Next Scheduled Departure</div>
-                                <div class="text-3xl font-bold text-blue-700">${timeStr}</div>
-                                <div class="text-sm text-gray-600 mt-1">
-                                    <i class="fas fa-map-marker-alt text-red-400 mr-1"></i> ${stopName}
-                                </div>
-                                <div class="mt-2 text-xs bg-white border border-blue-200 text-blue-600 px-2 py-1 rounded inline-block font-semibold">
-                                    ${relative}
-                                </div>
-                            </div>
-                        `;
-                    } else {
-                        resultDiv.innerHTML = `
-                            <i class="fas fa-moon text-4xl text-gray-300 mb-2"></i>
-                            <h3 class="text-lg font-medium text-gray-700">Service Ended</h3>
-                            <p class="text-sm text-gray-400">No scheduled departures found for the near future.</p>
-                        `;
-                    }
-                }
-
-            } catch (e) {
-                console.error("Sched check failed", e);
-                const el = document.getElementById('nextSchedLoading');
-                if(el) el.innerHTML = `<span class="text-red-400"><i class="fas fa-exclamation-circle"></i> Schedule unavailable</span>`;
-            }
-        }
-
-        function showBusMap(lat, lon, vehicleRef, model, recordedTime) {
+        function showBusMap(lat, lon, vehicleRef, model, recordedTime, destination = 'Unknown') {
             if(!lat || !lon) return alert("No location data");
             viewingBusId = vehicleRef;
             currentBusTimestamp = recordedTime ? new Date(recordedTime) : new Date();
@@ -1798,7 +1717,8 @@
             
             // Add marker to the specific busLayer instead of routeLayer
             mapMarker = L.marker([lat, lon], {icon: busIcon}).addTo(busLayer);
-            mapMarker.bindPopup(generatePopupContent(vehicleRef, model)).openPopup();
+            // Pass destination to popup generator
+            mapMarker.bindPopup(generatePopupContent(vehicleRef, model, destination)).openPopup();
             
             updateBusTimer();
             setupMapHeaderButtons(vehicleRef, model);
@@ -1839,11 +1759,12 @@
                     const vRef = mv.VehicleRef;
                     const cat = categorizeRoute(mv.LineRef, ""); 
                     const info = getBusModelInfo(vRef, cat);
+                    const dest = mv.DestinationName || "Unknown";
 
                     if (!isNaN(lat) && !isNaN(lon)) {
                         // Add to busLayer
                         const marker = L.marker([lat, lon], {icon: busIcon}).addTo(busLayer);
-                        marker.bindPopup(generatePopupContent(vRef, info.model));
+                        marker.bindPopup(generatePopupContent(vRef, info.model, dest));
                         bounds.extend([lat, lon]);
                     }
                 });
@@ -1882,10 +1803,14 @@
         }
 
         // --- Helper: Generate Popup HTML ---
-        function generatePopupContent(vehicleRef, model) {
+        function generatePopupContent(vehicleRef, model, destination) {
+            // Ensure destination doesn't say "Unknown" if not needed, or format it nicely
+            const destDisplay = destination && destination !== 'Unknown' ? destination : 'Unknown Destination';
+            
             return `
                 <div class="text-center min-w-[150px]">
-                    <div class="font-bold text-gray-800 text-lg mb-1">Bus ${vehicleRef}</div>
+                    <div class="font-bold text-gray-800 text-lg mb-0.5">Bus ${vehicleRef}</div>
+                    <div class="text-xs font-bold text-blue-600 mb-1 uppercase tracking-wide">To ${destDisplay}</div>
                     <div class="text-xs text-gray-500 mb-3">${model}</div>
                     <div class="flex flex-col gap-2">
                         <button onclick="viewBusSchedule('${vehicleRef}', '${model}', '');" class="bg-blue-500 text-white text-xs px-3 py-1.5 rounded hover:bg-blue-600 font-bold transition w-full">
