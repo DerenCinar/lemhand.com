@@ -793,13 +793,41 @@
             const id = parseInt(vehicleId);
             let info = { model: "Gillig Low Floor", year: "Unknown", type: "40ft Standard", fuel: "Diesel", image: "https://commons.wikimedia.org/wiki/Special:FilePath/VTA_bus_0132_serving_route_26_in_downtown_Campbell.jpg" };
             if (isNaN(id)) return info;
-            if (id >= 8000 && id < 9000) { info.model = "New Flyer XN60"; info.year = "2015-2018"; info.type = "60ft Articulated"; info.fuel = "CNG"; info.image = "https://commons.wikimedia.org/wiki/Special:FilePath/VTA_522_hybrid_bus_at_Eastridge.jpg"; } 
-            else if (id >= 7000 && id < 8000) { info.model = "Proterra Catalyst BE40"; info.year = "2018+"; info.type = "40ft Electric"; info.fuel = "Electric"; info.image = "https://commons.wikimedia.org/wiki/Special:FilePath/Proterra_Catalyst_40%27%2C_VTA_7502_on_Route_10_service%2C_Santa_Clara_Station_%2830157359838%29.jpg"; }
-            else if (id >= 9500 && id < 9999) { info.model = "Gillig BRT Hybrid"; info.year = "2014-2016"; info.type = "40ft BRT Style"; info.fuel = "Hybrid Diesel"; info.image = "https://commons.wikimedia.org/wiki/Special:FilePath/VTA_49_bus_at_Winchester_Transit_Center.jpg"; }
-            else if (id >= 9000 && id < 9500) { info.model = "Gillig Low Floor Hybrid"; info.year = "2011-2014"; info.type = "40ft Standard"; info.fuel = "Hybrid Diesel"; info.image = "https://commons.wikimedia.org/wiki/Special:FilePath/VTA_bus_0132_serving_route_26_in_downtown_Campbell.jpg"; }
-            else if (id >= 4100 && id < 4138) { info.model = "Gillig Low Floor Hybrid 29'"; info.year = "2014"; info.type = "29ft Standard"; info.fuel = "Hybrid Diesel"; info.image = "https://cptdb.ca/wiki/index.php/File:Santa_Clara_Valley_Transportation_Authority_4137-a.jpg"; }
-            else if (id >= 4000 && id < 5000) { info.model = "Gillig Low Floor Hybrid"; info.year = "2020+"; info.type = "40ft Standard"; info.fuel = "Hybrid Diesel"; info.image = "https://commons.wikimedia.org/wiki/Special:FilePath/VTA_bus_0132_serving_route_26_in_downtown_Campbell.jpg"; }
-            else if (id >= 3000 && id < 4000) { info.model = "Gillig Low Floor 29'"; info.year = "2019+"; info.type = "29ft Mini"; info.fuel = "Diesel"; info.image = "https://commons.wikimedia.org/wiki/Special:FilePath/PSTA_bus_2532,_a_29ft_Gillig.png"; }
+            else if (id >= 8301 && id < 8347) { info.model = "New Flyer XDE60"; info.year = "2018"; info.type = "40ft Standard"; info.fuel = "Hybrid Diesel"; info.image = "https://commons.wikimedia.org/wiki/Special:FilePath/VTA_bus_0132_serving_route_26_in_downtown_Campbell.jpg"; }
+
+            else if (id >= 7501 && id < 7505) { info.model = "Proterra Catalyst BE"; info.year = "2017"; info.type = "40ft Electric"; info.fuel = "Electric"; info.image = "https://commons.wikimedia.org/wiki/Special:FilePath/VTA_bus_0132_serving_route_26_in_downtown_Campbell.jpg"; }
+
+            else if (id >= 7401 && id < 7456) { info.model = "Gillig Low Floor Plus HEV"; info.year = "2018"; info.type = "40ft Standard"; info.fuel = "Hybrid Diesel"; info.image = "https://commons.wikimedia.org/wiki/Special:FilePath/VTA_bus_0132_serving_route_26_in_downtown_Campbell.jpg"; }
+
+            else if (id >= 6401 && id < 6434) { info.model = "Gillig Low Floor HEV"; info.year = "2017"; info.type = "40ft Standard"; info.fuel = "Hybrid Diesel"; info.image = "https://commons.wikimedia.org/wiki/Special:FilePath/VTA_bus_0132_serving_route_26_in_downtown_Campbell.jpg"; }
+
+            else if (id >= 6201 && id < 6210) { info.model = "Gillig Low Floor HEV"; info.year = "2016"; info.type = "40ft Standard"; info.fuel = "Hybrid Diesel"; info.image = "https://commons.wikimedia.org/wiki/Special:FilePath/VTA_bus_0132_serving_route_26_in_downtown_Campbell.jpg"; }
+
+            else if (id >= 4401 && id < 4415) { info.model = "Gillig Low Floor HEV"; info.year = "2014"; info.type = "40ft Standard"; info.fuel = "Hybrid Diesel"; info.image = "https://commons.wikimedia.org/wiki/Special:FilePath/VTA_bus_0132_serving_route_26_in_downtown_Campbell.jpg"; }
+
+            else if (id >= 4301 && id < 4329) { info.model = "New Flyer XDE60"; info.year = "2014"; info.type = "60ft Articulated"; info.fuel = "Hybrid Diesel"; info.image = "https://commons.wikimedia.org/wiki/Special:FilePath/VTA_bus_0132_serving_route_26_in_downtown_Campbell.jpg"; }
+
+            else if (id >= 4201 && id < 4220) { info.model = "Gillig Low Floor HEV"; info.year = "2014"; info.type = "40ft Standard"; info.fuel = "Hybrid Diesel"; info.image = "https://commons.wikimedia.org/wiki/Special:FilePath/VTA_bus_0132_serving_route_26_in_downtown_Campbell.jpg"; }
+
+            else if (id >= 4101 && id < 4138) { info.model = "Gillig BRT Hybrid"; info.year = "2014"; info.type = "29ft Standard"; info.fuel = "Hybrid Diesel"; info.image = "https://cptdb.ca/wiki/index.php/File:Santa_Clara_Valley_Transportation_Authority_4137-a.jpg"; }
+
+            else if (id >= 3401 && id < 3401) { info.model = "Gillig Low Floor Plus HEV"; info.year = "2023-2024"; info.type = "40ft Standard"; info.fuel = "Hybrid Diesel"; info.image = "https://commons.wikimedia.org/wiki/Special:FilePath/VTA_bus_0132_serving_route_26_in_downtown_Campbell.jpg"; }
+
+            else if (id >= 2201 && id < 2256) { info.model = "Gillig Low Floor"; info.year = "2002"; info.type = "40ft Standard"; info.fuel = "Diesel"; info.image = "https://commons.wikimedia.org/wiki/Special:FilePath/VTA_bus_0132_serving_route_26_in_downtown_Campbell.jpg"; }
+
+            else if (id >= 2101 && id < 2123) { info.model = "Gillig Low Floor"; info.year = "2002"; info.type = "35ft Standard"; info.fuel = "Diesel"; info.image = "https://commons.wikimedia.org/wiki/Special:FilePath/VTA_bus_0132_serving_route_26_in_downtown_Campbell.jpg"; }
+
+            else if (id >= 2022 && id < 2071) { info.model = "Gillig Low Floor"; info.year = "2002"; info.type = "40ft Standard"; info.fuel = "Diesel"; info.image = "https://commons.wikimedia.org/wiki/Special:FilePath/VTA_bus_0132_serving_route_26_in_downtown_Campbell.jpg"; }
+
+            else if (id >= 2011 && id < 2021) { info.model = "Gillig Low Floor"; info.year = "2001"; info.type = "40ft Standard"; info.fuel = "Diesel"; info.image = "https://commons.wikimedia.org/wiki/Special:FilePath/VTA_bus_0132_serving_route_26_in_downtown_Campbell.jpg"; }
+
+            else if (id >= 1002 && id < 1052) { info.model = "Gillig Low Floor"; info.year = "2001"; info.type = "40ft Standard"; info.fuel = "Diesel"; info.image = "https://commons.wikimedia.org/wiki/Special:FilePath/PSTA_bus_2532,_a_29ft_Gillig.png"; }
+            
+            else if (id >= 201 && id < 220) { info.model = "Gillig Low Floor HEV"; info.year = "2011"; info.type = "40ft Standard"; info.fuel = "Hybrid Diesel"; info.image = "https://commons.wikimedia.org/wiki/Special:FilePath/VTA_60_bus_at_Winchester_and_Hamilton.jpg"; }
+            else if (id >= 195 && id < 199) { info.model = "Gillig Low Floor HEV"; info.year = "2011"; info.type = "40ft Standard"; info.fuel = "Hybrid Diesel"; info.image = "https://commons.wikimedia.org/wiki/Special:FilePath/VTA_60_bus_at_Winchester_and_Hamilton.jpg"; }
+            
+            else if (id >= 130 && id < 194) { info.model = "Gillig Low Floor HEV"; info.year = "2010"; info.type = "40ft Standard"; info.fuel = "Hybrid Diesel"; info.image = "https://commons.wikimedia.org/wiki/Special:FilePath/VTA_60_bus_at_Winchester_and_Hamilton.jpg"; }
+            
             else if (id >= 0 && id < 3000) { info.model = "Gillig Low Floor"; info.year = "2001-2005 (Refurb)"; info.type = "40ft Standard"; info.fuel = "Clean Diesel"; info.image = "https://commons.wikimedia.org/wiki/Special:FilePath/VTA_60_bus_at_Winchester_and_Hamilton.jpg"; }
             return info;
         }
