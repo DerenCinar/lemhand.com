@@ -173,7 +173,6 @@
         .text-blue-600, .text-blue-700 { color: var(--primary-color) !important; }
         .text-blue-200 { color: rgba(255,255,255,0.7) !important; }
         
-        /* Specific overrides for Green/VTA themes */
         .bg-blue-100 { background-color: rgba(var(--primary-color), 0.1) !important; } 
         .bg-blue-50 { background-color: rgba(var(--primary-color), 0.05) !important; }
         
@@ -611,7 +610,7 @@
         let timerInterval = null; 
         let currentVehicles = []; 
 
-        // --- Translations ---
+        // --- Translations (Same as previous) ---
         const translations = {
             en: {
                 enterApiKey: "Enter 511.org API Key",
@@ -1557,7 +1556,7 @@
                 <div class="bus-card w-full h-full bg-white flex flex-col">
                     <div class="relative h-64 md:h-56 bg-gray-200 shrink-0">
                         <img src="${info.image}" alt="${info.model}" class="w-full h-full object-cover" onerror="this.src='https://commons.wikimedia.org/wiki/Special:FilePath/VTA_bus_0132_serving_route_26_in_downtown_Campbell.jpg'">
-                        <div class="absolute top-2 right-14 bg-black bg-opacity-70 text-white text-xs px-2 py-1 rounded z-20">ID: ${vehicleRef}</div>
+                        <div class="absolute top-2 right-14 bg-black bg-opacity-70 text-white text-xs px-2 py-1 rounded">ID: ${vehicleRef}</div>
                         <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent p-4 pt-10">
                             <h3 class="text-white font-bold text-2xl leading-tight mb-1">${info.model}</h3>
                             <div class="flex items-center space-x-2">
@@ -1723,18 +1722,26 @@
             }
             if (activities.length === 0) {
                 const empty = `<div class="col-span-full text-center p-10 bg-white rounded-lg shadow"><i class="fas fa-ban text-4xl text-gray-300 mb-2"></i><h3 class="text-lg font-medium text-gray-700">No buses match your filter</h3><p class="text-sm text-gray-400">Try changing the vehicle type.</p></div>`;
-                container.innerHTML = empty; mobileContainer.innerHTML = empty; document.getElementById('headerRouteDesc').innerText = "0 vehicles"; return;
+                container.innerHTML = empty; mobileContainer.innerHTML = empty; document.getElementById('headerRouteDesc').innerText = "0 vehicles"; 
+                
+                // Check schedule if no buses
+                findNextScheduledBus(currentSelectionId);
+                return;
             }
             const html = activities.map(act => {
                 const mv = act.MonitoredVehicleJourney || act.monitoredVehicleJourney; const veh = mv.VehicleLocation || {}; const vehicleRef = mv.VehicleRef || "Unknown"; const cat = categorizeRoute(mv.LineRef, ""); const info = getBusModelInfo(vehicleRef, cat); const fuelIcon = info.fuel.includes('Electric') ? 'fa-bolt' : (info.fuel.includes('Hybrid') ? 'fa-leaf' : 'fa-gas-pump');
                 const recTime = mv.RecordedAtTime || new Date().toISOString();
                 
+                const destination = mv.DestinationName || "Unknown Destination";
+                const nextStop = mv.MonitoredCall ? mv.MonitoredCall.StopPointName : "Unknown Location";
+                const safeDest = destination.replace(/'/g, "\\'");
+
                 return `
-                <div onclick="showBusMap(${veh.Latitude}, ${veh.Longitude}, '${vehicleRef}', '${info.model}', '${recTime}')" class="bus-card w-full md:w-96 shrink-0 bg-white rounded-xl shadow-md overflow-hidden border border-gray-100 flex flex-col cursor-pointer group">
+                <div onclick="showBusMap(${veh.Latitude}, ${veh.Longitude}, '${vehicleRef}', '${info.model}', '${recTime}', '${safeDest}')" class="bus-card w-full md:w-96 shrink-0 bg-white rounded-xl shadow-md overflow-hidden border border-gray-100 flex flex-col cursor-pointer group relative">
                     <div class="relative h-48 bg-gray-200 shrink-0">
                         <img src="${info.image}" alt="${info.model}" class="w-full h-full object-cover" onerror="this.src='https://commons.wikimedia.org/wiki/Special:FilePath/VTA_bus_0132_serving_route_26_in_downtown_Campbell.jpg'">
                         <div class="absolute top-2 right-2 bg-black bg-opacity-70 text-white text-xs px-2 py-1 rounded">ID: ${vehicleRef}</div>
-                         <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all flex items-center justify-center">
+                         <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all flex items-center justify-center pointer-events-none">
                                 <span class="opacity-0 group-hover:opacity-100 bg-blue-600 text-white px-3 py-1 rounded-full text-sm font-bold shadow-lg transform translate-y-2 group-hover:translate-y-0 transition-all duration-200"><i class="fas fa-map-marker-alt mr-1"></i> View on Map</span>
                             </div>
                         <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent p-3 pt-8">
@@ -1744,7 +1751,21 @@
                     </div>
                     <div class="p-4 flex-1 flex flex-col justify-between">
                         <div>
-                             <div class="flex items-center justify-between mb-3"><span class="bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded">Active</span><div class="text-xs text-gray-500 flex items-center"><i class="far fa-clock mr-1"></i> Live</div></div>
+                             <div class="mb-3 border-b border-gray-100 pb-2">
+                                <div class="text-xs text-gray-400 uppercase font-bold mb-0.5">To</div>
+                                <h4 class="font-bold text-gray-900 text-lg leading-tight truncate" title="${destination}">${destination}</h4>
+                                <div class="text-xs text-gray-500 mt-1 flex items-center truncate">
+                                    <i class="fas fa-arrow-circle-right text-blue-500 mr-1"></i> 
+                                    <span class="font-medium text-gray-700 mr-1">Next:</span> ${truncate(nextStop, 35)}
+                                </div>
+                             </div>
+
+                             <div class="flex items-center justify-between mb-3">
+                                <span class="bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded">Active</span>
+                                <button onclick="event.stopPropagation(); viewBusSchedule('${vehicleRef}', '${info.model}', '${mv.LineRef}')" class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-2 py-1 rounded border border-gray-300 transition z-10 relative">
+                                    <i class="fas fa-list-ol mr-1"></i> Schedule
+                                </button>
+                             </div>
                             <div class="space-y-2 text-sm text-gray-600"><div class="flex items-center"><i class="fas fa-tachometer-alt mr-2"></i><span>Speed: ${(mv.VehicleSpeed || 0).toFixed(1)} mph</span></div></div>
                         </div>
                          <div class="mt-4 pt-3 border-t border-gray-100 flex justify-between items-center text-xs text-gray-400"><span class="font-mono">Ref: ${vehicleRef}</span><span>Yr: ${info.year}</span></div>
@@ -1753,7 +1774,331 @@
             }).join('');
             container.innerHTML = html; mobileContainer.innerHTML = html; document.getElementById('headerRouteDesc').innerText = `Live tracking ${activities.length} vehicle(s)`;
         }
-        function showBusMap(lat, lon, vehicleRef, model, recordedTime) {
+        
+        // --- Helper: Create Bus Icon ---
+        function createBusIcon() {
+            return L.divIcon({ 
+                className: '', 
+                html: `
+                <div class="relative w-10 h-10">
+                    <div class="w-10 h-10 bg-blue-600 rounded-full border-2 border-white shadow-lg flex items-center justify-center">
+                        <i class="fas fa-bus text-white text-lg"></i>
+                    </div>
+                </div>`, 
+                iconSize: [40, 40], 
+                iconAnchor: [20, 20], 
+                popupAnchor: [0, -20] 
+            });
+        }
+
+        // --- Helper: Generate Popup HTML ---
+        function generatePopupContent(vehicleRef, model, destination) {
+            const destDisplay = destination && destination !== 'Unknown' ? destination : 'Unknown Destination';
+            
+            return `
+                <div class="text-center min-w-[150px]">
+                    <div class="font-bold text-gray-800 text-lg mb-0.5">Bus ${vehicleRef}</div>
+                    <div class="text-xs font-bold text-blue-600 mb-1 uppercase tracking-wide">To ${destDisplay}</div>
+                    <div class="text-xs text-gray-500 mb-3">${model}</div>
+                    <div class="flex flex-col gap-2">
+                        <button onclick="viewBusSchedule('${vehicleRef}', '${model}', '');" class="bg-blue-500 text-white text-xs px-3 py-1.5 rounded hover:bg-blue-600 font-bold transition w-full">
+                            <i class="fas fa-clock mr-1"></i> Schedule
+                        </button>
+                        <button onclick="openBusDetail('${vehicleRef}')" class="bg-gray-100 text-gray-700 border border-gray-300 text-xs px-3 py-1.5 rounded hover:bg-gray-200 font-bold transition w-full">
+                            <i class="fas fa-info-circle mr-1"></i> More Info
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        // --- Helper: Setup Map Header Buttons ---
+        function setupMapHeaderButtons(vehicleRef, model) {
+            const btn = document.getElementById('btnShowRoute');
+            btn.innerHTML = '<i class="fas fa-route mr-1"></i> <span data-translate="showRoute">Show Route</span>'; 
+            btn.classList.remove('bg-red-100', 'text-red-700'); 
+            btn.classList.add('bg-blue-100', 'text-blue-700');
+            
+            let schedBtn = document.getElementById('btnMapSchedule');
+            if(!schedBtn) {
+                schedBtn = document.createElement('button');
+                schedBtn.id = 'btnMapSchedule';
+                schedBtn.className = "text-sm bg-purple-100 text-purple-700 px-3 py-1 rounded hover:bg-purple-200 transition ml-2";
+                schedBtn.innerHTML = '<i class="fas fa-list-ol mr-1"></i> Schedule';
+                const closeBtn = document.querySelector('#mapModal .fa-times').parentElement;
+                closeBtn.parentElement.insertBefore(schedBtn, closeBtn);
+            }
+            schedBtn.onclick = () => viewBusSchedule(vehicleRef, model, '');
+        }
+
+        // --- New Function: View All Buses ---
+        function viewAllBusesOnMap() {
+            if (currentVehicles.length === 0) return alert("No buses active to show on map.");
+            
+            document.getElementById('mapModal').classList.remove('hidden');
+            document.getElementById('mapModalTitle').innerText = `Route ${currentSelectionId} Live Map`;
+            document.getElementById('mapModalSubtitle').innerText = `Tracking ${currentVehicles.length} vehicles`;
+
+            // Use a timeout to ensure the modal DOM is fully rendered/visible before Leaflet calculates sizes
+            setTimeout(() => {
+                // Initialize Map if needed
+                if (!mapInstance) {
+                    mapInstance = L.map('busMap').setView([37.3382, -121.8863], 12);
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(mapInstance);
+                    
+                    // Initialize Layers
+                    routeLayer = L.layerGroup().addTo(mapInstance);
+                    busLayer = L.layerGroup().addTo(mapInstance);
+                } else {
+                    mapInstance.invalidateSize();
+                    // Clear previous markers/routes
+                    if(routeLayer) routeLayer.clearLayers();
+                    if(busLayer) busLayer.clearLayers();
+                }
+
+                const bounds = L.latLngBounds([]);
+                const busIcon = createBusIcon(); // Reuse same icon style
+
+                currentVehicles.forEach(bus => {
+                    const mv = bus.MonitoredVehicleJourney || bus.monitoredVehicleJourney;
+                    const lat = parseFloat(mv.VehicleLocation?.Latitude);
+                    const lon = parseFloat(mv.VehicleLocation?.Longitude);
+                    const vRef = mv.VehicleRef;
+                    const cat = categorizeRoute(mv.LineRef, ""); 
+                    const info = getBusModelInfo(vRef, cat);
+                    const dest = mv.DestinationName || "Unknown";
+
+                    if (!isNaN(lat) && !isNaN(lon)) {
+                        // Add to busLayer
+                        const marker = L.marker([lat, lon], {icon: busIcon}).addTo(busLayer);
+                        marker.bindPopup(generatePopupContent(vRef, info.model, dest));
+                        bounds.extend([lat, lon]);
+                    }
+                });
+
+                if (bounds.isValid()) {
+                    mapInstance.fitBounds(bounds, {padding: [50, 50]});
+                }
+            }, 100); 
+            
+            // Reset header buttons since we are in "All" mode
+            const btnContainer = document.querySelector('#mapModal .flex.items-center.gap-3');
+            const oldSched = document.getElementById('btnMapSchedule');
+            if(oldSched) oldSched.remove();
+            
+            // Reset route button
+            const btn = document.getElementById('btnShowRoute');
+            btn.innerHTML = '<i class="fas fa-route mr-1"></i> <span data-translate="showRoute">Show Route</span>';
+            btn.classList.remove('bg-red-100', 'text-red-700'); 
+            btn.classList.add('bg-blue-100', 'text-blue-700');
+        }
+
+        // --- Schedule View Logic ---
+        async function viewBusSchedule(vehicleRef, modelName, lineRef) {
+            // Re-use Bus Detail Modal for Schedule
+            const contentDiv = document.getElementById('busDetailContent');
+            const modal = document.getElementById('busDetailModal');
+            
+            modal.classList.remove('hidden');
+            contentDiv.innerHTML = `
+                <div class="p-6 h-full flex flex-col">
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <h2 class="text-xl font-bold text-gray-800">Bus ${vehicleRef} Schedule</h2>
+                            <p class="text-sm text-gray-500">${modelName}</p>
+                        </div>
+                    </div>
+                    <div id="scheduleList" class="flex-1 overflow-y-auto space-y-0 relative border-l-2 border-blue-200 ml-3 pl-4 pb-4">
+                        <div class="flex items-center justify-center h-40">
+                            <div class="loader"></div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            try {
+                // Fetch vehicle specific data with calls
+                const data = await fetch511('VehicleMonitoring', `&agency=${AGENCY_ID}&vehicleID=${vehicleRef}&VehicleMonitoringDetailLevel=calls`);
+                
+                let scheduleStops = [];
+                
+                if (data && data.Siri) {
+                    const delivery = data.Siri.ServiceDelivery.VehicleMonitoringDelivery.VehicleActivity || 
+                                     data.Siri.ServiceDelivery.VehicleMonitoringDelivery[0].VehicleActivity;
+                    
+                    const activity = Array.isArray(delivery) ? delivery[0] : delivery;
+                    
+                    if (activity && activity.MonitoredVehicleJourney) {
+                        const mvj = activity.MonitoredVehicleJourney;
+
+                        // 1. Get Onward Calls (Future Stops)
+                        let onwardCalls = [];
+                        if (mvj.OnwardCalls && mvj.OnwardCalls.OnwardCall) {
+                            const calls = mvj.OnwardCalls.OnwardCall;
+                            onwardCalls = Array.isArray(calls) ? calls : [calls];
+                        }
+
+                        // 2. Get Monitored Call (The IMMEDIATE active stop)
+                        // This is often missing from OnwardCalls if the bus is "at" the stop
+                        if (mvj.MonitoredCall) {
+                            const current = mvj.MonitoredCall;
+                            
+                            // Deduplicate: Check if the current stop is already the first one in onwardCalls
+                            const firstOnward = onwardCalls.length > 0 ? onwardCalls[0] : null;
+                            const isDuplicate = firstOnward && (
+                                firstOnward.StopPointRef === current.StopPointRef || 
+                                (firstOnward.StopPointName === current.StopPointName && firstOnward.ExpectedArrivalTime === current.ExpectedArrivalTime)
+                            );
+
+                            if (!isDuplicate) {
+                                // Add current status as the first item
+                                scheduleStops.push(current);
+                            }
+                        }
+
+                        // Combine lists
+                        scheduleStops = scheduleStops.concat(onwardCalls);
+                    }
+                }
+
+                const listDiv = document.getElementById('scheduleList');
+                if (scheduleStops.length === 0) {
+                    listDiv.innerHTML = `
+                        <div class="text-gray-400 italic text-sm mt-4 -ml-4 pl-0 text-center">
+                            <i class="fas fa-info-circle mb-2"></i><br>
+                            No upcoming stops reported.<br>Bus might be at the end of its route.
+                        </div>`;
+                    return;
+                }
+
+                listDiv.innerHTML = scheduleStops.map((call, index) => {
+                    const time = new Date(call.ExpectedArrivalTime);
+                    const timeStr = time.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+                    const isNext = index === 0;
+                    
+                    return `
+                        <div class="relative mb-6 last:mb-0">
+                            <div class="absolute -left-[25px] top-1 w-4 h-4 rounded-full border-2 border-white shadow-sm ${isNext ? 'bg-blue-600 ring-2 ring-blue-200' : 'bg-gray-300'}"></div>
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <div class="font-bold text-gray-800 text-sm">${call.StopPointName}</div>
+                                    ${isNext ? '<span class="bg-blue-100 text-blue-700 text-[10px] px-2 py-0.5 rounded-full font-bold">CURRENT / NEXT</span>' : ''}
+                                </div>
+                                <div class="text-right shrink-0 ml-4">
+                                    <div class="font-mono font-bold text-blue-600 text-sm">${timeStr}</div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+            } catch (e) {
+                console.error(e);
+                document.getElementById('scheduleList').innerHTML = `<p class="text-red-500 text-sm">Failed to load schedule.</p>`;
+            }
+        }
+
+        // --- Logic to Find Next Scheduled Departure when no live buses exist ---
+        async function findNextScheduledBus(routeId) {
+            // Only proceed if the 'noBusContent' container exists (user hasn't navigated away)
+            const container = document.getElementById('noBusContent');
+            if (!container) return;
+
+            try {
+                // 1. Find a reference stop to check (Start of the line)
+                let targetStopId = null;
+                
+                // Try fetching pattern data to find the first stop in sequence
+                try {
+                    const patternData = await fetch511('patterns', `&operator_id=${AGENCY_ID}&line_id=${routeId}`);
+                    if (patternData) {
+                        const findFirstStop = (obj) => {
+                            if (targetStopId) return;
+                            // Look for the first scheduled stop point ref in the data structure
+                            if (obj.ScheduledStopPointRef) { targetStopId = obj.ScheduledStopPointRef; return; }
+                            // Recursively search
+                            if (Array.isArray(obj)) obj.forEach(findFirstStop);
+                            else if (typeof obj === 'object') Object.values(obj).forEach(findFirstStop);
+                        };
+                        findFirstStop(patternData);
+                    }
+                } catch (e) { console.warn("Pattern fetch failed", e); }
+
+                // Fallback: If pattern failed, fetch generic stops list and grab the first one
+                if (!targetStopId) {
+                     const stopsData = await fetch511('stops', `&operator_id=${AGENCY_ID}&line_id=${routeId}`);
+                     const findAnyStop = (obj) => {
+                         if (targetStopId) return;
+                         if (obj.id) { targetStopId = obj.id; return; }
+                         if (Array.isArray(obj)) obj.forEach(findAnyStop);
+                         else if (typeof obj === 'object') Object.values(obj).forEach(findAnyStop);
+                     };
+                     findAnyStop(stopsData);
+                }
+
+                if (!targetStopId) throw new Error("No stops found for this route.");
+
+                // 2. Fetch Predictions for this stop
+                // This includes scheduled times even if the bus isn't GPS tracking yet
+                const preds = await fetch511('StopMonitoring', `&agency=${AGENCY_ID}&stopCode=${targetStopId}`);
+                let nextTime = null;
+                let stopName = "Start of Route";
+
+                if (preds && preds.ServiceDelivery && preds.ServiceDelivery.StopMonitoringDelivery) {
+                    const visits = preds.ServiceDelivery.StopMonitoringDelivery.MonitoredStopVisit;
+                    const list = Array.isArray(visits) ? visits : (visits ? [visits] : []);
+                    
+                    // Filter for our route
+                    // Note: LineRef might have "Rapid" prefix or just the number, so we check loosely
+                    const relevant = list.find(v => {
+                        const line = String(v.MonitoredVehicleJourney.LineRef);
+                        return line === String(routeId) || line.includes(routeId); 
+                    });
+
+                    if (relevant) {
+                        nextTime = new Date(relevant.MonitoredVehicleJourney.MonitoredCall.ExpectedArrivalTime);
+                        stopName = relevant.MonitoredVehicleJourney.MonitoredCall.StopPointName;
+                    }
+                }
+
+                // 3. Update UI
+                const resultDiv = document.getElementById('noBusContent');
+                if (resultDiv) {
+                    if (nextTime) {
+                        const timeStr = nextTime.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+                        const now = new Date();
+                        const diff = Math.ceil((nextTime - now) / 60000);
+                        const relative = diff > 0 ? `in ${diff} min` : 'Due Now';
+                        
+                        resultDiv.innerHTML = `
+                            <div class="inline-block p-4 bg-blue-50 rounded-xl border border-blue-100">
+                                <div class="text-xs font-bold text-blue-400 uppercase tracking-wider mb-1">Next Scheduled Departure</div>
+                                <div class="text-3xl font-bold text-blue-700">${timeStr}</div>
+                                <div class="text-sm text-gray-600 mt-1">
+                                    <i class="fas fa-map-marker-alt text-red-400 mr-1"></i> ${stopName}
+                                </div>
+                                <div class="mt-2 text-xs bg-white border border-blue-200 text-blue-600 px-2 py-1 rounded inline-block font-semibold">
+                                    ${relative}
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        resultDiv.innerHTML = `
+                            <i class="fas fa-moon text-4xl text-gray-300 mb-2"></i>
+                            <h3 class="text-lg font-medium text-gray-700">Service Ended</h3>
+                            <p class="text-sm text-gray-400">No scheduled departures found for the near future.</p>
+                        `;
+                    }
+                }
+
+            } catch (e) {
+                console.error("Sched check failed", e);
+                const el = document.getElementById('nextSchedLoading');
+                if(el) el.innerHTML = `<span class="text-red-400"><i class="fas fa-exclamation-circle"></i> Schedule unavailable</span>`;
+            }
+        }
+
+        function showBusMap(lat, lon, vehicleRef, model, recordedTime, destination = 'Unknown') {
             if(!lat || !lon) return alert("No location data");
             viewingBusId = vehicleRef;
             currentBusTimestamp = recordedTime ? new Date(recordedTime) : new Date();
@@ -1765,38 +2110,46 @@
             if (!mapInstance) {
                 mapInstance = L.map('busMap').setView([lat, lon], 15);
                 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(mapInstance);
+                
+                // Initialize Layers: Route first (bottom), then Buses (top)
                 routeLayer = L.layerGroup().addTo(mapInstance);
-            } else { mapInstance.setView([lat, lon], 15); if(routeLayer) routeLayer.clearLayers(); }
+                busLayer = L.layerGroup().addTo(mapInstance);
+            } else { 
+                mapInstance.setView([lat, lon], 15); 
+                // Clear both layers to start fresh
+                if(routeLayer) routeLayer.clearLayers(); 
+                if(busLayer) busLayer.clearLayers();
+            }
             
-            const busIcon = L.divIcon({ 
-                className: '', 
-                html: `
-                <div class="relative w-10 h-10">
-                    <div class="w-10 h-10 bg-blue-600 rounded-full border-2 border-white shadow-lg flex items-center justify-center">
-                        <i class="fas fa-bus text-white text-lg"></i>
-                    </div>
-                    <div id="busAgeBadge" class="absolute -top-3 -right-3 bg-green-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-md border border-white z-50">
-                        now
-                    </div>
-                </div>`, 
-                iconSize: [40, 40], 
-                iconAnchor: [20, 20], 
-                popupAnchor: [0, -20] 
-            });
+            const busIcon = createBusIcon();
             
             setTimeout(() => mapInstance.invalidateSize(), 100);
-            if (mapMarker) { mapMarker.setLatLng([lat, lon]); mapMarker.setIcon(busIcon); } else { mapMarker = L.marker([lat, lon], {icon: busIcon}).addTo(mapInstance); }
-            mapMarker.bindPopup(`<b>Bus ${vehicleRef}</b><br>${model}`).openPopup();
+            
+            // Add marker to the specific busLayer instead of routeLayer
+            mapMarker = L.marker([lat, lon], {icon: busIcon}).addTo(busLayer);
+            // Pass destination to popup generator
+            mapMarker.bindPopup(generatePopupContent(vehicleRef, model, destination)).openPopup();
             
             updateBusTimer();
-
-            const btn = document.getElementById('btnShowRoute');
-            btn.innerHTML = '<i class="fas fa-route mr-1"></i> Show Route'; btn.classList.remove('bg-red-100', 'text-red-700'); btn.classList.add('bg-blue-100', 'text-blue-700');
+            setupMapHeaderButtons(vehicleRef, model);
         }
+
         function closeMap() { document.getElementById('mapModal').classList.add('hidden'); viewingBusId = null; }
+
+        // --- Enhanced Route Logic (Restored) ---
         async function toggleRoutePath() {
              const btn = document.getElementById('btnShowRoute');
-             if (routeLayer && routeLayer.getLayers().length > 0) { routeLayer.clearLayers(); btn.innerHTML = '<i class="fas fa-route mr-1"></i> Show Route'; btn.classList.remove('bg-red-100', 'text-red-700'); btn.classList.add('bg-blue-100', 'text-blue-700'); return; }
+             
+             // Toggle Off
+             if (routeLayer && routeLayer.getLayers().length > 0) { 
+                 routeLayer.clearLayers(); 
+                 btn.innerHTML = '<i class="fas fa-route mr-1"></i> <span data-translate="showRoute">Show Route</span>'; 
+                 btn.classList.remove('bg-red-100', 'text-red-700'); 
+                 btn.classList.add('bg-blue-100', 'text-blue-700'); 
+                 return; 
+             }
+
+             // Loading State
              btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Loading...';
              
              const cat = categorizeRoute(currentSelectionId, currentSelectionName);
@@ -1805,34 +2158,244 @@
              if (cat === 'Express') routeColor = 'green';
              if (cat === 'Shuttle') routeColor = 'purple';
              if (cat === 'School') routeColor = 'orange';
-             
-             if (cat === 'ACE') {
-                 const lowerName = currentSelectionId.toLowerCase();
-                 if (lowerName.includes('orange')) routeColor = 'orange';
-                 else if (lowerName.includes('purple')) routeColor = 'purple';
-                 else if (lowerName.includes('red')) routeColor = 'red';
-                 else if (lowerName.includes('green')) routeColor = 'green';
-                 else if (lowerName.includes('gray')) routeColor = 'gray';
-                 else if (lowerName.includes('yellow')) routeColor = '#eab308';
-                 else if (lowerName.includes('violet')) routeColor = '#7c3aed';
-                 else routeColor = '#4f46e5';
-             }
+             if (cat === 'ACE') routeColor = '#4f46e5'; 
 
              try {
-                const stopsData = await fetch511('stops', `&operator_id=${AGENCY_ID}&line_id=${currentSelectionId}`);
-                const stopMap = new Map();
-                function extractStops(obj) { if (Array.isArray(obj)) obj.forEach(extractStops); else if (typeof obj === 'object' && obj !== null) { if (obj.id && (obj.Location || obj.Latitude)) { const lat = obj.Location?.Latitude || obj.Latitude; const lon = obj.Location?.Longitude || obj.Longitude; if(lat && lon) stopMap.set(String(obj.id), [parseFloat(lat), parseFloat(lon)]); } Object.values(obj).forEach(extractStops); } }
-                extractStops(stopsData);
-                const patternData = await fetch511('patterns', `&operator_id=${AGENCY_ID}&line_id=${currentSelectionId}`);
+                // 1. Try Fetching Official Pattern Data (Best Source)
                 let latlngs = [];
-                function findSeq(obj) { if (Array.isArray(obj)) { if (obj.length > 0 && (obj[0].ScheduledStopPointRef || obj[0].scheduledStopPointRef)) { const seq = []; obj.forEach(s => { const ref = s.ScheduledStopPointRef || s.scheduledStopPointRef; if(ref && stopMap.has(String(ref))) seq.push(stopMap.get(String(ref))); }); if(seq.length > 5) latlngs.push(seq); } obj.forEach(findSeq); } else if (typeof obj === 'object' && obj !== null) { Object.values(obj).forEach(findSeq); } }
-                findSeq(patternData);
-                if (latlngs.length === 0) throw new Error("No path");
-                const bounds = L.latLngBounds([]);
-                latlngs.forEach(l => { const pl = L.polyline(l, {color: routeColor, weight: 4, opacity: 0.6}).addTo(routeLayer); bounds.extend(pl.getBounds()); });
-                mapInstance.fitBounds(bounds);
-                btn.innerHTML = '<i class="fas fa-eye-slash mr-1"></i> Hide Route'; btn.classList.remove('bg-blue-100', 'text-blue-700'); btn.classList.add('bg-red-100', 'text-red-700');
-             } catch(e) { alert("Could not load route path."); btn.innerHTML = '<i class="fas fa-route mr-1"></i> Show Route'; }
+                let orderedStops = [];
+                
+                try {
+                    const patternData = await fetch511('patterns', `&operator_id=${AGENCY_ID}&line_id=${currentSelectionId}`);
+                    if (patternData) parsePatterns(patternData);
+                } catch (err) {
+                    console.warn("Pattern API failed, falling back to stops", err);
+                }
+
+                // Helper to explore the data structure
+                function parsePatterns(obj) {
+                    if (!obj || typeof obj !== 'object') return;
+
+                    // A. Check for High-Res Geometry (PointsInSequence)
+                    if (obj.PointsInSequence && obj.PointsInSequence.Point) {
+                        const rawPoints = Array.isArray(obj.PointsInSequence.Point) 
+                            ? obj.PointsInSequence.Point 
+                            : [obj.PointsInSequence.Point];
+                        
+                        const segment = rawPoints.map(p => {
+                            const lat = p.Location?.Latitude || p.Latitude;
+                            const lon = p.Location?.Longitude || p.Longitude;
+                            return [parseFloat(lat), parseFloat(lon)];
+                        }).filter(p => !isNaN(p[0]) && !isNaN(p[1]));
+
+                        if (segment.length > 5) latlngs.push(segment);
+                    }
+
+                    // B. Check for Ordered Stops
+                    if (obj.ScheduledStopPoints && obj.ScheduledStopPoints.ScheduledStopPoint) {
+                        const stops = Array.isArray(obj.ScheduledStopPoints.ScheduledStopPoint)
+                            ? obj.ScheduledStopPoints.ScheduledStopPoint
+                            : [obj.ScheduledStopPoints.ScheduledStopPoint];
+                        
+                        const stopCoords = stops.map(s => {
+                            const lat = s.Location?.Latitude || s.Latitude;
+                            const lon = s.Location?.Longitude || s.Longitude;
+                            return [parseFloat(lat), parseFloat(lon)];
+                        }).filter(p => !isNaN(p[0]) && !isNaN(p[1]));
+                        
+                        if(stopCoords.length > 0) orderedStops.push(stopCoords);
+                    }
+
+                    if (Array.isArray(obj)) obj.forEach(parsePatterns);
+                    else Object.values(obj).forEach(parsePatterns);
+                }
+
+                // --- Drawing Logic ---
+
+                // CASE 1: We have the official high-res shape line. Draw it.
+                if (latlngs.length > 0) {
+                    console.log("Using High-Res Geometry");
+                    drawPolylines(latlngs, routeColor);
+                } 
+                
+                // CASE 2: We have ordered stops but no shape. Snap them to the road.
+                else if (orderedStops.length > 0) {
+                    console.log("Using OSRM Router with Ordered Stops");
+                    const roadPath = await fetchRoadPath(orderedStops[0]); 
+                    if(roadPath && roadPath.length > 0) {
+                        drawPolylines([roadPath], routeColor);
+                    } else {
+                        drawPolylines(orderedStops, routeColor); 
+                    }
+                }
+                
+                // CASE 3: FALLBACK (Stops only, likely unordered)
+                else {
+                    console.log("Fallback: Fetching raw stops");
+                    const stopsData = await fetch511('stops', `&operator_id=${AGENCY_ID}&line_id=${currentSelectionId}`);
+                    
+                    if (!stopsData) throw new Error("No route data available");
+
+                    let stopPoints = [];
+                    
+                    // Extract all stop coordinates
+                    function findStops(obj) {
+                        if (!obj || typeof obj !== 'object') return;
+                        // Handle standard StopPoint structure
+                        if (obj.ScheduledStopPoint || obj.Latitude) { 
+                             // If it's a stop object itself
+                             if (obj.Name && (obj.Latitude || obj.Location)) {
+                                 const lat = obj.Location?.Latitude || obj.Latitude;
+                                 const lon = obj.Location?.Longitude || obj.Longitude;
+                                 if(lat && lon) stopPoints.push([parseFloat(lat), parseFloat(lon)]);
+                             }
+                             // Or a container of stops
+                             else if (obj.ScheduledStopPoint) {
+                                 const stops = Array.isArray(obj.ScheduledStopPoint) ? obj.ScheduledStopPoint : [obj.ScheduledStopPoint];
+                                 stops.forEach(s => {
+                                     const lat = s.Location?.Latitude || s.Latitude;
+                                     const lon = s.Location?.Longitude || s.Longitude;
+                                     if(lat && lon) stopPoints.push([parseFloat(lat), parseFloat(lon)]);
+                                 });
+                             }
+                        }
+                        if (Array.isArray(obj)) obj.forEach(findStops);
+                        else Object.values(obj).forEach(findStops);
+                    }
+                    findStops(stopsData);
+
+                    if (stopPoints.length > 0) {
+                        // 1. Draw Dots (As requested)
+                        const bounds = L.latLngBounds(stopPoints);
+                        mapInstance.fitBounds(bounds, {padding: [20, 20]});
+                        
+                        stopPoints.forEach(pt => {
+                            L.circleMarker(pt, {
+                                radius: 4,
+                                fillColor: routeColor,
+                                color: '#fff',
+                                weight: 1,
+                                opacity: 0.9,
+                                fillOpacity: 0.8
+                            }).addTo(routeLayer);
+                        });
+
+                        // 2. Sort and Snap Line
+                        // Since API might return stops randomly, we use Nearest Neighbor sort
+                        // starting from the northernmost stop (heuristic for a bus terminus)
+                        const sortedStops = sortStopsSpatially(stopPoints);
+                        
+                        // 3. Get Road Path
+                        const roadPath = await fetchRoadPath(sortedStops);
+                        
+                        if (roadPath) {
+                            // Draw dashed line to indicate it's a calculated/estimated route
+                            L.polyline(roadPath, {
+                                color: routeColor, 
+                                weight: 4, 
+                                opacity: 0.6, 
+                                dashArray: '10, 10',
+                                lineJoin: 'round'
+                            }).addTo(routeLayer);
+                        } else {
+                            // Straight lines fallback
+                            L.polyline(sortedStops, {
+                                color: routeColor, 
+                                weight: 2, 
+                                opacity: 0.5, 
+                                dashArray: '5, 10'
+                            }).addTo(routeLayer);
+                        }
+
+                    } else {
+                        throw new Error("No stops found");
+                    }
+                }
+
+                // Update Button State
+                btn.innerHTML = '<i class="fas fa-eye-slash mr-1"></i> Hide Route'; 
+                btn.classList.remove('bg-blue-100', 'text-blue-700'); 
+                btn.classList.add('bg-red-100', 'text-red-700');
+
+             } catch(e) { 
+                 console.error(e); 
+                 alert("Could not load route path."); 
+                 btn.innerHTML = '<i class="fas fa-route mr-1"></i> <span data-translate="showRoute">Show Route</span>'; 
+             }
+        }
+
+        // --- Helper: Nearest Neighbor Sort ---
+        // Orders a cloud of points into a line by always jumping to the closest next point
+        function sortStopsSpatially(points) {
+            if (points.length < 2) return points;
+            
+            // Start with the top-most (Northern) point as a guess for a Terminus
+            // (Copy array to avoid mutating original)
+            let pool = [...points];
+            pool.sort((a, b) => b[0] - a[0]); // Sort by Lat descending
+            
+            let sorted = [pool.shift()]; // Take the first one (North)
+            
+            while (pool.length > 0) {
+                const current = sorted[sorted.length - 1];
+                let nearestIndex = -1;
+                let minDist = Infinity;
+                
+                // Find nearest in pool
+                for (let i = 0; i < pool.length; i++) {
+                    const d = Math.pow(pool[i][0] - current[0], 2) + Math.pow(pool[i][1] - current[1], 2);
+                    if (d < minDist) {
+                        minDist = d;
+                        nearestIndex = i;
+                    }
+                }
+                
+                // Move nearest to sorted
+                sorted.push(pool[nearestIndex]);
+                pool.splice(nearestIndex, 1);
+            }
+            return sorted;
+        }
+
+        // Helper to draw the lines
+        function drawPolylines(segments, color) {
+            const bounds = L.latLngBounds([]);
+            segments.forEach(seg => { 
+                const pl = L.polyline(seg, {color: color, weight: 4, opacity: 0.7, lineJoin: 'round'}).addTo(routeLayer); 
+                bounds.extend(pl.getBounds()); 
+            });
+            mapInstance.fitBounds(bounds, {padding: [20, 20]});
+        }
+
+        // --- OSRM Router Function (Snaps dots to roads) ---
+        async function fetchRoadPath(coordinates) {
+            // OSRM expects: lon,lat;lon,lat
+            // Coordinates input is [lat, lon]
+            if(coordinates.length < 2) return null;
+
+            // Reduce sampling if too many stops to prevent URL overflow (OSRM limits)
+            // Take every point if < 80, otherwise sample
+            const sampled = coordinates.length > 80 
+                ? coordinates.filter((_, i) => i % 2 === 0) 
+                : coordinates;
+
+            const coordString = sampled.map(p => `${p[1]},${p[0]}`).join(';');
+            const url = `https://router.project-osrm.org/route/v1/driving/${coordString}?overview=full&geometries=geojson`;
+
+            try {
+                const response = await fetch(url);
+                if(!response.ok) throw new Error('OSRM error');
+                const data = await response.json();
+                
+                if(data.routes && data.routes.length > 0) {
+                    // Extract coordinates from GeoJSON [lon, lat] -> [lat, lon]
+                    return data.routes[0].geometry.coordinates.map(p => [p[1], p[0]]);
+                }
+            } catch(e) {
+                console.warn("Routing failed, falling back to straight lines", e);
+                return null;
+            }
+            return null;
         }
     </script>
 </body>
