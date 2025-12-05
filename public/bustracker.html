@@ -344,7 +344,8 @@
 
     <!-- Map Modal (Bus Specific) -->
     <div id="mapModal" class="fixed inset-0 z-50 hidden flex flex-col md:items-center md:justify-center md:p-4">
-        <div class="absolute inset-0 bg-white md:bg-black md:bg-opacity-75"></div>
+        <!-- Changed bg-white to bg-black/75 for consistent dimming on mobile -->
+        <div class="absolute inset-0 bg-black bg-opacity-75"></div>
         <div class="relative w-full h-full md:h-[80vh] md:max-w-4xl bg-white md:rounded-lg shadow-2xl flex flex-col z-10">
             <div class="p-4 border-b flex justify-between items-center bg-gray-50 md:rounded-t-lg">
                 <div>
@@ -501,6 +502,7 @@
 
         <!-- Mobile Detail View -->
         <div id="mobileDetailPanel" class="fixed inset-0 bg-gray-100 z-40 transform translate-x-full transition-transform duration-300 md:hidden flex flex-col">
+            <!-- Updated Header with Map Button -->
             <div class="bg-blue-700 text-white p-4 flex items-center shadow-md">
                 <button onclick="closeMobileDetail()" class="mr-4 text-white hover:text-gray-200">
                     <i class="fas fa-arrow-left text-xl"></i>
@@ -508,14 +510,21 @@
                 <div class="flex-1 overflow-hidden">
                     <h2 class="text-lg font-bold truncate" id="mobileHeaderName">Details</h2>
                 </div>
-                <button onclick="refreshCurrentView()" class="ml-2 text-white">
+                
+                <!-- NEW: Map All Button for Mobile -->
+                <button onclick="viewAllBusesOnMap()" class="ml-2 text-white p-2 hover:bg-blue-600 rounded-full transition" title="View All on Map">
+                    <i class="fas fa-map"></i>
+                </button>
+
+                <button onclick="refreshCurrentView()" class="ml-1 text-white p-2 hover:bg-blue-600 rounded-full transition">
                     <i class="fas fa-sync-alt"></i>
                 </button>
             </div>
+            
             <!-- Mobile Filter Controls -->
             <div class="bg-white p-2 border-b flex justify-between items-center px-4">
                  <select id="mobileVehicleTypeFilter" onchange="filterVehiclesByType('mobile')" class="bg-gray-100 text-gray-800 text-xs py-1 px-2 rounded border border-gray-300">
-                    <option value="all">All Types</option>
+                    <option value="all" data-translate="allTypes">All Types</option>
                     <option value="Articulated">Articulated</option>
                     <option value="Electric">Electric</option>
                     <option value="Standard">Standard</option>
@@ -555,6 +564,7 @@
         let viewingBusId = null; 
         let currentBusTimestamp = null; 
         let routeLayer = null; 
+        let busLayer = null; // NEW: Separate layer for buses
         let timerInterval = null; 
         let currentVehicles = []; 
 
@@ -1771,19 +1781,23 @@
             if (!mapInstance) {
                 mapInstance = L.map('busMap').setView([lat, lon], 15);
                 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(mapInstance);
+                
+                // Initialize Layers: Route first (bottom), then Buses (top)
                 routeLayer = L.layerGroup().addTo(mapInstance);
+                busLayer = L.layerGroup().addTo(mapInstance);
             } else { 
                 mapInstance.setView([lat, lon], 15); 
-                // Don't clear layer here if coming from "View All", but for single view strictness we might
-                // For now, let's clear to ensure clean state for single view
+                // Clear both layers to start fresh
                 if(routeLayer) routeLayer.clearLayers(); 
+                if(busLayer) busLayer.clearLayers();
             }
             
             const busIcon = createBusIcon();
             
             setTimeout(() => mapInstance.invalidateSize(), 100);
             
-            mapMarker = L.marker([lat, lon], {icon: busIcon}).addTo(routeLayer);
+            // Add marker to the specific busLayer instead of routeLayer
+            mapMarker = L.marker([lat, lon], {icon: busIcon}).addTo(busLayer);
             mapMarker.bindPopup(generatePopupContent(vehicleRef, model)).openPopup();
             
             updateBusTimer();
@@ -1798,41 +1812,49 @@
             document.getElementById('mapModalTitle').innerText = `Route ${currentSelectionId} Live Map`;
             document.getElementById('mapModalSubtitle').innerText = `Tracking ${currentVehicles.length} vehicles`;
 
-            // Initialize Map if needed
-            if (!mapInstance) {
-                mapInstance = L.map('busMap').setView([37.3382, -121.8863], 12);
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(mapInstance);
-                routeLayer = L.layerGroup().addTo(mapInstance);
-            } else {
-                mapInstance.invalidateSize();
-                if(routeLayer) routeLayer.clearLayers();
-            }
-
-            const bounds = L.latLngBounds([]);
-            const busIcon = createBusIcon(); // Reuse same icon style
-
-            currentVehicles.forEach(bus => {
-                const mv = bus.MonitoredVehicleJourney || bus.monitoredVehicleJourney;
-                const lat = parseFloat(mv.VehicleLocation?.Latitude);
-                const lon = parseFloat(mv.VehicleLocation?.Longitude);
-                const vRef = mv.VehicleRef;
-                const cat = categorizeRoute(mv.LineRef, ""); 
-                const info = getBusModelInfo(vRef, cat);
-
-                if (!isNaN(lat) && !isNaN(lon)) {
-                    const marker = L.marker([lat, lon], {icon: busIcon}).addTo(routeLayer);
-                    marker.bindPopup(generatePopupContent(vRef, info.model));
-                    bounds.extend([lat, lon]);
+            // Use a timeout to ensure the modal DOM is fully rendered/visible before Leaflet calculates sizes
+            setTimeout(() => {
+                // Initialize Map if needed
+                if (!mapInstance) {
+                    mapInstance = L.map('busMap').setView([37.3382, -121.8863], 12);
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(mapInstance);
+                    
+                    // Initialize Layers
+                    routeLayer = L.layerGroup().addTo(mapInstance);
+                    busLayer = L.layerGroup().addTo(mapInstance);
+                } else {
+                    mapInstance.invalidateSize();
+                    // Clear previous markers/routes
+                    if(routeLayer) routeLayer.clearLayers();
+                    if(busLayer) busLayer.clearLayers();
                 }
-            });
 
-            if (bounds.isValid()) {
-                mapInstance.fitBounds(bounds, {padding: [50, 50]});
-            }
+                const bounds = L.latLngBounds([]);
+                const busIcon = createBusIcon(); // Reuse same icon style
+
+                currentVehicles.forEach(bus => {
+                    const mv = bus.MonitoredVehicleJourney || bus.monitoredVehicleJourney;
+                    const lat = parseFloat(mv.VehicleLocation?.Latitude);
+                    const lon = parseFloat(mv.VehicleLocation?.Longitude);
+                    const vRef = mv.VehicleRef;
+                    const cat = categorizeRoute(mv.LineRef, ""); 
+                    const info = getBusModelInfo(vRef, cat);
+
+                    if (!isNaN(lat) && !isNaN(lon)) {
+                        // Add to busLayer
+                        const marker = L.marker([lat, lon], {icon: busIcon}).addTo(busLayer);
+                        marker.bindPopup(generatePopupContent(vRef, info.model));
+                        bounds.extend([lat, lon]);
+                    }
+                });
+
+                if (bounds.isValid()) {
+                    mapInstance.fitBounds(bounds, {padding: [50, 50]});
+                }
+            }, 100); 
             
             // Reset header buttons since we are in "All" mode
             const btnContainer = document.querySelector('#mapModal .flex.items-center.gap-3');
-            // Remove existing schedule button if present to avoid confusion (since multiple buses)
             const oldSched = document.getElementById('btnMapSchedule');
             if(oldSched) oldSched.remove();
             
