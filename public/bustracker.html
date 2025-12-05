@@ -2,7 +2,18 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    
+    <!-- PWA / Web App Meta Tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="VTA Tracker">
+    <meta name="theme-color" content="#1d4ed8">
+    <meta name="mobile-web-app-capable" content="yes">
+    
+    <!-- Embedded Manifest for PWA Installability -->
+    <link rel="manifest" href="data:application/manifest+json;base64,eyJuYW1lIjoiVlRBIExpdmUgVHJhY2tlciIsInNob3J0X25hbWUiOiJWVEEgVHJhY2tlciIsInN0YXJ0X3VybCI6Ii4iLCJkaXNwbGF5Ijoic3RhbmRhbG9uZSIsImJhY2tncm91bmRfY29sb3IiOiIjZjNmNGY2IiwidGhlbWVfY29sb3IiOiIjMWQ0ZWQ4IiwiaWNvbnMiOlt7InNyYyI6Imh0dHBzOi8vY2RuLWljb25zLXBuZy5mbGF0aWNvbi5jb20vNTEyLzM0NDgvMzQ0ODMzOS5wbmciLCJzaXplcyI6IjUxMng1MTIiLCJ0eXBlIjoiaW1hZ2UvcG5nIn1dfQ==">
+
     <title>VTA Live Bus Tracker</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
@@ -65,6 +76,36 @@
             margin-right: 1rem;
             flex-shrink: 0;
         }
+        .fav-btn {
+            color: #d1d5db;
+            transition: color 0.2s;
+        }
+        .fav-btn.active {
+            color: #fbbf24; /* yellow-400 */
+        }
+        .fav-btn:hover {
+            color: #f59e0b;
+        }
+
+        /* --- Easy Learning Mode Styles --- */
+        .easy-label {
+            display: none;
+        }
+        body.easy-mode .easy-label {
+            display: inline-block;
+            margin-left: 0.5rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        /* Adjust buttons when in easy mode to handle extra width */
+        body.easy-mode .icon-only-btn {
+            width: auto !important;
+            padding-left: 0.75rem;
+            padding-right: 0.75rem;
+            border-radius: 0.5rem;
+        }
 
         /* --- Mobile Specific Overrides --- */
         @media (max-width: 768px) {
@@ -109,16 +150,99 @@
     <!-- API Key Modal -->
     <div id="apiKeyModal" class="fixed inset-0 bg-black bg-opacity-80 z-50 flex items-center justify-center p-4">
         <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
-            <h2 class="text-2xl font-bold text-gray-800 mb-4">Enter 511.org API Key</h2>
-            <p class="text-gray-600 mb-4 text-sm">A valid API key is required to access real-time VTA data.</p>
+            <h2 class="text-2xl font-bold text-gray-800 mb-4" data-translate="enterApiKey">Enter 511.org API Key</h2>
+            <p class="text-gray-600 mb-4 text-sm" data-translate="apiKeyDesc">A valid API key is required to access real-time VTA data.</p>
             <input type="text" id="apiKeyInput" placeholder="Your API Key" class="w-full border border-gray-300 rounded p-3 mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500">
             
             <div class="flex items-center mb-6">
                 <input type="checkbox" id="useProxy" checked class="w-4 h-4 text-blue-600 rounded focus:ring-blue-500">
-                <label for="useProxy" class="ml-2 text-sm text-gray-700">Use CORS Proxy (Recommended for browser use)</label>
+                <label for="useProxy" class="ml-2 text-sm text-gray-700">Use CORS Proxy (Recommended)</label>
             </div>
-            <button onclick="saveApiKey()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded transition">Start Tracking</button>
+            <button onclick="saveApiKey()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded transition" data-translate="startTracking">Start Tracking</button>
             <p class="text-xs text-center mt-4 text-gray-400"><a href="https://511.org/open-data/token" target="_blank" class="underline">Don't have a key? Get one here.</a></p>
+        </div>
+    </div>
+
+    <!-- Bus Hunter Modal -->
+    <div id="busHunterModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-black bg-opacity-75" onclick="toggleBusHunterModal()"></div>
+        <div class="bg-white rounded-lg shadow-xl max-w-sm w-full p-6 z-10 relative">
+            <button onclick="toggleBusHunterModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+            <h2 class="text-xl font-bold text-gray-800 mb-2" data-translate="busHunterTitle"><i class="fas fa-binoculars text-blue-600 mr-2"></i>Bus Hunter</h2>
+            <p class="text-sm text-gray-600 mb-4" data-translate="busHunterDesc">Get notified when a specific vehicle appears on a route.</p>
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1" data-translate="targetVehicle">Target Vehicle ID</label>
+                    <input type="number" id="hunterVehicleId" placeholder="e.g. 8301" class="w-full border rounded p-2 text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1" data-translate="targetRoute">Target Route (Optional)</label>
+                    <input type="text" id="hunterRouteId" placeholder="e.g. 22" class="w-full border rounded p-2 text-sm">
+                </div>
+                <button onclick="addHunterWatch()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded" data-translate="startWatching">Start Watching</button>
+            </div>
+
+            <div class="mt-6">
+                <h3 class="text-xs font-bold text-gray-500 uppercase border-b pb-1 mb-2" data-translate="activeWatches">Active Watches</h3>
+                <div id="hunterList" class="space-y-2 text-sm max-h-32 overflow-y-auto">
+                    <!-- Watch items go here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-black bg-opacity-75" onclick="toggleSettingsModal()"></div>
+        <div class="bg-white rounded-lg shadow-xl max-w-sm w-full p-6 z-10 relative">
+            <button onclick="toggleSettingsModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+            <h2 class="text-xl font-bold text-gray-800 mb-4" data-translate="settingsTitle"><i class="fas fa-cog text-gray-600 mr-2"></i>Settings</h2>
+            
+            <div class="space-y-6">
+                <!-- Language -->
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 uppercase mb-2" data-translate="language">Language</label>
+                    <select id="languageSelect" onchange="changeLanguage(this.value)" class="w-full border border-gray-300 rounded p-2 text-sm bg-white">
+                        <option value="en">English</option>
+                        <option value="es">Español (Spanish)</option>
+                        <option value="vi">Tiếng Việt (Vietnamese)</option>
+                    </select>
+                </div>
+
+                <!-- Easy Learning Mode -->
+                <div class="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-100">
+                    <div>
+                        <div class="font-bold text-gray-800 text-sm" data-translate="easyMode">Easy Learning Mode</div>
+                        <div class="text-xs text-gray-500" data-translate="easyModeDesc">Show text labels on icons</div>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="easyModeToggle" class="sr-only peer" onchange="toggleEasyMode(this.checked)">
+                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                    </label>
+                </div>
+
+                <!-- Reset Data -->
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 uppercase mb-2" data-translate="dataManagement">Data Management</label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="resetFavorites()" class="bg-yellow-100 text-yellow-700 hover:bg-yellow-200 py-2 rounded text-xs font-bold transition flex flex-col items-center justify-center gap-1">
+                            <i class="fas fa-star"></i> <span data-translate="resetFavs">Reset Favorites</span>
+                        </button>
+                        <button onclick="resetHunter()" class="bg-red-100 text-red-700 hover:bg-red-200 py-2 rounded text-xs font-bold transition flex flex-col items-center justify-center gap-1">
+                            <i class="fas fa-binoculars"></i> <span data-translate="resetHunter">Reset Hunter</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-6 text-center text-xs text-gray-400">
+                v2.1 • VTA Live Tracker
+            </div>
         </div>
     </div>
 
@@ -133,7 +257,7 @@
                 </div>
                 <div class="flex items-center gap-3">
                     <button onclick="toggleRoutePath()" id="btnShowRoute" class="text-sm bg-blue-100 text-blue-700 px-3 py-1 rounded hover:bg-blue-200 transition">
-                        <i class="fas fa-route mr-1"></i> Show Route
+                        <i class="fas fa-route mr-1"></i> <span data-translate="showRoute">Show Route</span>
                     </button>
                     <button onclick="closeMap()" class="text-gray-500 hover:text-gray-800 focus:outline-none ml-2 p-2">
                         <i class="fas fa-times text-2xl"></i>
@@ -167,10 +291,23 @@
                 Viewing: Routes
             </div>
         </div>
-        <!-- Reset Key Button -->
-        <button onclick="resetApiKey()" class="text-blue-200 hover:text-white text-xs border border-blue-500 px-2 py-1 rounded transition" title="Change API Key">
-            <i class="fas fa-key mr-1"></i> API Key
-        </button>
+        <div class="flex items-center gap-2">
+            <!-- Bus Hunter -->
+             <button onclick="toggleBusHunterModal()" class="icon-only-btn text-blue-100 hover:text-white p-2 rounded transition flex items-center" title="Bus Hunter">
+                <i class="fas fa-binoculars"></i>
+                <span class="easy-label" data-translate="busHunterTitle">Hunter</span>
+            </button>
+            <!-- API Key -->
+            <button onclick="document.getElementById('apiKeyModal').classList.remove('hidden')" class="icon-only-btn text-blue-200 hover:text-white text-xs border border-blue-500 px-2 py-1 rounded transition flex items-center" title="Change API Key">
+                <i class="fas fa-key"></i>
+                <span class="easy-label" data-translate="apiKey">Key</span>
+            </button>
+            <!-- Settings -->
+            <button onclick="toggleSettingsModal()" class="icon-only-btn text-blue-100 hover:text-white p-2 rounded transition flex items-center ml-1" title="Settings">
+                <i class="fas fa-cog"></i>
+                <span class="easy-label" data-translate="settings">Settings</span>
+            </button>
+        </div>
     </div>
 
     <!-- Main App Structure -->
@@ -189,14 +326,15 @@
             <div id="searchBarArea" class="p-4 bg-blue-700 md:bg-white md:p-4 md:shadow-sm">
                 <div class="flex gap-2 items-center">
                     <div class="relative flex-1">
-                        <input type="text" id="routeSearch" placeholder="Where to? (Search routes)" 
+                        <input type="text" id="routeSearch" placeholder="Search..." 
                                class="w-full pl-10 pr-4 py-3 md:py-2 rounded-lg text-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 shadow-sm border border-gray-100"
                                onkeyup="handleSearch()">
                         <i class="fas fa-search absolute left-3 top-3.5 md:top-2.5 text-gray-400 text-xs"></i>
                     </div>
                     <!-- Fixed sizing for alignment -->
-                    <button onclick="toggleNearbyView()" id="btnToggleNearby" class="h-[46px] md:h-[38px] w-[46px] md:w-auto bg-white md:bg-blue-600 text-blue-600 md:text-white hover:bg-gray-50 md:hover:bg-blue-700 px-0 md:px-4 rounded-lg shadow-sm transition flex items-center justify-center" title="Find Nearby Stops">
+                    <button onclick="toggleNearbyView()" id="btnToggleNearby" class="icon-only-btn h-[46px] md:h-[38px] w-[46px] md:w-auto bg-white md:bg-blue-600 text-blue-600 md:text-white hover:bg-gray-50 md:hover:bg-blue-700 px-0 md:px-4 rounded-lg shadow-sm transition flex items-center justify-center" title="Find Nearby Stops">
                         <i class="fas fa-location-arrow text-lg md:text-sm"></i>
+                        <span class="easy-label hidden md:inline-block text-blue-600 md:text-white" data-translate="nearby">Nearby</span>
                     </button>
                 </div>
             </div>
@@ -206,13 +344,13 @@
                 <!-- Loading Indicator -->
                 <div class="text-center py-4 text-gray-500" id="routeLoading">
                     <div class="loader mx-auto mb-2"></div>
-                    <span id="loadingText">Loading Routes...</span>
+                    <span id="loadingText" data-translate="loadingRoutes">Loading Routes...</span>
                 </div>
 
                 <!-- List Container -->
                 <div id="listContainer" class="flex-1 overflow-y-auto min-h-0 p-0 space-y-0"></div>
                 
-                <div class="p-2 bg-gray-50 text-xs text-center text-gray-400 border-t md:block hidden">
+                <div class="p-2 bg-gray-50 text-xs text-center text-gray-400 border-t md:block hidden" data-translate="dataProvider">
                     Data provided by 511.org
                 </div>
             </div>
@@ -221,21 +359,39 @@
         <!-- Main Content (Desktop Only for Details) -->
         <div class="hidden md:flex flex-1 flex-col bg-gray-100 h-full relative" id="mainPanel">
             <div id="selectedRouteHeader" class="bg-white p-4 shadow border-b border-gray-200 hidden">
-                <div class="flex justify-between items-center">
+                <div class="flex flex-col md:flex-row justify-between md:items-center gap-4">
                     <div>
                         <h2 class="text-2xl font-bold text-gray-800" id="headerRouteName">Select a Route</h2>
-                        <p class="text-gray-500 text-sm" id="headerRouteDesc">Click on a route to see live buses</p>
+                        <p class="text-gray-500 text-sm" id="headerRouteDesc" data-translate="selectRouteDesc">Click on a route to see live buses</p>
                     </div>
-                    <button onclick="refreshCurrentView()" class="bg-blue-100 text-blue-700 px-4 py-2 rounded hover:bg-blue-200 transition">
-                        <i class="fas fa-sync-alt mr-2"></i> Refresh
-                    </button>
+                    
+                    <div class="flex items-center gap-3">
+                        <!-- Vehicle Type Filter -->
+                        <div class="relative">
+                            <select id="vehicleTypeFilter" onchange="filterVehiclesByType()" class="appearance-none bg-blue-100 text-blue-700 font-medium py-2 px-4 pr-8 rounded hover:bg-blue-200 transition focus:outline-none cursor-pointer text-sm border-none">
+                                <option value="all" data-translate="allTypes">All Vehicle Types</option>
+                                <option value="Articulated">Articulated (60ft)</option>
+                                <option value="Electric">Electric</option>
+                                <option value="Standard">Standard (40ft)</option>
+                                <option value="Gillig">Gillig</option>
+                                <option value="New Flyer">New Flyer</option>
+                            </select>
+                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-blue-700">
+                                <i class="fas fa-chevron-down text-xs"></i>
+                            </div>
+                        </div>
+
+                        <button onclick="refreshCurrentView()" class="bg-blue-100 text-blue-700 px-4 py-2 rounded hover:bg-blue-200 transition font-medium text-sm">
+                            <i class="fas fa-sync-alt mr-2"></i> <span data-translate="refresh">Refresh</span>
+                        </button>
+                    </div>
                 </div>
             </div>
 
             <div id="vehicleGrid" class="flex-1 overflow-y-auto p-6 flex flex-wrap gap-6 justify-center content-start">
                 <div class="col-span-full text-center mt-20 text-gray-400 w-full">
                     <i class="fas fa-map-marked-alt text-6xl mb-4 text-gray-300"></i>
-                    <p class="text-xl">Select a route or stop to view details.</p>
+                    <p class="text-xl" data-translate="emptyState">Select a route or stop to view details.</p>
                 </div>
             </div>
 
@@ -255,6 +411,16 @@
                     <i class="fas fa-sync-alt"></i>
                 </button>
             </div>
+            <!-- Mobile Filter Controls -->
+            <div class="bg-white p-2 border-b flex justify-between items-center px-4">
+                 <select id="mobileVehicleTypeFilter" onchange="filterVehiclesByType('mobile')" class="bg-gray-100 text-gray-800 text-xs py-1 px-2 rounded border border-gray-300">
+                    <option value="all">All Types</option>
+                    <option value="Articulated">Articulated</option>
+                    <option value="Electric">Electric</option>
+                    <option value="Standard">Standard</option>
+                </select>
+                <span class="text-xs text-gray-400" id="mobileCountDisplay"></span>
+            </div>
             <div id="mobileContentArea" class="flex-1 overflow-y-auto p-4 space-y-4"></div>
         </div>
 
@@ -273,6 +439,12 @@
         let currentSelectionId = null;
         let currentSelectionName = '';
         let refreshInterval = null;
+        let favoriteRoutes = JSON.parse(localStorage.getItem('vta_favorites') || '[]');
+        let hunterWatchlist = JSON.parse(localStorage.getItem('vta_hunter_watchlist') || '[]');
+
+        // Settings State
+        let currentLang = localStorage.getItem('vta_lang') || 'en';
+        let easyMode = localStorage.getItem('vta_easy_mode') === 'true';
 
         // Map variables
         let mapInstance = null;
@@ -282,12 +454,114 @@
         let currentBusTimestamp = null; 
         let routeLayer = null; 
         let timerInterval = null; 
+        let currentVehicles = []; 
+
+        // --- Translations ---
+        const translations = {
+            en: {
+                enterApiKey: "Enter 511.org API Key",
+                apiKeyDesc: "A valid API key is required to access real-time VTA data.",
+                startTracking: "Start Tracking",
+                busHunterTitle: "Bus Hunter",
+                busHunterDesc: "Get notified when a specific vehicle appears on a route.",
+                targetVehicle: "Target Vehicle ID",
+                targetRoute: "Target Route (Optional)",
+                startWatching: "Start Watching",
+                activeWatches: "Active Watches",
+                settingsTitle: "Settings",
+                language: "Language",
+                easyMode: "Easy Learning Mode",
+                easyModeDesc: "Show text labels on icons",
+                dataManagement: "Data Management",
+                resetFavs: "Reset Favorites",
+                resetHunter: "Reset Hunter",
+                showRoute: "Show Route",
+                settings: "Settings",
+                nearby: "Nearby",
+                apiKey: "Key",
+                loadingRoutes: "Loading Routes...",
+                dataProvider: "Data provided by 511.org",
+                selectRouteDesc: "Click on a route to see live buses",
+                refresh: "Refresh",
+                emptyState: "Select a route or stop to view details.",
+                allTypes: "All Vehicle Types"
+            },
+            es: {
+                enterApiKey: "Ingresar Clave API",
+                apiKeyDesc: "Se requiere una clave API válida para acceder a datos VTA en tiempo real.",
+                startTracking: "Comenzar Rastreo",
+                busHunterTitle: "Cazador de Buses",
+                busHunterDesc: "Recibe notificaciones cuando un vehículo específico aparece en una ruta.",
+                targetVehicle: "ID del Vehículo",
+                targetRoute: "Ruta (Opcional)",
+                startWatching: "Comenzar a Observar",
+                activeWatches: "Vigilancias Activas",
+                settingsTitle: "Configuración",
+                language: "Idioma",
+                easyMode: "Modo de Aprendizaje Fácil",
+                easyModeDesc: "Mostrar etiquetas de texto en íconos",
+                dataManagement: "Gestión de Datos",
+                resetFavs: "Restablecer Favoritos",
+                resetHunter: "Restablecer Cazador",
+                showRoute: "Mostrar Ruta",
+                settings: "Ajustes",
+                nearby: "Cerca",
+                apiKey: "Clave",
+                loadingRoutes: "Cargando Rutas...",
+                dataProvider: "Datos proporcionados por 511.org",
+                selectRouteDesc: "Haga clic en una ruta para ver los buses en vivo",
+                refresh: "Actualizar",
+                emptyState: "Seleccione una ruta o parada para ver detalles.",
+                allTypes: "Todos los Tipos"
+            },
+            vi: {
+                enterApiKey: "Nhập khóa API 511.org",
+                apiKeyDesc: "Cần có khóa API hợp lệ để truy cập dữ liệu VTA thời gian thực.",
+                startTracking: "Bắt đầu theo dõi",
+                busHunterTitle: "Săn xe buýt",
+                busHunterDesc: "Nhận thông báo khi một xe cụ thể xuất hiện trên tuyến đường.",
+                targetVehicle: "ID xe mục tiêu",
+                targetRoute: "Tuyến đường (Tùy chọn)",
+                startWatching: "Bắt đầu xem",
+                activeWatches: "Đang theo dõi",
+                settingsTitle: "Cài đặt",
+                language: "Ngôn ngữ",
+                easyMode: "Chế độ học dễ dàng",
+                easyModeDesc: "Hiển thị nhãn văn bản trên các biểu tượng",
+                dataManagement: "Quản lý dữ liệu",
+                resetFavs: "Đặt lại Yêu thích",
+                resetHunter: "Đặt lại Săn xe",
+                showRoute: "Hiện tuyến đường",
+                settings: "Cài đặt",
+                nearby: "Gần đây",
+                apiKey: "Khóa",
+                loadingRoutes: "Đang tải tuyến...",
+                dataProvider: "Dữ liệu được cung cấp bởi 511.org",
+                selectRouteDesc: "Nhấp vào tuyến đường để xem xe buýt trực tiếp",
+                refresh: "Làm mới",
+                emptyState: "Chọn một tuyến hoặc điểm dừng để xem chi tiết.",
+                allTypes: "Tất cả loại xe"
+            }
+        };
 
         // --- Auto-Load Key on Startup ---
         document.addEventListener('DOMContentLoaded', () => {
             const cachedKey = localStorage.getItem('vta_511_key');
             const cachedProxy = localStorage.getItem('vta_use_proxy');
             
+            // Apply Settings
+            applyLanguage(currentLang);
+            document.getElementById('languageSelect').value = currentLang;
+            toggleEasyMode(easyMode);
+            document.getElementById('easyModeToggle').checked = easyMode;
+            
+            // Notification Permission
+            if ("Notification" in window && Notification.permission !== "granted") {
+                Notification.requestPermission();
+            }
+            
+            updateHunterList();
+
             if (cachedKey) {
                 // Populate modal inputs (though hidden) for consistency
                 document.getElementById('apiKeyInput').value = cachedKey;
@@ -317,7 +591,62 @@
             
             // Start global timer ticker
             if (!timerInterval) {
-                timerInterval = setInterval(updateBusTimer, 1000);
+                timerInterval = setInterval(() => {
+                    updateBusTimer();
+                    checkHunterWatchlist(); // Check for bus hunter matches
+                }, 1000); 
+            }
+        }
+
+        // --- Settings Logic ---
+        function toggleSettingsModal() {
+            document.getElementById('settingsModal').classList.toggle('hidden');
+        }
+
+        function changeLanguage(lang) {
+            currentLang = lang;
+            localStorage.setItem('vta_lang', lang);
+            applyLanguage(lang);
+        }
+
+        function applyLanguage(lang) {
+            const t = translations[lang];
+            if (!t) return;
+            document.querySelectorAll('[data-translate]').forEach(el => {
+                const key = el.getAttribute('data-translate');
+                if (t[key]) el.innerText = t[key];
+            });
+            // Update placeholders if needed
+            if (lang === 'vi') document.getElementById('routeSearch').placeholder = "Tìm kiếm...";
+            else if (lang === 'es') document.getElementById('routeSearch').placeholder = "Buscar...";
+            else document.getElementById('routeSearch').placeholder = "Search...";
+        }
+
+        function toggleEasyMode(enabled) {
+            easyMode = enabled;
+            localStorage.setItem('vta_easy_mode', enabled);
+            if (enabled) {
+                document.body.classList.add('easy-mode');
+            } else {
+                document.body.classList.remove('easy-mode');
+            }
+        }
+
+        function resetFavorites() {
+            if (confirm("Are you sure you want to clear all favorite routes?")) {
+                favoriteRoutes = [];
+                localStorage.removeItem('vta_favorites');
+                if (currentMode === 'routes') renderRoutes(allRoutes);
+                alert("Favorites cleared.");
+            }
+        }
+
+        function resetHunter() {
+             if (confirm("Are you sure you want to clear the bus hunter list?")) {
+                hunterWatchlist = [];
+                localStorage.removeItem('vta_hunter_watchlist');
+                updateHunterList();
+                alert("Watchlist cleared.");
             }
         }
 
@@ -328,6 +657,88 @@
                 location.reload();
             }
         }
+
+        // --- Bus Hunter Logic ---
+        function toggleBusHunterModal() {
+            const el = document.getElementById('busHunterModal');
+            el.classList.toggle('hidden');
+        }
+
+        function addHunterWatch() {
+            const vId = document.getElementById('hunterVehicleId').value.trim();
+            const rId = document.getElementById('hunterRouteId').value.trim();
+            
+            if (!vId) return alert("Vehicle ID is required");
+            
+            hunterWatchlist.push({ vehicleId: vId, routeId: rId });
+            localStorage.setItem('vta_hunter_watchlist', JSON.stringify(hunterWatchlist));
+            
+            document.getElementById('hunterVehicleId').value = '';
+            document.getElementById('hunterRouteId').value = '';
+            updateHunterList();
+        }
+
+        function removeHunterWatch(index) {
+            hunterWatchlist.splice(index, 1);
+            localStorage.setItem('vta_hunter_watchlist', JSON.stringify(hunterWatchlist));
+            updateHunterList();
+        }
+
+        function updateHunterList() {
+            const container = document.getElementById('hunterList');
+            if (hunterWatchlist.length === 0) {
+                container.innerHTML = '<div class="text-gray-400 italic text-center">No active watches.</div>';
+                return;
+            }
+            container.innerHTML = hunterWatchlist.map((item, idx) => `
+                <div class="flex justify-between items-center bg-gray-50 p-2 rounded border">
+                    <div>
+                        <span class="font-bold text-gray-800">Bus #${item.vehicleId}</span>
+                        ${item.routeId ? `<span class="text-gray-500 ml-1">on Route ${item.routeId}</span>` : '<span class="text-gray-400 ml-1">Any Route</span>'}
+                    </div>
+                    <button onclick="removeHunterWatch(${idx})" class="text-red-500 hover:text-red-700">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+        
+        // This is called periodically to check all active data
+        // For simplicity in this demo, it checks against the data we just fetched for the current view
+        // In a production app, you might want a background worker fetching all data
+        function checkHunterWatchlist() {
+            if (currentVehicles.length === 0 || hunterWatchlist.length === 0) return;
+            
+            currentVehicles.forEach(bus => {
+                const mv = bus.MonitoredVehicleJourney || bus.monitoredVehicleJourney;
+                const vRef = mv.VehicleRef;
+                const lRef = mv.LineRef;
+                
+                hunterWatchlist.forEach(watch => {
+                    if (watch.vehicleId === vRef) {
+                        if (!watch.routeId || watch.routeId === lRef) {
+                            sendNotification(vRef, lRef);
+                        }
+                    }
+                });
+            });
+        }
+
+        let notifiedBuses = new Set();
+        function sendNotification(vehId, routeId) {
+            const key = `${vehId}-${routeId}`;
+            if (notifiedBuses.has(key)) return; // Don't spam
+            
+            const msg = `Bus Hunter Alert! Vehicle ${vehId} is active on Route ${routeId}.`;
+            if (Notification.permission === "granted") {
+                new Notification("VTA Tracker", { body: msg, icon: 'https://cdn-icons-png.flaticon.com/512/3448/3448339.png' });
+            } else {
+                alert(msg);
+            }
+            notifiedBuses.add(key);
+            setTimeout(() => notifiedBuses.delete(key), 300000); // Reset after 5 mins
+        }
+
 
         // --- Timer Logic ---
         function updateBusTimer() {
@@ -379,6 +790,22 @@
             }
         }
 
+        // --- Favorites Logic ---
+        function toggleFavorite(e, routeId) {
+            e.stopPropagation();
+            const idx = favoriteRoutes.indexOf(routeId);
+            if (idx === -1) {
+                favoriteRoutes.push(routeId);
+            } else {
+                favoriteRoutes.splice(idx, 1);
+            }
+            localStorage.setItem('vta_favorites', JSON.stringify(favoriteRoutes));
+            
+            if (currentMode === 'routes') {
+                renderRoutes(allRoutes); // Re-render to sort favorites to top
+            }
+        }
+
         // --- View Logic ---
         function toggleNearbyView() {
             const btn = document.getElementById('btnToggleNearby');
@@ -426,6 +853,37 @@
             }
         }
 
+        // --- Helper: Badge Logic ---
+        function getRouteBadgeInfo(routeId) {
+            const cat = categorizeRoute(routeId, "");
+            let classes = 'bg-blue-600 text-white';
+            let text = routeId;
+
+            if (cat === 'Rapid') {
+                classes = 'bg-red-600 text-white';
+                text = routeId.replace(/Rapid\s*/i, '').trim();
+            } else if (cat === 'Express') {
+                classes = 'bg-green-600 text-white';
+                text = routeId.replace(/Express\s*/i, '').trim();
+            } else if (cat === 'School') {
+                classes = 'bg-orange-500 text-white';
+                text = routeId.replace(/School\s*/i, '').trim();
+            } else if (cat === 'ACE') {
+                classes = 'bg-indigo-600 text-white';
+                 const lower = String(routeId).toLowerCase();
+                 if (lower.includes('yellow')) classes = 'bg-yellow-500 text-gray-900';
+                 else if (lower.includes('orange')) classes = 'bg-orange-500 text-white';
+                 else if (lower.includes('purple')) classes = 'bg-purple-600 text-white';
+                 else if (lower.includes('green')) classes = 'bg-green-600 text-white';
+                 else if (lower.includes('red')) classes = 'bg-red-600 text-white';
+                 else if (lower.includes('grey') || lower.includes('gray')) classes = 'bg-gray-500 text-white';
+            } else if (cat === 'Shuttle') {
+                classes = 'bg-purple-600 text-white';
+            }
+            
+            return { classes, text };
+        }
+
         // --- Route Logic ---
         async function fetchRoutes() {
             const data = await fetch511('lines', `&operator_id=${AGENCY_ID}`);
@@ -451,12 +909,29 @@
             const loader = document.getElementById('routeLoading');
             container.innerHTML = '';
             
+            // Separate Favorites
+            const favorites = routes.filter(r => favoriteRoutes.includes(r.id));
+            const others = routes.filter(r => !favoriteRoutes.includes(r.id));
+
             if (routes.length === 0) {
                 container.innerHTML = '<p class="text-center p-4 text-gray-500">No routes found.</p>';
             } else {
+                // Render Favorites First
+                if (favorites.length > 0) {
+                    const favHeader = document.createElement('div');
+                    favHeader.className = `category-header text-xs font-bold uppercase text-yellow-600 tracking-wider pl-4 mb-2 bg-gray-50 md:bg-white`;
+                    favHeader.innerText = "Favorites";
+                    container.appendChild(favHeader);
+                    
+                    const favGrid = document.createElement('div');
+                    favGrid.className = 'grid grid-cols-1 gap-0 mb-4';
+                    favorites.forEach(r => favGrid.appendChild(createRouteElement(r)));
+                    container.appendChild(favGrid);
+                }
+
                 const categories = ['Rapid', 'Local', 'Express', 'School', 'ACE', 'Shuttle'];
                 categories.forEach(cat => {
-                    const catRoutes = routes.filter(r => r.category === cat);
+                    const catRoutes = others.filter(r => r.category === cat);
                     if (catRoutes.length === 0) return;
 
                     const header = document.createElement('div');
@@ -476,65 +951,38 @@
                     const grid = document.createElement('div');
                     grid.className = 'grid grid-cols-1 gap-0 mb-4'; 
                     
-                    catRoutes.forEach(r => {
-                        const el = document.createElement('button');
-                        let badgeColor = 'bg-blue-600';
-                        let displayText = '';
-                        let nameText = r.name;
-
-                        if (cat === 'Rapid') {
-                            badgeColor = 'bg-red-600';
-                            displayText = r.id.replace(/Rapid\s*/i, '').trim();
-                        } else if (cat === 'Express') {
-                            badgeColor = 'bg-green-600';
-                            displayText = r.id.replace(/Express\s*/i, '').trim();
-                        } else if (cat === 'School') {
-                            badgeColor = 'bg-orange-500';
-                            displayText = r.id.replace(/School\s*/i, '').trim();
-                        } else if (cat === 'ACE') {
-                            displayText = "ACE";
-                            const lowerName = r.id.toLowerCase();
-                            if (lowerName.includes('orange')) badgeColor = 'bg-orange-500';
-                            else if (lowerName.includes('purple')) badgeColor = 'bg-purple-600';
-                            else if (lowerName.includes('red')) badgeColor = 'bg-red-600';
-                            else if (lowerName.includes('green')) badgeColor = 'bg-green-600';
-                            else if (lowerName.includes('gray') || lowerName.includes('grey')) badgeColor = 'bg-gray-500';
-                            else if (lowerName.includes('yellow')) badgeColor = 'bg-yellow-500 text-black'; 
-                            else if (lowerName.includes('brown')) badgeColor = 'bg-yellow-800'; 
-                            else if (lowerName.includes('violet')) badgeColor = 'bg-violet-600';
-                            else badgeColor = 'bg-indigo-600';
-                        } else if (cat === 'Shuttle') {
-                            badgeColor = 'bg-purple-600';
-                            displayText = r.id;
-                        } else {
-                            displayText = r.id;
-                        }
-
-                        let badgeTextColor = 'text-white';
-                        if (badgeColor.includes('yellow')) badgeTextColor = 'text-gray-900';
-
-                        el.className = `route-item w-full text-left flex items-center justify-between group`;
-                        el.onclick = () => selectRoute(r.id, r.name, r.category);
-                        el.innerHTML = `
-                            <div class="flex items-center w-full">
-                                <div class="route-badge ${badgeColor} ${badgeTextColor}">
-                                    <span class="text-sm font-bold leading-none">${displayText}</span>
-                                </div>
-                                <div class="flex-1 overflow-hidden">
-                                    <span class="block font-semibold text-gray-800 text-base md:text-sm truncate">${truncate(nameText, 35)}</span>
-                                    <span class="block text-xs text-gray-500 md:hidden">Scheduled</span>
-                                </div>
-                                <div class="text-right pl-2">
-                                    <i class="fas fa-chevron-right text-gray-300 group-hover:text-blue-400"></i>
-                                </div>
-                            </div>
-                        `;
-                        grid.appendChild(el);
-                    });
+                    catRoutes.forEach(r => grid.appendChild(createRouteElement(r)));
                     container.appendChild(grid);
                 });
             }
             if (loader) loader.style.display = 'none';
+        }
+
+        function createRouteElement(r) {
+            const el = document.createElement('div'); 
+            const info = getRouteBadgeInfo(r.id);
+
+            const isFav = favoriteRoutes.includes(r.id);
+            const starClass = isFav ? "active fas" : "far";
+
+            el.className = `route-item w-full flex items-center justify-between group cursor-pointer`;
+            el.onclick = () => selectRoute(r.id, r.name, r.category);
+            el.innerHTML = `
+                <div class="flex items-center flex-1 overflow-hidden">
+                    <div class="route-badge ${info.classes}">
+                        <span class="text-sm font-bold leading-none">${info.text}</span>
+                    </div>
+                    <div class="flex-1 overflow-hidden pr-2">
+                        <span class="block font-semibold text-gray-800 text-base md:text-sm truncate">${truncate(r.name, 35)}</span>
+                        <span class="block text-xs text-gray-500 md:hidden">Scheduled</span>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3">
+                    <button class="fav-btn ${starClass} fa-star text-lg p-2 focus:outline-none" onclick="toggleFavorite(event, '${r.id}')"></button>
+                    <i class="fas fa-chevron-right text-gray-300 group-hover:text-blue-400"></i>
+                </div>
+            `;
+            return el;
         }
 
         function filterRoutes() {
@@ -557,6 +1005,10 @@
             document.getElementById('mobileHeaderName').innerText = `${id}: ${name}`;
             document.getElementById('mobileDetailPanel').classList.remove('translate-x-full');
             document.getElementById('mobileContentArea').innerHTML = '<div class="loader mx-auto mt-10"></div>'; 
+            
+            // Reset filter
+            document.getElementById('vehicleTypeFilter').value = 'all';
+            document.getElementById('mobileVehicleTypeFilter').value = 'all';
 
             fetchVehicles(id);
             if (refreshInterval) clearInterval(refreshInterval);
@@ -595,17 +1047,50 @@
                 stops.forEach(s => {
                     const el = document.createElement('button');
                     const distText = s.dist < 100 ? `${s.dist.toFixed(2)} km` : '';
+                    
+                    // Generate tags HTML string (Robust Parsing)
+                    let linesArray = [];
+                    // Check various potential property names from 511.org API
+                    const raw = s.lines || s.Lines || s.LineRef;
+
+                    if (Array.isArray(raw)) {
+                        linesArray = raw;
+                    } else if (typeof raw === 'object' && raw !== null) {
+                        // Handle wrapped arrays like { LineRef: [...] } or { line: [...] } common in XML-to-JSON
+                        if (raw.LineRef) linesArray = Array.isArray(raw.LineRef) ? raw.LineRef : [raw.LineRef];
+                        else if (raw.lineRef) linesArray = Array.isArray(raw.lineRef) ? raw.lineRef : [raw.lineRef];
+                        else if (raw.line) linesArray = Array.isArray(raw.line) ? raw.line : [raw.line];
+                        else if (raw.Line) linesArray = Array.isArray(raw.Line) ? raw.Line : [raw.Line];
+                    } else if (raw) {
+                        // Single value case
+                        linesArray = [raw];
+                    }
+                    
+                    const tagsHtml = linesArray.map(lineId => {
+                        // Extract value if it's an object with a ref property
+                        const ref = (typeof lineId === 'object') ? (lineId.ref || lineId.Ref || lineId.id) : lineId;
+                        if(!ref) return '';
+                        const info = getRouteBadgeInfo(String(ref));
+                        return `<span class="${info.classes} text-[10px] px-1.5 py-0.5 rounded shadow-sm opacity-90 font-bold">${info.text}</span>`;
+                    }).slice(0, 6).join('');
+
                     el.className = `route-item w-full text-left flex items-center justify-between group`;
                     el.onclick = () => selectStop(s.id, s.Name);
                     el.innerHTML = `
                         <div class="flex items-center w-full">
-                            <div class="route-badge bg-gray-200 text-gray-600">
+                            <div class="route-badge bg-gray-200 text-gray-600 shrink-0">
                                 <i class="fas fa-map-pin text-xl"></i>
                             </div>
                             <div class="flex-1 overflow-hidden">
                                 <div class="font-bold text-gray-800 text-base truncate">${s.Name}</div>
-                                <div class="text-xs text-gray-500 flex items-center mt-1">
-                                    <i class="fas fa-walking mr-1"></i> ${distText}
+                                <div class="flex items-center flex-wrap gap-2 mt-1">
+                                    <div class="text-xs text-gray-500 flex items-center shrink-0">
+                                        <i class="fas fa-walking mr-1"></i> ${distText}
+                                    </div>
+                                    ${tagsHtml ? `<div class="w-px h-3 bg-gray-300 mx-1"></div>` : ''}
+                                    <div class="flex flex-wrap gap-1">
+                                        ${tagsHtml}
+                                    </div>
                                 </div>
                             </div>
                         </div>`;
@@ -684,6 +1169,7 @@
                         const timeStr = diffMins <= 0 ? "Due" : `${diffMins} min`;
                         const cat = categorizeRoute(line, "");
                         const info = getBusModelInfo(vehRef, cat);
+                        const badgeInfo = getRouteBadgeInfo(line);
                         
                         // Extract Location for Map
                         const loc = journey.VehicleLocation || {};
@@ -700,7 +1186,7 @@
                         return `
                         <div ${clickAction} class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex justify-between items-center ${vehRef ? 'cursor-pointer' : ''}">
                             <div class="flex items-center">
-                                <span class="bg-blue-600 text-white font-bold w-10 h-10 flex items-center justify-center rounded-lg text-sm mr-3">${line}</span>
+                                <span class="${badgeInfo.classes} font-bold w-12 h-10 flex items-center justify-center rounded-lg text-sm mr-3 leading-none">${badgeInfo.text}</span>
                                 <div>
                                     <span class="block font-bold text-gray-800 text-sm md:text-base">${dest}</span>
                                     <div class="text-xs text-gray-500 mt-0.5">
@@ -848,14 +1334,53 @@
                     const mv = act.MonitoredVehicleJourney || act.monitoredVehicleJourney;
                     return mv && String(mv.LineRef) === String(routeId);
                 });
-                renderVehicles(filtered);
+                
+                // Store globally for filtering
+                currentVehicles = filtered;
+                
+                // Trigger Render based on current filter state
+                filterVehiclesByType();
             });
         }
+        
+        function filterVehiclesByType(mode = 'desktop') {
+            const filterId = mode === 'mobile' ? 'mobileVehicleTypeFilter' : 'vehicleTypeFilter';
+            const type = document.getElementById(filterId).value;
+            
+            // Sync dropdowns
+            if(mode === 'desktop') document.getElementById('mobileVehicleTypeFilter').value = type;
+            else document.getElementById('vehicleTypeFilter').value = type;
+
+            let vehiclesToShow = currentVehicles;
+            
+            if (type !== 'all') {
+                vehiclesToShow = currentVehicles.filter(act => {
+                    const mv = act.MonitoredVehicleJourney || act.monitoredVehicleJourney;
+                    const vehicleRef = mv.VehicleRef || "Unknown";
+                    const cat = categorizeRoute(mv.LineRef, "");
+                    const info = getBusModelInfo(vehicleRef, cat);
+                    
+                    if (type === 'Articulated') return info.type.includes('Articulated');
+                    if (type === 'Electric') return info.fuel.includes('Electric');
+                    if (type === 'Standard') return info.type.includes('Standard');
+                    if (type === 'Gillig') return info.model.includes('Gillig');
+                    if (type === 'New Flyer') return info.model.includes('New Flyer');
+                    return true;
+                });
+            }
+            
+            renderVehicles(vehiclesToShow);
+            
+            // Update Mobile Count
+            document.getElementById('mobileCountDisplay').innerText = `${vehiclesToShow.length} / ${currentVehicles.length}`;
+        }
+
         function renderVehicles(activities) {
             const container = document.getElementById('vehicleGrid');
             const mobileContainer = document.getElementById('mobileContentArea');
+            
             if (viewingBusId && mapMarker && mapInstance) {
-                const viewedBus = activities.find(act => { const mv = act.MonitoredVehicleJourney || act.monitoredVehicleJourney; return mv && mv.VehicleRef === viewingBusId; });
+                const viewedBus = currentVehicles.find(act => { const mv = act.MonitoredVehicleJourney || act.monitoredVehicleJourney; return mv && mv.VehicleRef === viewingBusId; });
                 if (viewedBus) {
                     const mv = viewedBus.MonitoredVehicleJourney || viewedBus.monitoredVehicleJourney; const veh = mv.VehicleLocation || {}; const lat = parseFloat(veh.Latitude); const lon = parseFloat(veh.Longitude);
                     
@@ -868,19 +1393,20 @@
                 }
             }
             if (activities.length === 0) {
-                const empty = `<div class="col-span-full text-center p-10 bg-white rounded-lg shadow"><i class="fas fa-ban text-4xl text-gray-300 mb-2"></i><h3 class="text-lg font-medium text-gray-700">No active buses found</h3></div>`;
+                const empty = `<div class="col-span-full text-center p-10 bg-white rounded-lg shadow"><i class="fas fa-ban text-4xl text-gray-300 mb-2"></i><h3 class="text-lg font-medium text-gray-700">No buses match your filter</h3><p class="text-sm text-gray-400">Try changing the vehicle type.</p></div>`;
                 container.innerHTML = empty; mobileContainer.innerHTML = empty; document.getElementById('headerRouteDesc').innerText = "0 vehicles"; return;
             }
             const html = activities.map(act => {
                 const mv = act.MonitoredVehicleJourney || act.monitoredVehicleJourney; const veh = mv.VehicleLocation || {}; const vehicleRef = mv.VehicleRef || "Unknown"; const cat = categorizeRoute(mv.LineRef, ""); const info = getBusModelInfo(vehicleRef, cat); const fuelIcon = info.fuel.includes('Electric') ? 'fa-bolt' : (info.fuel.includes('Hybrid') ? 'fa-leaf' : 'fa-gas-pump');
                 const recTime = mv.RecordedAtTime || new Date().toISOString();
                 
+                // Note: Modified onclick to stop propagation for the schedule button
                 return `
-                <div onclick="showBusMap(${veh.Latitude}, ${veh.Longitude}, '${vehicleRef}', '${info.model}', '${recTime}')" class="bus-card w-full md:w-96 shrink-0 bg-white rounded-xl shadow-md overflow-hidden border border-gray-100 flex flex-col cursor-pointer group">
+                <div onclick="showBusMap(${veh.Latitude}, ${veh.Longitude}, '${vehicleRef}', '${info.model}', '${recTime}')" class="bus-card w-full md:w-96 shrink-0 bg-white rounded-xl shadow-md overflow-hidden border border-gray-100 flex flex-col cursor-pointer group relative">
                     <div class="relative h-48 bg-gray-200 shrink-0">
                         <img src="${info.image}" alt="${info.model}" class="w-full h-full object-cover" onerror="this.src='https://commons.wikimedia.org/wiki/Special:FilePath/VTA_bus_0132_serving_route_26_in_downtown_Campbell.jpg'">
                         <div class="absolute top-2 right-2 bg-black bg-opacity-70 text-white text-xs px-2 py-1 rounded">ID: ${vehicleRef}</div>
-                         <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all flex items-center justify-center">
+                         <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all flex items-center justify-center pointer-events-none">
                                 <span class="opacity-0 group-hover:opacity-100 bg-blue-600 text-white px-3 py-1 rounded-full text-sm font-bold shadow-lg transform translate-y-2 group-hover:translate-y-0 transition-all duration-200"><i class="fas fa-map-marker-alt mr-1"></i> View on Map</span>
                             </div>
                         <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black to-transparent p-3 pt-8">
@@ -890,7 +1416,12 @@
                     </div>
                     <div class="p-4 flex-1 flex flex-col justify-between">
                         <div>
-                             <div class="flex items-center justify-between mb-3"><span class="bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded">Active</span><div class="text-xs text-gray-500 flex items-center"><i class="far fa-clock mr-1"></i> Live</div></div>
+                             <div class="flex items-center justify-between mb-3">
+                                <span class="bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded">Active</span>
+                                <button onclick="event.stopPropagation(); viewBusSchedule('${vehicleRef}', '${info.model}', '${mv.LineRef}')" class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-2 py-1 rounded border border-gray-300 transition z-10 relative">
+                                    <i class="fas fa-list-ol mr-1"></i> Schedule
+                                </button>
+                             </div>
                             <div class="space-y-2 text-sm text-gray-600"><div class="flex items-center"><i class="fas fa-tachometer-alt mr-2"></i><span>Speed: ${(mv.VehicleSpeed || 0).toFixed(1)} mph</span></div></div>
                         </div>
                          <div class="mt-4 pt-3 border-t border-gray-100 flex justify-between items-center text-xs text-gray-400"><span class="font-mono">Ref: ${vehicleRef}</span><span>Yr: ${info.year}</span></div>
@@ -932,17 +1463,126 @@
             
             setTimeout(() => mapInstance.invalidateSize(), 100);
             if (mapMarker) { mapMarker.setLatLng([lat, lon]); mapMarker.setIcon(busIcon); } else { mapMarker = L.marker([lat, lon], {icon: busIcon}).addTo(mapInstance); }
-            mapMarker.bindPopup(`<b>Bus ${vehicleRef}</b><br>${model}`).openPopup();
+            mapMarker.bindPopup(`
+                <div class="text-center">
+                    <b class="text-lg">Bus ${vehicleRef}</b><br>${model}<br>
+                    <button onclick="viewBusSchedule('${vehicleRef}', '${model}', '');" class="mt-2 bg-blue-500 text-white text-xs px-3 py-1 rounded hover:bg-blue-600">View Schedule</button>
+                </div>
+            `).openPopup();
             
             updateBusTimer();
 
             const btn = document.getElementById('btnShowRoute');
-            btn.innerHTML = '<i class="fas fa-route mr-1"></i> Show Route'; btn.classList.remove('bg-red-100', 'text-red-700'); btn.classList.add('bg-blue-100', 'text-blue-700');
+            // Reset the button
+            btn.innerHTML = '<i class="fas fa-route mr-1"></i> <span data-translate="showRoute">Show Route</span>'; btn.classList.remove('bg-red-100', 'text-red-700'); btn.classList.add('bg-blue-100', 'text-blue-700');
+            
+            // Add Schedule Button to Header if not exists
+            let schedBtn = document.getElementById('btnMapSchedule');
+            if(!schedBtn) {
+                schedBtn = document.createElement('button');
+                schedBtn.id = 'btnMapSchedule';
+                schedBtn.className = "text-sm bg-purple-100 text-purple-700 px-3 py-1 rounded hover:bg-purple-200 transition ml-2";
+                schedBtn.innerHTML = '<i class="fas fa-list-ol mr-1"></i> Schedule';
+                // Insert before close button
+                const closeBtn = document.querySelector('#mapModal .fa-times').parentElement;
+                closeBtn.parentElement.insertBefore(schedBtn, closeBtn);
+            }
+            schedBtn.onclick = () => viewBusSchedule(vehicleRef, model, '');
         }
+        
+        // --- Schedule View Logic ---
+        async function viewBusSchedule(vehicleRef, modelName, lineRef) {
+            // Re-use Bus Detail Modal for Schedule
+            const contentDiv = document.getElementById('busDetailContent');
+            const modal = document.getElementById('busDetailModal');
+            
+            modal.classList.remove('hidden');
+            contentDiv.innerHTML = `
+                <div class="p-6 h-full flex flex-col">
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <h2 class="text-xl font-bold text-gray-800">Bus ${vehicleRef} Schedule</h2>
+                            <p class="text-sm text-gray-500">${modelName}</p>
+                        </div>
+                    </div>
+                    <div id="scheduleList" class="flex-1 overflow-y-auto space-y-0 relative border-l-2 border-blue-200 ml-3 pl-4 pb-4">
+                        <div class="flex items-center justify-center h-40">
+                            <div class="loader"></div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            try {
+                // Fetch vehicle specific data with calls
+                const data = await fetch511('VehicleMonitoring', `&agency=${AGENCY_ID}&vehicleID=${vehicleRef}&VehicleMonitoringDetailLevel=calls`);
+                
+                let onwardCalls = [];
+                if (data && data.Siri) {
+                    const delivery = data.Siri.ServiceDelivery.VehicleMonitoringDelivery.VehicleActivity || 
+                                     data.Siri.ServiceDelivery.VehicleMonitoringDelivery[0].VehicleActivity;
+                    
+                    const activity = Array.isArray(delivery) ? delivery[0] : delivery;
+                    
+                    if (activity && activity.MonitoredVehicleJourney && activity.MonitoredVehicleJourney.OnwardCalls) {
+                        const calls = activity.MonitoredVehicleJourney.OnwardCalls.OnwardCall;
+                        onwardCalls = Array.isArray(calls) ? calls : [calls];
+                    }
+                }
+
+                const listDiv = document.getElementById('scheduleList');
+                if (onwardCalls.length === 0) {
+                    listDiv.innerHTML = `
+                        <div class="text-gray-400 italic text-sm mt-4 -ml-4 pl-0 text-center">
+                            <i class="fas fa-info-circle mb-2"></i><br>
+                            No upcoming stops reported.<br>Bus might be at the end of its route.
+                        </div>`;
+                    return;
+                }
+
+                listDiv.innerHTML = onwardCalls.map((call, index) => {
+                    const time = new Date(call.ExpectedArrivalTime);
+                    const timeStr = time.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+                    const isNext = index === 0;
+                    
+                    return `
+                        <div class="relative mb-6 last:mb-0">
+                            <div class="absolute -left-[25px] top-1 w-4 h-4 rounded-full border-2 border-white shadow-sm ${isNext ? 'bg-blue-600 ring-2 ring-blue-200' : 'bg-gray-300'}"></div>
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <div class="font-bold text-gray-800 text-sm">${call.StopPointName}</div>
+                                    ${isNext ? '<span class="bg-blue-100 text-blue-700 text-[10px] px-2 py-0.5 rounded-full font-bold">NEXT STOP</span>' : ''}
+                                </div>
+                                <div class="text-right shrink-0 ml-4">
+                                    <div class="font-mono font-bold text-blue-600 text-sm">${timeStr}</div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+            } catch (e) {
+                console.error(e);
+                document.getElementById('scheduleList').innerHTML = `<p class="text-red-500 text-sm">Failed to load schedule.</p>`;
+            }
+        }
+
         function closeMap() { document.getElementById('mapModal').classList.add('hidden'); viewingBusId = null; }
+        
+        // --- Enhanced Route Logic ---
         async function toggleRoutePath() {
              const btn = document.getElementById('btnShowRoute');
-             if (routeLayer && routeLayer.getLayers().length > 0) { routeLayer.clearLayers(); btn.innerHTML = '<i class="fas fa-route mr-1"></i> Show Route'; btn.classList.remove('bg-red-100', 'text-red-700'); btn.classList.add('bg-blue-100', 'text-blue-700'); return; }
+             
+             // Toggle Off
+             if (routeLayer && routeLayer.getLayers().length > 0) { 
+                 routeLayer.clearLayers(); 
+                 btn.innerHTML = '<i class="fas fa-route mr-1"></i> <span data-translate="showRoute">Show Route</span>'; 
+                 btn.classList.remove('bg-red-100', 'text-red-700'); 
+                 btn.classList.add('bg-blue-100', 'text-blue-700'); 
+                 return; 
+             }
+
+             // Loading State
              btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Loading...';
              
              const cat = categorizeRoute(currentSelectionId, currentSelectionName);
@@ -951,36 +1591,245 @@
              if (cat === 'Express') routeColor = 'green';
              if (cat === 'Shuttle') routeColor = 'purple';
              if (cat === 'School') routeColor = 'orange';
-             
-             if (cat === 'ACE') {
-                 const lowerName = currentSelectionId.toLowerCase();
-                 if (lowerName.includes('orange')) routeColor = 'orange';
-                 else if (lowerName.includes('purple')) routeColor = 'purple';
-                 else if (lowerName.includes('red')) routeColor = 'red';
-                 else if (lowerName.includes('green')) routeColor = 'green';
-                 else if (lowerName.includes('gray')) routeColor = 'gray';
-                 else if (lowerName.includes('yellow')) routeColor = '#eab308';
-                 else if (lowerName.includes('violet')) routeColor = '#7c3aed';
-                 else routeColor = '#4f46e5';
-             }
+             if (cat === 'ACE') routeColor = '#4f46e5'; 
 
              try {
-                const stopsData = await fetch511('stops', `&operator_id=${AGENCY_ID}&line_id=${currentSelectionId}`);
-                const stopMap = new Map();
-                function extractStops(obj) { if (Array.isArray(obj)) obj.forEach(extractStops); else if (typeof obj === 'object' && obj !== null) { if (obj.id && (obj.Location || obj.Latitude)) { const lat = obj.Location?.Latitude || obj.Latitude; const lon = obj.Location?.Longitude || obj.Longitude; if(lat && lon) stopMap.set(String(obj.id), [parseFloat(lat), parseFloat(lon)]); } Object.values(obj).forEach(extractStops); } }
-                extractStops(stopsData);
-                const patternData = await fetch511('patterns', `&operator_id=${AGENCY_ID}&line_id=${currentSelectionId}`);
+                // 1. Try Fetching Official Pattern Data (Best Source)
                 let latlngs = [];
-                function findSeq(obj) { if (Array.isArray(obj)) { if (obj.length > 0 && (obj[0].ScheduledStopPointRef || obj[0].scheduledStopPointRef)) { const seq = []; obj.forEach(s => { const ref = s.ScheduledStopPointRef || s.scheduledStopPointRef; if(ref && stopMap.has(String(ref))) seq.push(stopMap.get(String(ref))); }); if(seq.length > 5) latlngs.push(seq); } obj.forEach(findSeq); } else if (typeof obj === 'object' && obj !== null) { Object.values(obj).forEach(findSeq); } }
-                findSeq(patternData);
-                if (latlngs.length === 0) throw new Error("No path");
-                const bounds = L.latLngBounds([]);
-                latlngs.forEach(l => { const pl = L.polyline(l, {color: routeColor, weight: 4, opacity: 0.6}).addTo(routeLayer); bounds.extend(pl.getBounds()); });
-                mapInstance.fitBounds(bounds);
-                btn.innerHTML = '<i class="fas fa-eye-slash mr-1"></i> Hide Route'; btn.classList.remove('bg-blue-100', 'text-blue-700'); btn.classList.add('bg-red-100', 'text-red-700');
-             } catch(e) { alert("Could not load route path."); btn.innerHTML = '<i class="fas fa-route mr-1"></i> Show Route'; }
+                let orderedStops = [];
+                
+                try {
+                    const patternData = await fetch511('patterns', `&operator_id=${AGENCY_ID}&line_id=${currentSelectionId}`);
+                    if (patternData) parsePatterns(patternData);
+                } catch (err) {
+                    console.warn("Pattern API failed, falling back to stops", err);
+                }
+
+                // Helper to explore the data structure
+                function parsePatterns(obj) {
+                    if (!obj || typeof obj !== 'object') return;
+
+                    // A. Check for High-Res Geometry (PointsInSequence)
+                    if (obj.PointsInSequence && obj.PointsInSequence.Point) {
+                        const rawPoints = Array.isArray(obj.PointsInSequence.Point) 
+                            ? obj.PointsInSequence.Point 
+                            : [obj.PointsInSequence.Point];
+                        
+                        const segment = rawPoints.map(p => {
+                            const lat = p.Location?.Latitude || p.Latitude;
+                            const lon = p.Location?.Longitude || p.Longitude;
+                            return [parseFloat(lat), parseFloat(lon)];
+                        }).filter(p => !isNaN(p[0]) && !isNaN(p[1]));
+
+                        if (segment.length > 5) latlngs.push(segment);
+                    }
+
+                    // B. Check for Ordered Stops
+                    if (obj.ScheduledStopPoints && obj.ScheduledStopPoints.ScheduledStopPoint) {
+                        const stops = Array.isArray(obj.ScheduledStopPoints.ScheduledStopPoint)
+                            ? obj.ScheduledStopPoints.ScheduledStopPoint
+                            : [obj.ScheduledStopPoints.ScheduledStopPoint];
+                        
+                        const stopCoords = stops.map(s => {
+                            const lat = s.Location?.Latitude || s.Latitude;
+                            const lon = s.Location?.Longitude || s.Longitude;
+                            return [parseFloat(lat), parseFloat(lon)];
+                        }).filter(p => !isNaN(p[0]) && !isNaN(p[1]));
+                        
+                        if(stopCoords.length > 0) orderedStops.push(stopCoords);
+                    }
+
+                    if (Array.isArray(obj)) obj.forEach(parsePatterns);
+                    else Object.values(obj).forEach(parsePatterns);
+                }
+
+                // --- Drawing Logic ---
+
+                // CASE 1: We have the official high-res shape line. Draw it.
+                if (latlngs.length > 0) {
+                    console.log("Using High-Res Geometry");
+                    drawPolylines(latlngs, routeColor);
+                } 
+                
+                // CASE 2: We have ordered stops but no shape. Snap them to the road.
+                else if (orderedStops.length > 0) {
+                    console.log("Using OSRM Router with Ordered Stops");
+                    const roadPath = await fetchRoadPath(orderedStops[0]); 
+                    if(roadPath && roadPath.length > 0) {
+                        drawPolylines([roadPath], routeColor);
+                    } else {
+                        drawPolylines(orderedStops, routeColor); 
+                    }
+                }
+                
+                // CASE 3: FALLBACK (Stops only, likely unordered)
+                else {
+                    console.log("Fallback: Fetching raw stops");
+                    const stopsData = await fetch511('stops', `&operator_id=${AGENCY_ID}&line_id=${currentSelectionId}`);
+                    
+                    if (!stopsData) throw new Error("No route data available");
+
+                    let stopPoints = [];
+                    
+                    // Extract all stop coordinates
+                    function findStops(obj) {
+                        if (!obj || typeof obj !== 'object') return;
+                        // Handle standard StopPoint structure
+                        if (obj.ScheduledStopPoint || obj.Latitude) { 
+                             // If it's a stop object itself
+                             if (obj.Name && (obj.Latitude || obj.Location)) {
+                                 const lat = obj.Location?.Latitude || obj.Latitude;
+                                 const lon = obj.Location?.Longitude || obj.Longitude;
+                                 if(lat && lon) stopPoints.push([parseFloat(lat), parseFloat(lon)]);
+                             }
+                             // Or a container of stops
+                             else if (obj.ScheduledStopPoint) {
+                                 const stops = Array.isArray(obj.ScheduledStopPoint) ? obj.ScheduledStopPoint : [obj.ScheduledStopPoint];
+                                 stops.forEach(s => {
+                                     const lat = s.Location?.Latitude || s.Latitude;
+                                     const lon = s.Location?.Longitude || s.Longitude;
+                                     if(lat && lon) stopPoints.push([parseFloat(lat), parseFloat(lon)]);
+                                 });
+                             }
+                        }
+                        if (Array.isArray(obj)) obj.forEach(findStops);
+                        else Object.values(obj).forEach(findStops);
+                    }
+                    findStops(stopsData);
+
+                    if (stopPoints.length > 0) {
+                        // 1. Draw Dots (As requested)
+                        const bounds = L.latLngBounds(stopPoints);
+                        mapInstance.fitBounds(bounds, {padding: [20, 20]});
+                        
+                        stopPoints.forEach(pt => {
+                            L.circleMarker(pt, {
+                                radius: 4,
+                                fillColor: routeColor,
+                                color: '#fff',
+                                weight: 1,
+                                opacity: 0.9,
+                                fillOpacity: 0.8
+                            }).addTo(routeLayer);
+                        });
+
+                        // 2. Sort and Snap Line
+                        // Since API might return stops randomly, we use Nearest Neighbor sort
+                        // starting from the northernmost stop (heuristic for a bus terminus)
+                        const sortedStops = sortStopsSpatially(stopPoints);
+                        
+                        // 3. Get Road Path
+                        const roadPath = await fetchRoadPath(sortedStops);
+                        
+                        if (roadPath) {
+                            // Draw dashed line to indicate it's a calculated/estimated route
+                            L.polyline(roadPath, {
+                                color: routeColor, 
+                                weight: 4, 
+                                opacity: 0.6, 
+                                dashArray: '10, 10',
+                                lineJoin: 'round'
+                            }).addTo(routeLayer);
+                        } else {
+                            // Straight lines fallback
+                            L.polyline(sortedStops, {
+                                color: routeColor, 
+                                weight: 2, 
+                                opacity: 0.5, 
+                                dashArray: '5, 10'
+                            }).addTo(routeLayer);
+                        }
+
+                    } else {
+                        throw new Error("No stops found");
+                    }
+                }
+
+                // Update Button State
+                btn.innerHTML = '<i class="fas fa-eye-slash mr-1"></i> Hide Route'; 
+                btn.classList.remove('bg-blue-100', 'text-blue-700'); 
+                btn.classList.add('bg-red-100', 'text-red-700');
+
+             } catch(e) { 
+                 console.error(e); 
+                 alert("Could not load route path."); 
+                 btn.innerHTML = '<i class="fas fa-route mr-1"></i> <span data-translate="showRoute">Show Route</span>'; 
+             }
+        }
+
+        // --- Helper: Nearest Neighbor Sort ---
+        // Orders a cloud of points into a line by always jumping to the closest next point
+        function sortStopsSpatially(points) {
+            if (points.length < 2) return points;
+            
+            // Start with the top-most (Northern) point as a guess for a Terminus
+            // (Copy array to avoid mutating original)
+            let pool = [...points];
+            pool.sort((a, b) => b[0] - a[0]); // Sort by Lat descending
+            
+            let sorted = [pool.shift()]; // Take the first one (North)
+            
+            while (pool.length > 0) {
+                const current = sorted[sorted.length - 1];
+                let nearestIndex = -1;
+                let minDist = Infinity;
+                
+                // Find nearest in pool
+                for (let i = 0; i < pool.length; i++) {
+                    const d = Math.pow(pool[i][0] - current[0], 2) + Math.pow(pool[i][1] - current[1], 2);
+                    if (d < minDist) {
+                        minDist = d;
+                        nearestIndex = i;
+                    }
+                }
+                
+                // Move nearest to sorted
+                sorted.push(pool[nearestIndex]);
+                pool.splice(nearestIndex, 1);
+            }
+            return sorted;
+        }
+
+        // Helper to draw the lines
+        function drawPolylines(segments, color) {
+            const bounds = L.latLngBounds([]);
+            segments.forEach(seg => { 
+                const pl = L.polyline(seg, {color: color, weight: 4, opacity: 0.7, lineJoin: 'round'}).addTo(routeLayer); 
+                bounds.extend(pl.getBounds()); 
+            });
+            mapInstance.fitBounds(bounds, {padding: [20, 20]});
+        }
+
+        // --- OSRM Router Function (Snaps dots to roads) ---
+        async function fetchRoadPath(coordinates) {
+            // OSRM expects: lon,lat;lon,lat
+            // Coordinates input is [lat, lon]
+            if(coordinates.length < 2) return null;
+
+            // Reduce sampling if too many stops to prevent URL overflow (OSRM limits)
+            // Take every point if < 80, otherwise sample
+            const sampled = coordinates.length > 80 
+                ? coordinates.filter((_, i) => i % 2 === 0) 
+                : coordinates;
+
+            const coordString = sampled.map(p => `${p[1]},${p[0]}`).join(';');
+            const url = `https://router.project-osrm.org/route/v1/driving/${coordString}?overview=full&geometries=geojson`;
+
+            try {
+                const response = await fetch(url);
+                if(!response.ok) throw new Error('OSRM error');
+                const data = await response.json();
+                
+                if(data.routes && data.routes.length > 0) {
+                    // Extract coordinates from GeoJSON [lon, lat] -> [lat, lon]
+                    return data.routes[0].geometry.coordinates.map(p => [p[1], p[0]]);
+                }
+            } catch(e) {
+                console.warn("Routing failed, falling back to straight lines", e);
+                return null;
+            }
+            return null;
         }
     </script>
 </body>
 </html>
-
