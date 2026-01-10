@@ -1,0 +1,17 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Blogs Collection
+    match /blogs/{blogId} {
+      // Anyone can read blogs
+      allow read: if true;
+      
+      // Only authenticated users can create
+      // Validates that the authorId matches the logged-in user
+      allow create: if request.auth != null && request.resource.data.authorId == request.auth.uid;
+      
+      // Only the author can update or delete
+      allow update, delete: if request.auth != null && resource.data.authorId == request.auth.uid;
+    }
+  }
+}

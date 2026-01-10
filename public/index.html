@@ -1,485 +1,558 @@
 <!DOCTYPE html>
-<html>
+<html lang="en" class="scroll-smooth">
 
 <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width" />
-    <title>LemHand</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>LemHand - Future of Software</title>
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    
+    <!-- Frameworks -->
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script> 
-    <script src="app.js" defer="" type="module"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    <link href="style.css" rel="stylesheet" type="text/css" />
-    <link href="bulma.css" rel="stylesheet" type="text/css" /> 
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="mobile-web-app-capable" content="yes" />
-    <link rel="apple-touch-icon" sizes="57x57" href="/apple-icon-57x57.png">
-    <link rel="apple-touch-icon" sizes="60x60" href="/apple-icon-60x60.png">
-    <link rel="apple-touch-icon" sizes="72x72" href="/apple-icon-72x72.png">
-    <link rel="apple-touch-icon" sizes="76x76" href="/apple-icon-76x76.png">
-    <link rel="apple-touch-icon" sizes="114x114" href="/apple-icon-114x114.png">
-    <link rel="apple-touch-icon" sizes="120x120" href="/apple-icon-120x120.png">
-    <link rel="apple-touch-icon" sizes="144x144" href="/apple-icon-144x144.png">
-    <link rel="apple-touch-icon" sizes="152x152" href="/apple-icon-152x152.png">
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-icon-180x180.png">
-    <link rel="icon" type="image/png" sizes="192x192" href="/android-icon-192x192.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-    <link rel="manifest" href="/manifest.json">
-    <meta name="msapplication-TileColor" content="#ffffff">
-    <meta name="msapplication-TileImage" content="/ms-icon-144x144.png">
-    <meta name="theme-color" content="#ffffff">
-    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
-
-</head>
-
-<body class="bg-gray-900" id="app"> <header class="header">
-   
-        <p href="#" class="logo">LemHand</p> <i class='bx bx-menu' id="menu-icon"></i>
-        <nav class="navbar">
-            <a v-on:click="this.currentpage = 'home'" :class="{'has-text-success':currentpage === 'home'}">Home</a>
-            <a v-on:click="this.currentpage = 'services'" :class="{'has-text-success':currentpage === 'services'}">Services</a>
-            <a v-on:click="this.currentpage = 'blog'" :class="{'has-text-success':currentpage === 'blog'}">Blogs</a>
-            <a href="search/index.html">Search</a>
-            <a v-if="!accountStatus" href="lemlog.html">{{ myname }}</a>
-            <a v-else v-on:click="">{{ myname }}</a>
-        </nav>
-    </header>
-    <div class="nav-bg"></div>
-    <br> 
-    <br>
-
-
-    <div>
-        <main v-if="currentpage === 'home'">
-            <div class="hero is-info" style="background-color:#e2f0d5">
-                        <div class="relative w-full h-[80vh] bg-slate-800">
-            <input
-              class="hidden peer/slider1 checkbox"
-              type="radio"
-              name="slider"
-              id="slider1"
-              checked
-            />
-            <input
-              class="hidden peer/slider2 checkbox"
-              type="radio"
-              name="slider"
-              id="slider2"
-            />
-            <input
-              class="hidden peer/slider3 checkbox"
-              type="radio"
-              name="slider"
-              id="slider3"
-            />
-        
-            <div
-              class="relative w-[300vw] h-[100%] flex transition-all duration-500 ease-in-out peer-checked/slider1:-left-0 peer-checked/slider2:-left-[100vw] peer-checked/slider3:-left-[200vw]"
-            >
-              <div class="relative w-full h-full" style="background-color:#e2f0d5">
-                <br>
-                <div class="hero-body">
-                    <div class="columns">
-                        <div class="column">
-                            <div class="box">
-                                <h1 class="title" style="color:black">Welcome to the NEW LemHand!</h1>
-                                <h1 class="subtitle is-6" style="color:black">The LemHand website got a redesign!</h1>
-                                <div class="buttons">
-                                    <button class="button is-fullwidth">Learn More</button>
-                                    <button class="button is-fullwidth">Create an Account</button>
-                                    <button class="button is-fullwidth">Help Center</button>
-                                    <div class="relative inline-flex ddw" v-if="availableArticlesCount > 0"> <button @click="setCurrentPage('blog')" class="button is-fullwidth is-danger" style="background-color:#399351">New Blog Posts available</button>
-                                        <span class="absolute top-0.5 right-0.5 grid min-h-[24px] min-w-[24px] translate-x-2/4 -translate-y-2/4 place-items-center rounded-full bg-red-600 py-1 px-1 text-xs text-white">
-                                            {{blogs.length}}
-                                        </span>
-                                    </div>
-                                    <div class="relative inline-flex ddw" v-else>
-                                        <button @click="setCurrentPage('blog')" class="button is-fullwidth is-danger" style="background-color:#399351">Check out the blog!</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="column">
-                            <div class="box">
-                                <h1 class="title" style="color:black">LemHand Software</h1>
-                                <h1 class="subtitle is-6" style="color:black">The best apps by LemHand</h1>
-                                <div class="buttons">
-                                    <a class="button is-fullwidth" href="/software">LemHand Software</a>
-                                    <a class="button is-white is-fullwidth" href="/software/internet" style="background: linear-gradient(90deg, #2563eb 0%, #7c3aed 100%); /* Blue to violet gradient */ color:white">LemHand Internet</a>
-                                    <a class="button is-danger is-info" href="https://bus.lemhand.com">BusTracker</a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-              </div>
-              <div class="relative w-full h-full" style="background-color: rgb(0, 30, 255)">
-                <br>
-                <br>
-                <h1 class="title is-1 has-text-centered">BusTracker</h1>
-                <h1 class="subtitle has-text-centered">Bus tracking made simple</h1>
-                <a class="button is-fullwidth container is-info is-rounded" href="https://bus.lemhand.com/">Learn More</a>
-                <br>
-                
-            </div>
-              <div class="relative w-full h-full bg-emerald-500">
-                <br>
-                <br>
-                <h1 class="title is-1 has-text-centered">LemHand Internet</h1>
-                <h1 class="subtitle has-text-centered">Your trusted private browser</h1>
-              </div>
-            </div>
-        
-            <div
-              class="absolute w-full flex justify-center gap-2 bottom-12 peer-[&_label:nth-of-type(1)]/slider1:peer-checked/slider1:opacity-100 peer-[&_label:nth-of-type(1)]/slider1:peer-checked/slider1:w-10 peer-[&_label:nth-of-type(2)]/slider2:peer-checked/slider2:opacity-100 peer-[&_label:nth-of-type(2)]/slider2:peer-checked/slider2:w-10 peer-[&_label:nth-of-type(3)]/slider3:peer-checked/slider3:opacity-100 peer-[&_label:nth-of-type(3)]/slider3:peer-checked/slider3:w-10"
-            >
-              <label
-                class="block w-5 h-5 bg-white cursor-pointer opacity-50 z-10 transition-all duration-300 ease-in-out hover:scale-125 hover:opacity-100"
-                for="slider1"
-              >
-              </label>
-              <label
-                class="block w-5 h-5 bg-white cursor-pointer opacity-50 z-10 transition-all duration-300 ease-in-out hover:scale-125 hover:opacity-100"
-                for="slider2"
-              >
-              </label>
-              <label
-                class="block w-5 h-5 bg-white cursor-pointer opacity-50 z-10 transition-all duration-300 ease-in-out hover:scale-125 hover:opacity-100"
-                for="slider3"
-              >
-              </label>
-            </div>
-          </div>
-
-                
-            </div>
-        </main>
-
-        <main v-if="currentpage === 'lemhandemployees'" class="p-4">
-            <div class="hero is-primary">
-                <div class="hero-body">
-                    <div class="box">
-                        <h1 class="title" style="color:black">Log In</h1>
-                        <h1 class="subtitle is-6" style="color:black">Please enter your LemConnect credentials</h1>
-                        <div class="form">
-                            <div class="field">
-                                <label class="label">Name</label>
-                                <div class="control">
-                                    <input :class="{ 'is-danger': lheErrorName}" v-model="lheName" class="input" type="text" placeholder="Type Here">
-                                </div>
-                                <p v-if="lheErrorName" class="help is-danger">Please enter a name</p>
-                            </div>
-                            <div class="field">
-                                <label class="label">Access Code</label>
-                                <div class="control">
-                                    <input :class="{ 'is-danger': lheErrorMessage}" v-model="lheCodeInput" class="input" type="text" placeholder="Type Here">
-                                </div>
-                                <p v-if="lheErrorMessage" class="help is-danger">This access code is invalid</p>
-                            </div>
-                            <div class="buttons">
-                                <button class="button is-fullwidth is-outlined is-success" @click="lheLogin()">Log In</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </main>
-
-        <main v-if="currentpage === 'lhe'" class="p-4">
-            <div class="hero is-warning">
-                <div class="hero-body">
-                    <div class="box">
-                        <h1 class="title" style="color:black">LemHand Employee Portal</h1>
-                        <h1 class="subtitle is-6" style="color:black">{{'Hello There! You are logged in as ' + lheNameDisplay }}</h1>
-                        <div class="buttons">
-                            <button class="button is-fullwidth">Learn More</button>
-                            <button class="button is-fullwidth">Create an Account</button>
-                            <button class="button is-fullwidth">Help Center</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </main>
-
-        <!-- New Blog Main Section -->
-        <main v-if="currentpage === 'blog'">
-            <div class="hero is-danger">
-                <div class="hero-body">
-                    <div class="box">
-                        <!-- Blog List View -->
-                        <div v-if="blogView === 'list'">
-                            <div class="is-flex is-justify-content-space-between is-align-items-center mb-5">
-                                <div>
-                                    <h1 class="title" style='color:black; font-family: "Times New Roman", Times, serif;'>The LemHand Blog</h1>
-                                    <h1 class="subtitle is-6" style="color:black; font-family: 'Times New Roman', Times, serif;">The latest updates from the team</h1>
-                                </div>
-                                <button @click="blogView = 'create'" class="button is-success">Create New Post</button>
-                            </div>
-
-                            <div v-if="isLoadingBlogs" class="loading-spinner"></div>
-                            <div v-if="blogError" class="notification is-warning">
-                                {{ blogError }}
-                            </div>
-                            <div v-if="!blogs.length && !isLoadingBlogs" class="has-text-centered p-5">
-                                <p style="color:black;">No blog posts yet. Be the first to create one!</p>
-                            </div>
-
-                            <div class="columns is-multiline">
-                                <div v-for="blog in blogs" :key="blog.id" class="column is-one-third">
-                                    <div class="card">
-                                        <div class="card-image">
-                                            <figure class="image is-4by3">
-                                                <img :src="blog.bannerImage || 'https://placehold.co/600x450/e2f0d5/333?text=Blog+Post'" :alt="blog.title" onerror="this.onerror=null;this.src='https://placehold.co/600x450/e2f0d5/333?text=Image+Error'">
-                                            </figure>
-                                        </div>
-                                        <div class="card-content">
-                                            <div class="media">
-                                                <div class="media-left">
-                                                    <figure class="image is-48x48">
-                                                        <img :src="blog.icon || 'https://placehold.co/48x48/399351/fff?text=LH'" alt="Icon" class="is-rounded" onerror="this.onerror=null;this.src='https://placehold.co/48x48/399351/fff?text=LH'">
-                                                    </figure>
-                                                </div>
-                                                <div class="media-content">
-                                                    <p class="title is-4" style="color:black;">{{ blog.title }}</p>
-                                                </div>
-                                            </div>
-                                            <div class="content" style="color:black;">
-                                                {{ blog.description }}
-                                            </div>
-                                        </div>
-                                        <footer class="card-footer">
-                                            <a @click="selectBlog(blog)" class="card-footer-item">Read More</a>
-                                        </footer>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Create Blog View -->
-                        <div v-else-if="blogView === 'create'">
-                            <h1 class="title" style="color:black;">Create New Blog Post</h1>
-                            <div class="field">
-                                <label class="label">Title</label>
-                                <div class="control">
-                                    <input v-model="newBlog.title" class="input" type="text" placeholder="Blog Post Title">
-                                </div>
-                            </div>
-                            <div class="field">
-                                <label class="label">Banner Image URL</label>
-                                <div class="control">
-                                    <input v-model="newBlog.bannerImage" class="input" type="text" placeholder="https://example.com/image.png">
-                                </div>
-                            </div>
-                            <div class="field">
-                                <label class="label">Icon URL</label>
-                                <div class="control">
-                                    <input v-model="newBlog.icon" class="input" type="text" placeholder="https://example.com/icon.png">
-                                </div>
-                            </div>
-                            <div class="field">
-                                <label class="label">Description (Short Snippet)</label>
-                                <div class="control">
-                                    <textarea v-model="newBlog.description" class="textarea" placeholder="A brief summary of the post..."></textarea>
-                                </div>
-                            </div>
-                            <div class="field">
-                                <label class="label">Main Content</label>
-                                <div class="control">
-                                    <textarea v-model="newBlog.mainText" class="textarea" placeholder="Write your full blog post here..." rows="10"></textarea>
-                                </div>
-                            </div>
-                            <div class="field is-grouped">
-                                <div class="control">
-                                    <button @click="saveBlog" class="button is-link" :disabled="isSavingBlog">
-                                        {{ isSavingBlog ? 'Saving...' : 'Save Post' }}
-                                    </button>
-                                </div>
-                                <div class="control">
-                                    <button @click="cancelCreate" class="button is-link is-light">Cancel</button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Single Blog View -->
-                        <div v-else-if="blogView === 'single' && selectedBlog">
-                            <button @click="blogView = 'list'; selectedBlog = null" class="button is-light mb-4">← Back to Blog</button>
-                            <h1 class="title is-2" style="color:black;">{{ selectedBlog.title }}</h1>
-                            <figure class="image is-16by9 mb-5">
-                                <img :src="selectedBlog.bannerImage || 'https://placehold.co/1280x720/e2f0d5/333?text=Blog+Post'" :alt="selectedBlog.title" onerror="this.onerror=null;this.src='https://placehold.co/1280x720/e2f0d5/333?text=Image+Error'">
-                            </figure>
-                            <div class="content blog-content">{{ selectedBlog.mainText }}</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </main>
-    </div>
-
-   <!-- <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.3.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.3.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, onSnapshot, setLogLevel } from "https://www.gstatic.com/firebasejs/10.3.1/firebase-firestore.js";
-
-        
-        const { createApp } = Vue
-
-        createApp({
-            data() {
-                return {
-                    currentpage: 'home',
-                    accountStatus: false,
-                    myname: 'My Account',
-                    availableArticlesCount: 5,
-                    lheName: '',
-                    lheCodeInput: '',
-                    lheErrorName: false,
-                    lheErrorMessage: false,
-                    lheNameDisplay: '',
-
-                    // NEW Blog system data
-                    blogs: [],
-                    blogView: 'list', // 'list', 'create', 'single'
-                    selectedBlog: null,
-                    newBlog: {
-                        title: '',
-                        description: '',
-                        bannerImage: '',
-                        icon: '',
-                        mainText: ''
+    
+    <!-- Custom Config -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Space Grotesk', 'sans-serif'],
                     },
-                    isLoadingBlogs: false,
-                    isSavingBlog: false,
-                    blogError: '',
-                    db: null,
-                    auth: null,
-                    userId: null,
-                    unsubscribeBlogs: null, // To hold the onSnapshot listener
-                }
-            },
-            methods: {
-                setCurrentPage(page) {
-                    this.currentpage = page;
-                },
-                lheLogin() {
-                    this.lheErrorName = this.lheName.trim() === '';
-                    this.lheErrorMessage = this.lheCodeInput !== '1234';
-
-                    if (!this.lheErrorName && !this.lheErrorMessage) {
-                        this.lheNameDisplay = this.lheName;
-                        this.currentpage = 'lhe';
+                    colors: {
+                        primary: '#10B981', // Emerald 500
+                        secondary: '#3B82F6', // Blue 500
+                        dark: '#111827', // Gray 900
                     }
-                },
-                // NEW Blog methods
-                async initFirebase() {
-                    const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-                    // Fallback to empty object if firebase config is not available
-                    const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
-                    
-                    // Basic check for valid config
-                    if (!firebaseConfig.apiKey) {
-                        this.blogError = "Firebase configuration is missing. Blog cannot be loaded.";
-                        console.error("Firebase configuration is missing.");
-                        return;
-                    }
-
-                    try {
-                        const app = initializeApp(firebaseConfig);
-                        this.db = getFirestore(app);
-                        this.auth = getAuth(app);
-                        setLogLevel('Debug');
-
-                        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                            await signInWithCustomToken(this.auth, __initial_auth_token);
-                        } else {
-                            await signInAnonymously(this.auth);
-                        }
-                    } catch (error) {
-                        console.error("Firebase Initialization Error:", error);
-                        this.blogError = "Could not connect to the database.";
-                        return;
-                    }
-
-                    onAuthStateChanged(this.auth, (user) => {
-                        if (user) {
-                            this.userId = user.uid;
-                            this.listenForBlogs(); // Start listening for blogs after user is authenticated
-                        } else {
-                            this.userId = null;
-                            if (this.unsubscribeBlogs) this.unsubscribeBlogs(); // Stop listening if user logs out
-                            this.blogs = [];
-                        }
-                    });
-                },
-
-                listenForBlogs() {
-                    if (this.unsubscribeBlogs) this.unsubscribeBlogs(); // Unsubscribe from any previous listener
-                    if (!this.db) return;
-                    
-                    this.isLoadingBlogs = true;
-                    const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-                    const blogsCollection = collection(this.db, `/artifacts/${appId}/public/data/blogs`);
-
-                    this.unsubscribeBlogs = onSnapshot(blogsCollection, (querySnapshot) => {
-                        const blogs = [];
-                        querySnapshot.forEach((doc) => {
-                            blogs.push({ id: doc.id, ...doc.data() });
-                        });
-                        this.blogs = blogs;
-                        this.isLoadingBlogs = false;
-                    }, (error) => {
-                        console.error("Error fetching blogs:", error);
-                        this.blogError = "Failed to load blog posts.";
-                        this.isLoadingBlogs = false;
-                    });
-                },
-
-                async saveBlog() {
-                    if (!this.newBlog.title || !this.newBlog.mainText) {
-                        this.blogError = "Title and Main Content are required.";
-                        setTimeout(() => this.blogError = '', 3000);
-                        return;
-                    }
-                    this.isSavingBlog = true;
-                    const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-                    const blogsCollection = collection(this.db, `/artifacts/${appId}/public/data/blogs`);
-
-                    try {
-                        await addDoc(blogsCollection, {
-                            ...this.newBlog,
-                            createdAt: new Date().toISOString() // Add a timestamp
-                        });
-                        this.cancelCreate();
-                    } catch (error) {
-                        console.error("Error saving blog:", error);
-                        this.blogError = "Failed to save the blog post.";
-                    } finally {
-                        this.isSavingBlog = false;
-                    }
-                },
-
-                selectBlog(blog) {
-                    this.selectedBlog = blog;
-                    this.blogView = 'single';
-                },
-
-                cancelCreate() {
-                    this.newBlog = { title: '', description: '', bannerImage: '', icon: '', mainText: '' };
-                    this.blogView = 'list';
-                },
-            },
-            mounted() {
-                this.initFirebase();
-            },
-            beforeUnmount() {
-                if (this.unsubscribeBlogs) {
-                    this.unsubscribeBlogs();
                 }
             }
-        }).mount('#app');
-    </script>-->
-</body>
+        }
+    </script>
+    <style>
+        [v-cloak] { display: none; }
+        .glass {
+            background: rgba(17, 24, 39, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+    </style>
+    
+    <!-- App Logic -->
+    <script src="app.js" defer type="module"></script>
+</head>
 
+<body class="bg-gray-950 text-white min-h-screen overflow-x-hidden selection:bg-primary selection:text-white" id="app" v-cloak>
+
+    <!-- Navigation -->
+    <header class="fixed top-0 left-0 w-full z-50 glass border-b border-white/10 transition-all duration-300">
+        <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+            <a href="#" @click.prevent="currentpage = 'home'" class="text-2xl font-bold tracking-tighter hover:text-primary transition-colors">
+                Lem<span class="text-primary">Hand</span>
+            </a>
+
+            <!-- Desktop Menu -->
+            <nav class="hidden md:flex items-center space-x-8">
+                <a href="#" @click.prevent="currentpage = 'home'" :class="currentpage === 'home' ? 'text-primary' : 'text-gray-300 hover:text-white'" class="text-sm font-medium transition-colors">Home</a>
+                <a href="#" @click.prevent="currentpage = 'software'" :class="currentpage === 'software' ? 'text-primary' : 'text-gray-300 hover:text-white'" class="text-sm font-medium transition-colors">Software</a>
+                <a href="#" @click.prevent="currentpage = 'blog'" :class="currentpage === 'blog' ? 'text-primary' : 'text-gray-300 hover:text-white'" class="text-sm font-medium transition-colors">Blog</a>
+                <a href="search/index.html" class="text-sm font-medium text-gray-300 hover:text-white transition-colors">Search</a>
+            </nav>
+
+            <!-- Auth Button -->
+            <div class="hidden md:flex items-center gap-4">
+                <a v-if="!isLoggedIn" href="#" @click.prevent="openLoginModal" class="px-5 py-2.5 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 transition-all text-sm font-medium flex items-center gap-2">
+                    <i class='bx bx-user'></i>
+                    {{ myname }}
+                </a>
+                <div v-else class="flex items-center gap-4">
+                    <span class="text-sm font-medium text-primary">
+                        {{ myname }}
+                    </span>
+                    <button @click="logout" class="px-4 py-2 rounded-full bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-400 text-xs font-bold transition-all">
+                        Log Out
+                    </button>
+                </div>
+            </div>
+
+            <!-- Mobile Menu Button -->
+            <button @click="mobileMenuOpen = !mobileMenuOpen" class="md:hidden text-2xl text-white">
+                <i :class="mobileMenuOpen ? 'bx bx-x' : 'bx bx-menu'"></i>
+            </button>
+        </div>
+
+        <!-- Mobile Menu -->
+        <div v-show="mobileMenuOpen" class="md:hidden absolute top-20 left-0 w-full bg-gray-900 border-b border-white/10 p-6 flex flex-col space-y-4 shadow-2xl">
+            <a href="#" @click.prevent="currentpage = 'home'; mobileMenuOpen = false" class="text-lg font-medium text-gray-300">Home</a>
+            <a href="#" @click.prevent="currentpage = 'software'; mobileMenuOpen = false" class="text-lg font-medium text-gray-300">Software</a>
+            <a href="#" @click.prevent="currentpage = 'blog'; mobileMenuOpen = false" class="text-lg font-medium text-gray-300">Blog</a>
+            <a v-if="!isLoggedIn" href="#" @click.prevent="openLoginModal(); mobileMenuOpen = false" class="text-lg font-medium text-gray-300">Log In</a>
+            <a v-else href="#" @click.prevent="logout(); mobileMenuOpen = false" class="text-lg font-medium text-red-400">Log Out</a>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="pt-20 min-h-screen">
+        
+        <!-- HOME PAGE -->
+        <div v-if="currentpage === 'home'" class="animate-fade-in">
+            <!-- Hero Section -->
+            <section class="relative min-h-[90vh] flex items-center justify-center px-6 overflow-hidden">
+                <!-- Background Elements -->
+                <div class="absolute top-0 left-0 w-full h-full overflow-hidden -z-10">
+                    <div class="absolute top-[-10%] right-[-10%] w-[500px] h-[500px] bg-primary/20 rounded-full blur-[120px]"></div>
+                    <div class="absolute bottom-[-10%] left-[-10%] w-[500px] h-[500px] bg-secondary/20 rounded-full blur-[120px]"></div>
+                </div>
+
+                <div class="max-w-4xl mx-auto text-center z-10">
+                    <div class="inline-block mb-6 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs font-medium tracking-wide text-primary uppercase">
+                        Welcome to the new era
+                    </div>
+                    <h1 class="text-5xl md:text-7xl font-bold mb-8 leading-tight bg-clip-text text-transparent bg-gradient-to-r from-white via-gray-200 to-gray-400">
+                        Software built for <br /> the future.
+                    </h1>
+                    <p class="text-xl text-gray-400 mb-10 max-w-2xl mx-auto leading-relaxed">
+                        LemHand delivers cutting-edge digital tools, privacy-focused browsers, and seamless utility apps designed to enhance your digital life.
+                    </p>
+                    <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+                        <button @click="currentpage = 'software'" class="w-full sm:w-auto px-8 py-4 rounded-full bg-primary hover:bg-green-500 text-gray-900 font-bold transition-all transform hover:scale-105 shadow-[0_0_20px_rgba(16,185,129,0.3)]">
+                            Explore Software
+                        </button>
+                        <button @click="currentpage = 'blog'" class="w-full sm:w-auto px-8 py-4 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-white font-medium transition-all backdrop-blur-sm">
+                            Read the Blog
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- BusTracker Banner -->
+            <section class="relative py-24 px-6 overflow-hidden">
+                <div class="absolute inset-0 bg-yellow-500/10 -z-10"></div>
+                <div class="absolute -right-20 top-1/2 -translate-y-1/2 w-96 h-96 bg-yellow-500/20 rounded-full blur-[100px]"></div>
+                
+                <div class="max-w-7xl mx-auto rounded-3xl bg-gradient-to-r from-gray-900 to-gray-800 border border-yellow-500/30 p-8 md:p-16 flex flex-col md:flex-row items-center justify-between gap-12 relative overflow-hidden group">
+                    <!-- Glow effect -->
+                    <div class="absolute top-0 right-0 w-full h-full bg-gradient-to-bl from-yellow-500/10 to-transparent opacity-50 group-hover:opacity-100 transition-opacity duration-500"></div>
+                    
+                    <div class="flex-1 relative z-10">
+                        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-yellow-500/20 text-yellow-400 text-sm font-bold mb-6">
+                            <i class='bx bxs-bus'></i>
+                            <span>Flagship App</span>
+                        </div>
+                        <h2 class="text-4xl md:text-5xl font-bold mb-6 text-white leading-tight">
+                            Never miss your ride with <span class="text-yellow-400">BusTracker</span>
+                        </h2>
+                        <p class="text-gray-300 text-lg mb-8 max-w-xl leading-relaxed">
+                            Real-time tracking, accurate schedules, and live alerts for your daily commute. Experience the smartest way to travel public transit.
+                        </p>
+                        <div class="flex flex-wrap gap-4">
+                            <a href="https://bus.lemhand.com" class="px-8 py-4 rounded-xl bg-yellow-500 hover:bg-yellow-400 text-gray-900 font-bold text-lg transition-all transform hover:scale-105 shadow-[0_0_20px_rgba(234,179,8,0.4)] flex items-center gap-2">
+                                <i class='bx bx-play-circle'></i> Launch App
+                            </a>
+                            <a href="#" class="px-8 py-4 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white font-bold text-lg transition-all flex items-center gap-2">
+                                Learn More
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <div class="flex-1 w-full max-w-md relative z-10">
+                        <!-- Abstract Phone/Map UI Representation -->
+                        <div class="relative bg-gray-950 border border-gray-800 rounded-3xl p-4 shadow-2xl rotate-3 hover:rotate-0 transition-transform duration-500">
+                            <div class="bg-gray-800 h-64 rounded-xl overflow-hidden relative">
+                                <!-- Map Background -->
+                                <div class="absolute inset-0 opacity-30 bg-[url('https://api.mapbox.com/styles/v1/mapbox/dark-v10/static/-122.4241,37.78,14.25,0,0/600x600?access_token=YOUR_TOKEN')] bg-cover bg-center"></div>
+                                <div class="absolute top-4 left-4 right-4 bg-gray-900/90 backdrop-blur p-3 rounded-lg flex items-center gap-3 border border-gray-700">
+                                    <div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                                    <div class="h-2 w-20 bg-gray-700 rounded"></div>
+                                </div>
+                                <!-- Bus Icon Animation -->
+                                <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-12 bg-yellow-500 rounded-full flex items-center justify-center shadow-lg animate-bounce">
+                                    <i class='bx bxs-bus text-gray-900 text-xl'></i>
+                                </div>
+                            </div>
+                            <div class="mt-4 space-y-3">
+                                <div class="h-3 bg-gray-800 rounded w-3/4"></div>
+                                <div class="h-3 bg-gray-800 rounded w-1/2"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Features Preview -->
+            <section class="py-20 px-6 max-w-7xl mx-auto">
+                <div class="grid md:grid-cols-3 gap-8">
+                    <div class="p-8 rounded-3xl bg-white/5 border border-white/5 hover:border-white/10 transition-all hover:-translate-y-2 group">
+                        <div class="w-12 h-12 rounded-2xl bg-blue-500/20 text-blue-400 flex items-center justify-center text-2xl mb-6 group-hover:scale-110 transition-transform">
+                            <i class='bx bx-world'></i>
+                        </div>
+                        <h3 class="text-xl font-bold mb-3">LemHand Internet</h3>
+                        <p class="text-gray-400 text-sm leading-relaxed">Fast, private, and secure browsing experience designed for modern needs.</p>
+                    </div>
+                    <div class="p-8 rounded-3xl bg-white/5 border border-white/5 hover:border-white/10 transition-all hover:-translate-y-2 group">
+                        <div class="w-12 h-12 rounded-2xl bg-yellow-500/20 text-yellow-400 flex items-center justify-center text-2xl mb-6 group-hover:scale-110 transition-transform">
+                            <i class='bx bx-bus'></i>
+                        </div>
+                        <h3 class="text-xl font-bold mb-3">BusTracker</h3>
+                        <p class="text-gray-400 text-sm leading-relaxed">Real-time public transit tracking to ensure you never miss a ride.</p>
+                    </div>
+                    <div class="p-8 rounded-3xl bg-white/5 border border-white/5 hover:border-white/10 transition-all hover:-translate-y-2 group">
+                        <div class="w-12 h-12 rounded-2xl bg-purple-500/20 text-purple-400 flex items-center justify-center text-2xl mb-6 group-hover:scale-110 transition-transform">
+                            <i class='bx bx-game'></i>
+                        </div>
+                        <h3 class="text-xl font-bold mb-3">LemGames</h3>
+                        <p class="text-gray-400 text-sm leading-relaxed">Immersive entertainment experiences for everyone.</p>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- SOFTWARE PAGE -->
+        <div v-if="currentpage === 'software'" class="py-20 px-6 max-w-7xl mx-auto animate-fade-in">
+            <h2 class="text-4xl font-bold mb-12 text-center">Our Software Suite</h2>
+            
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Card: LemHand Internet -->
+                <div class="group relative overflow-hidden rounded-3xl bg-gray-900 border border-white/10 hover:border-primary/50 transition-all">
+                    <div class="h-48 bg-gradient-to-br from-blue-600 to-violet-600 flex items-center justify-center">
+                        <i class='bx bx-globe text-6xl text-white opacity-80'></i>
+                    </div>
+                    <div class="p-8">
+                        <h3 class="text-2xl font-bold mb-2">LemHand Internet</h3>
+                        <p class="text-gray-400 mb-6 text-sm">Experience the web without limits. Privacy-first browser.</p>
+                        <a href="/software/internet" class="inline-flex items-center text-primary font-medium hover:underline">
+                            Download Now <i class='bx bx-right-arrow-alt ml-1'></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Card: LemHand Draw -->
+                <div class="group relative overflow-hidden rounded-3xl bg-gray-900 border border-white/10 hover:border-red-500/50 transition-all">
+                    <div class="h-48 bg-gradient-to-br from-red-500 to-pink-600 flex items-center justify-center">
+                        <i class='bx bx-palette text-6xl text-white opacity-80'></i>
+                    </div>
+                    <div class="p-8">
+                        <h3 class="text-2xl font-bold mb-2">LemHand Draw</h3>
+                        <p class="text-gray-400 mb-6 text-sm">Eat. Sleep. Draw. Professional creative tools.</p>
+                        
+                        <div v-if="osName === 'Windows'">
+                            <a href="https://drive.google.com/drive/folders/1Sf-zlXAhgixnsCynqq0EsUE8HMdXxA7G?usp=sharing" class="inline-flex items-center text-red-500 font-medium hover:underline">
+                                Download for Windows <i class='bx bxl-windows ml-1'></i>
+                            </a>
+                        </div>
+                        <div v-else-if="osName === 'MacOS' || osName === 'iOS'">
+                             <a href="https://drive.google.com/drive/folders/1Sf-zlXAhgixnsCynqq0EsUE8HMdXxA7G?usp=sharing" class="inline-flex items-center text-red-500 font-medium hover:underline">
+                                Download for Mac <i class='bx bxl-apple ml-1'></i>
+                            </a>
+                        </div>
+                        <div v-else>
+                            <span class="inline-flex items-center text-gray-500 font-medium cursor-not-allowed">
+                                Not available for {{ osName }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card: BusTracker -->
+                <div class="group relative overflow-hidden rounded-3xl bg-gray-900 border border-white/10 hover:border-yellow-500/50 transition-all">
+                    <div class="h-48 bg-gradient-to-br from-orange-500 to-yellow-500 flex items-center justify-center">
+                        <i class='bx bx-bus text-6xl text-white opacity-80'></i>
+                    </div>
+                    <div class="p-8">
+                        <h3 class="text-2xl font-bold mb-2">BusTracker</h3>
+                        <p class="text-gray-400 mb-6 text-sm">Live bus updates and route planning made simple.</p>
+                        <a href="https://bus.lemhand.com" class="inline-flex items-center text-yellow-500 font-medium hover:underline">
+                            Launch Web App <i class='bx bx-right-arrow-alt ml-1'></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Card: LemHand Office -->
+                <div class="group relative overflow-hidden rounded-3xl bg-gray-900 border border-white/10 hover:border-amber-500/50 transition-all">
+                    <div class="h-48 bg-gradient-to-br from-amber-400 to-orange-600 flex items-center justify-center">
+                        <i class='bx bx-briefcase text-6xl text-white opacity-80'></i>
+                    </div>
+                    <div class="p-8">
+                        <h3 class="text-2xl font-bold mb-2">LemHand Office</h3>
+                        <p class="text-gray-400 mb-6 text-sm">The complete productivity suite for your business.</p>
+                        <button class="inline-flex items-center text-amber-500 font-medium hover:underline">
+                            Learn More <i class='bx bx-right-arrow-alt ml-1'></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Card: Quizzy -->
+                <div class="group relative overflow-hidden rounded-3xl bg-gray-900 border border-white/10 hover:border-purple-500/50 transition-all">
+                    <div class="h-48 bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center">
+                        <i class='bx bx-question-mark text-6xl text-white opacity-80'></i>
+                    </div>
+                    <div class="p-8">
+                        <h3 class="text-2xl font-bold mb-2">Quizzy</h3>
+                        <p class="text-gray-400 mb-6 text-sm">Test your knowledge with our online quiz platform.</p>
+                        <a href="https://quizzy-online.web.app" class="inline-flex items-center text-purple-500 font-medium hover:underline">
+                            Play Now <i class='bx bx-right-arrow-alt ml-1'></i>
+                        </a>
+                    </div>
+                </div>
+                
+                 <!-- Card: Oui U -->
+                <div class="group relative overflow-hidden rounded-3xl bg-gray-900 border border-white/10 hover:border-pink-500/50 transition-all">
+                    <div class="h-48 bg-gradient-to-br from-pink-500 to-rose-600 flex items-center justify-center">
+                        <i class='bx bx-store text-6xl text-white opacity-80'></i>
+                    </div>
+                    <div class="p-8">
+                        <h3 class="text-2xl font-bold mb-2">Oui U</h3>
+                        <p class="text-gray-400 mb-6 text-sm">Discover unique items on our marketplace.</p>
+                        <a href="https://buyouiu.web.app" class="inline-flex items-center text-pink-500 font-medium hover:underline">
+                            Shop Now <i class='bx bx-right-arrow-alt ml-1'></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Card: Dev Tools -->
+                <div class="group relative overflow-hidden rounded-3xl bg-gray-900 border border-white/10 hover:border-green-500/50 transition-all">
+                    <div class="h-48 bg-gradient-to-br from-green-500 to-emerald-700 flex items-center justify-center">
+                        <i class='bx bx-code-alt text-6xl text-white opacity-80'></i>
+                    </div>
+                    <div class="p-8">
+                        <h3 class="text-2xl font-bold mb-2">Dev Tools</h3>
+                        <p class="text-gray-400 mb-6 text-sm">Essential utilities for modern software development.</p>
+                        <a href="#" class="inline-flex items-center text-green-500 font-medium hover:underline">
+                            Coming Soon <i class='bx bx-time-five ml-1'></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- BLOG PAGE -->
+        <div v-if="currentpage === 'blog'" class="py-20 px-6 max-w-7xl mx-auto animate-fade-in">
+            
+            <!-- List View -->
+            <div v-if="blogView === 'list'">
+                <div class="flex items-end justify-between mb-12">
+                    <div>
+                        <h2 class="text-4xl font-bold mb-2">Latest Updates</h2>
+                        <p class="text-gray-400">News and insights from the LemHand team.</p>
+                    </div>
+                    <button @click="blogView = 'create'" v-if="isLoggedIn" class="px-6 py-3 rounded-full bg-primary hover:bg-green-500 text-gray-900 font-bold transition-all shadow-lg flex items-center gap-2">
+                        <i class='bx bx-plus'></i> New Post
+                    </button>
+                </div>
+
+                <div v-if="isLoadingBlogs" class="flex justify-center py-20">
+                    <div class="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+                </div>
+
+                <div v-if="!isLoadingBlogs && blogs.length === 0" class="text-center py-20 bg-white/5 rounded-3xl border border-white/10">
+                    <i class='bx bx-news text-4xl text-gray-500 mb-4'></i>
+                    <p class="text-gray-400">No blog posts found.</p>
+                </div>
+
+                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <article v-for="blog in blogs" :key="blog.id" @click="selectBlog(blog)" class="group cursor-pointer rounded-3xl bg-gray-900 border border-white/10 hover:border-primary/50 overflow-hidden transition-all hover:-translate-y-1">
+                        <div class="h-56 overflow-hidden">
+                            <img :src="blog.bannerImage || 'https://placehold.co/600x400/1f2937/fff?text=No+Image'" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt="Blog Cover">
+                        </div>
+                        <div class="p-6">
+                            <div class="flex items-center gap-3 mb-4">
+                                <img :src="blog.icon || 'https://placehold.co/40x40/10b981/fff?text=LH'" class="w-8 h-8 rounded-full bg-white/10">
+                                <span class="text-xs font-medium text-gray-400">{{ formatDate(blog.createdAt) }}</span>
+                            </div>
+                            <h3 class="text-xl font-bold mb-3 group-hover:text-primary transition-colors line-clamp-2">{{ blog.title }}</h3>
+                            <p class="text-gray-400 text-sm line-clamp-3 mb-4">{{ blog.description }}</p>
+                            <span class="text-primary text-sm font-medium flex items-center gap-1 group-hover:gap-2 transition-all">
+                                Read Article <i class='bx bx-right-arrow-alt'></i>
+                            </span>
+                        </div>
+                    </article>
+                </div>
+            </div>
+
+            <!-- Create View -->
+            <div v-if="blogView === 'create'" class="max-w-2xl mx-auto">
+                <button @click="cancelCreate" class="mb-8 text-gray-400 hover:text-white flex items-center gap-2 transition-colors">
+                    <i class='bx bx-arrow-back'></i> Back to News
+                </button>
+                
+                <div class="bg-gray-900 border border-white/10 rounded-3xl p-8">
+                    <h2 class="text-2xl font-bold mb-6">Create New Post</h2>
+                    
+                    <div class="space-y-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-400 mb-2">Title</label>
+                            <input v-model="newBlog.title" type="text" class="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-primary text-white transition-colors" placeholder="Enter post title...">
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-400 mb-2">Banner Image URL</label>
+                                <input v-model="newBlog.bannerImage" type="text" class="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-primary text-white transition-colors" placeholder="https://...">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-400 mb-2">Icon URL</label>
+                                <input v-model="newBlog.icon" type="text" class="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-primary text-white transition-colors" placeholder="https://...">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-400 mb-2">Description (Snippet)</label>
+                            <textarea v-model="newBlog.description" rows="2" class="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-primary text-white transition-colors" placeholder="Short summary..."></textarea>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-400 mb-2">Main Content</label>
+                            <textarea v-model="newBlog.mainText" rows="10" class="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-primary text-white transition-colors" placeholder="Write your story..."></textarea>
+                        </div>
+
+                        <div v-if="blogError" class="text-red-500 text-sm">{{ blogError }}</div>
+
+                        <div class="flex items-center gap-4 pt-4">
+                            <button @click="saveBlog" :disabled="isSavingBlog" class="flex-1 bg-primary hover:bg-green-500 text-gray-900 font-bold py-3 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                                {{ isSavingBlog ? 'Publishing...' : 'Publish Post' }}
+                            </button>
+                            <button @click="cancelCreate" class="px-6 py-3 rounded-xl border border-white/10 hover:bg-white/5 text-white font-medium transition-colors">
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Single View -->
+            <div v-if="blogView === 'single' && selectedBlog" class="max-w-4xl mx-auto">
+                <button @click="blogView = 'list'; selectedBlog = null" class="mb-8 px-4 py-2 rounded-full bg-white/5 hover:bg-white/10 text-white flex items-center gap-2 transition-all w-fit">
+                    <i class='bx bx-arrow-back'></i> Back to News
+                </button>
+
+                <article class="bg-gray-900/50 rounded-3xl overflow-hidden border border-white/5">
+                    <img :src="selectedBlog.bannerImage || 'https://placehold.co/1280x720/1f2937/fff?text=Article'" class="w-full h-[400px] object-cover">
+                    
+                    <div class="p-8 md:p-12">
+                        <div class="flex items-center gap-4 mb-6">
+                            <img :src="selectedBlog.icon || 'https://placehold.co/40x40/10b981/fff?text=LH'" class="w-10 h-10 rounded-full bg-white/10">
+                            <div>
+                                <h4 class="font-bold text-white">LemHand Team</h4>
+                                <p class="text-xs text-gray-400">{{ formatDate(selectedBlog.createdAt) }}</p>
+                            </div>
+                        </div>
+
+                        <h1 class="text-3xl md:text-5xl font-bold mb-8 leading-tight">{{ selectedBlog.title }}</h1>
+                        
+                        <div class="prose prose-invert prose-lg max-w-none text-gray-300">
+                            <p class="whitespace-pre-wrap">{{ selectedBlog.mainText }}</p>
+                        </div>
+                    </div>
+                </article>
+            </div>
+
+        </div>
+
+        <!-- EMPLOYEE LOGIN (Legacy Support) -->
+        <div v-if="currentpage === 'lemhandemployees'" class="min-h-screen flex items-center justify-center p-6">
+             <div class="w-full max-w-md bg-gray-900 border border-white/10 rounded-3xl p-8">
+                <h2 class="text-2xl font-bold mb-2">Employee Access</h2>
+                <p class="text-gray-400 mb-6 text-sm">Restricted area for authorized personnel only.</p>
+                
+                <div class="space-y-4">
+                    <input v-model="lheName" type="text" class="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-primary focus:outline-none" placeholder="Username">
+                    <input v-model="lheCodeInput" type="password" class="w-full bg-black/20 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-primary focus:outline-none" placeholder="Access Code">
+                    
+                    <p v-if="lheErrorMessage" class="text-red-500 text-xs">Invalid credentials.</p>
+                    
+                    <button @click="lheLogin()" class="w-full bg-primary hover:bg-green-500 text-gray-900 font-bold py-3 rounded-xl transition-all">Authenticate</button>
+                </div>
+             </div>
+        </div>
+
+    </main>
+
+    <!-- Login Modal -->
+    <div v-if="loginModalOpen" class="fixed inset-0 z-[100] flex items-center justify-center px-4 animate-fade-in">
+        <!-- Backdrop -->
+        <div @click="closeLoginModal" class="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity"></div>
+        
+        <!-- Modal Content -->
+        <div class="relative w-full max-w-md bg-[#0f1521] border border-white/10 rounded-3xl p-8 shadow-2xl transform transition-all scale-100">
+            <button @click="closeLoginModal" class="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors">
+                <i class='bx bx-x text-2xl'></i>
+            </button>
+
+            <div class="text-center mb-8">
+                <h2 class="text-3xl font-bold mb-2">{{ authMode === 'login' ? 'Welcome Back' : 'Create Account' }}</h2>
+                <p class="text-gray-400 text-sm">
+                    {{ authMode === 'login' ? 'Enter your details to sign in.' : 'Join LemHand to get started.' }}
+                </p>
+            </div>
+
+            <form @submit.prevent="handleAuth" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-400 mb-2">Email Address</label>
+                    <div class="relative">
+                        <i class='bx bx-envelope absolute left-4 top-1/2 -translate-y-1/2 text-gray-500'></i>
+                        <input v-model="authEmail" type="email" required class="w-full bg-black/20 border border-white/10 rounded-xl pl-12 pr-4 py-3 text-white focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary transition-all placeholder-gray-600" placeholder="name@example.com">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-400 mb-2">Password</label>
+                    <div class="relative">
+                        <i class='bx bx-lock-alt absolute left-4 top-1/2 -translate-y-1/2 text-gray-500'></i>
+                        <input v-model="authPassword" type="password" required class="w-full bg-black/20 border border-white/10 rounded-xl pl-12 pr-4 py-3 text-white focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary transition-all placeholder-gray-600" placeholder="••••••••">
+                    </div>
+                </div>
+
+                <div v-if="authError" class="p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm text-center">
+                    {{ authError }}
+                </div>
+
+                <button type="submit" :disabled="authLoading" class="w-full py-3.5 rounded-xl bg-primary hover:bg-green-500 text-gray-900 font-bold text-lg transition-all shadow-[0_0_20px_rgba(16,185,129,0.2)] hover:shadow-[0_0_25px_rgba(16,185,129,0.4)] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+                    <i v-if="authLoading" class='bx bx-loader-alt animate-spin'></i>
+                    {{ authLoading ? 'Please wait...' : (authMode === 'login' ? 'Sign In' : 'Sign Up') }}
+                </button>
+            </form>
+
+            <div class="relative my-6">
+                <div class="absolute inset-0 flex items-center">
+                    <div class="w-full border-t border-white/10"></div>
+                </div>
+                <div class="relative flex justify-center text-sm">
+                    <span class="px-2 bg-[#0f1521] text-gray-500">Or continue with</span>
+                </div>
+            </div>
+
+            <button @click="loginWithGoogle" :disabled="authLoading" class="w-full py-3 rounded-xl bg-white text-gray-900 font-bold transition-all hover:bg-gray-200 flex items-center justify-center gap-2 mb-4">
+                <img src="https://www.svgrepo.com/show/475656/google-color.svg" class="w-5 h-5" alt="Google">
+                Google
+            </button>
+
+            <div class="mt-6 text-center">
+                <p class="text-gray-400 text-sm">
+                    {{ authMode === 'login' ? "Don't have an account?" : "Already have an account?" }}
+                    <button @click="toggleAuthMode" class="text-primary hover:text-green-400 font-medium ml-1 transition-colors">
+                        {{ authMode === 'login' ? 'Sign Up' : 'Log In' }}
+                    </button>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="border-t border-white/10 py-12 mt-20 bg-black/20">
+        <div class="max-w-7xl mx-auto px-6 text-center">
+            <h2 class="text-2xl font-bold mb-4 tracking-tighter">Lem<span class="text-primary">Hand</span></h2>
+            <div class="flex justify-center space-x-6 mb-8 text-gray-400">
+                <a href="#" class="hover:text-primary transition-colors">About</a>
+                <a href="#" class="hover:text-primary transition-colors">Privacy</a>
+                <a href="#" class="hover:text-primary transition-colors">Terms</a>
+                <a href="#" class="hover:text-primary transition-colors">Contact</a>
+            </div>
+            <p class="text-gray-600 text-sm">© 2026 LemHand. All rights reserved.</p>
+        </div>
+    </footer>
+
+</body>
 </html>
