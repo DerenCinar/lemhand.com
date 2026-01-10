@@ -204,6 +204,13 @@ const app = Vue.createApp({
                 this.blogError = "You must be logged in to post.";
                 return;
             }
+            // Check for LemHand Employee Email
+            const userEmail = auth.currentUser.email;
+            if (!userEmail || !userEmail.endsWith('@lemhand.com')) {
+                this.blogError = "Only LemHand employees can post blogs.";
+                return;
+            }
+
             if (!this.newBlog.title || !this.newBlog.mainText) {
                 this.blogError = "Title and Main Content are required.";
                 setTimeout(() => this.blogError = '', 3000);
