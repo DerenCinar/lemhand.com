@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LemHand LemLearn | Interactive Participation</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="bg-slate-50 font-sans text-slate-800 overflow-x-hidden">
+
+  <!-- Navigation -->
+  <nav class="fixed w-full bg-white/80 backdrop-blur-md z-50 border-b border-slate-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between items-center h-16">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-full bg-green-500 border-2 border-green-700 flex items-center justify-center">
+            <div class="w-3 h-3 bg-white rounded-full"></div>
+          </div>
+          <span class="text-2xl font-extrabold tracking-tight text-slate-900">
+            LemHand <span class="text-green-500">LemLearn</span>
+          </span>
+        </div>
+        
+        <!-- Desktop Nav -->
+        <div class="hidden md:flex items-center space-x-8">
+          <a href="#how-it-works" class="text-slate-600 hover:text-green-600 transition-colors font-medium">How it Works</a>
+          <a href="#demo" class="text-slate-600 hover:text-green-600 transition-colors font-medium">Demo</a>
+          <a href="#specs" class="text-slate-600 hover:text-green-600 transition-colors font-medium">The Kit</a>
+          <a href="#features" class="text-slate-600 hover:text-green-600 transition-colors font-medium">Features</a>
+          <a href="#faq" class="text-slate-600 hover:text-green-600 transition-colors font-medium">FAQ</a>
+          <a href="#customization" class="bg-slate-900 text-white px-5 py-2 rounded-full font-medium hover:bg-green-500 transition-all duration-300 shadow-md inline-block">
+            Order for your School
+          </a>
+        </div>
+
+        <!-- Mobile menu button -->
+        <div class="md:hidden flex items-center">
+          <button id="mobile-menu-btn" class="text-slate-600 hover:text-slate-900 focus:outline-none">
+            <i data-lucide="menu" id="menu-icon-open" class="h-6 w-6"></i>
+            <i data-lucide="x" id="menu-icon-close" class="h-6 w-6 hidden"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mobile Nav -->
+    <div id="mobile-menu" class="hidden md:hidden bg-white border-t border-slate-100 px-2 pt-2 pb-3 space-y-1 sm:px-3 shadow-lg">
+      <a href="#how-it-works" class="block px-3 py-2 text-base font-medium text-slate-700 hover:text-green-600 hover:bg-slate-50 rounded-md">How it Works</a>
+      <a href="#demo" class="block px-3 py-2 text-base font-medium text-slate-700 hover:text-green-600 hover:bg-slate-50 rounded-md">Demo</a>
+      <a href="#specs" class="block px-3 py-2 text-base font-medium text-slate-700 hover:text-green-600 hover:bg-slate-50 rounded-md">The Kit</a>
+      <a href="#features" class="block px-3 py-2 text-base font-medium text-slate-700 hover:text-green-600 hover:bg-slate-50 rounded-md">Features</a>
+      <a href="#faq" class="block px-3 py-2 text-base font-medium text-slate-700 hover:text-green-600 hover:bg-slate-50 rounded-md">FAQ</a>
+      <a href="#customization" class="block w-full text-center mt-4 bg-green-500 text-white px-4 py-3 rounded-md font-medium hover:bg-green-600 transition-colors">
+        Order for your School
+      </a>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <section class="pt-32 pb-20 lg:pt-40 lg:pb-28 overflow-hidden">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+      <div class="lg:grid lg:grid-cols-12 lg:gap-16 items-center">
+        
+        <!-- Hero Text -->
+        <div class="lg:col-span-6 text-center lg:text-left mb-16 lg:mb-0 z-10 relative">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-green-100 text-green-700 text-sm font-semibold mb-6">
+            <span class="flex h-2 w-2 rounded-full bg-green-500"></span>
+            Now available for classrooms nationwide
+          </div>
+          <h1 class="text-5xl lg:text-6xl font-extrabold text-slate-900 leading-tight mb-6">
+            Make Every <br class="hidden lg:block" />
+            <span class="text-transparent bg-clip-text bg-gradient-to-r from-green-500 to-emerald-600">
+              Student's Voice Count
+            </span>
+          </h1>
+          <p class="text-xl text-slate-600 mb-8 max-w-2xl mx-auto lg:mx-0 leading-relaxed">
+            LemHand LemLearn is the tactile, visual participation counter designed to gamify learning, encourage shy students, and bring a fun, tangible reward system to modern education.
+          </p>
+          <div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+            <button class="bg-green-500 text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-green-600 hover:shadow-lg hover:shadow-green-500/30 transition-all duration-300 flex items-center justify-center gap-2 transform hover:-translate-y-1">
+              Get a Quote
+              <i data-lucide="chevron-right" class="w-5 h-5"></i>
+            </button>
+            <button class="bg-white text-slate-700 border border-slate-200 px-8 py-4 rounded-full font-bold text-lg hover:bg-slate-50 transition-colors flex items-center justify-center">
+              Watch Demo
+            </button>
+          </div>
+        </div>
+
+        <!-- Hero Visual Mockup (Recreated from 3D Model) -->
+        <div class="lg:col-span-6 relative flex justify-center lg:justify-end perspective-1000">
+          <div class="absolute inset-0 bg-gradient-to-tr from-green-100 to-transparent rounded-full blur-3xl opacity-50 -z-10 transform scale-150 translate-x-10"></div>
+          
+          <div class="flex items-end justify-center gap-6 sm:gap-12 p-8 bg-white/40 backdrop-blur-sm rounded-3xl border border-white/60 shadow-2xl relative z-10 transform rotate-1 hover:rotate-0 transition-transform duration-500">
+            
+            <!-- 3D Tower Mockup -->
+            <div class="w-24 sm:w-32 h-80 sm:h-96 bg-slate-600 rounded-sm shadow-[20px_20px_60px_#d1d5db,-20px_-20px_60px_#ffffff] border-x-4 border-t-4 border-slate-500 flex flex-col items-center justify-between py-4 relative z-20">
+                <!-- Slot / Track -->
+                <div class="w-14 sm:w-20 h-60 sm:h-72 bg-slate-800 rounded-sm shadow-inner border border-slate-900 flex flex-col-reverse gap-1 overflow-hidden relative items-center p-1">
+                  <!-- Circular Coins in the track (Connect 4 style) -->
+                  <div class="w-12 h-12 sm:w-16 sm:h-16 shrink-0 rounded-full bg-green-500 border-4 border-slate-700 shadow-[inset_0_-4px_6px_rgba(0,0,0,0.3)] flex items-center justify-center">
+                    <span class="text-slate-800 opacity-60 transform -rotate-45 font-bold text-lg sm:text-2xl">/%</span>
+                  </div>
+                  <div class="w-12 h-12 sm:w-16 sm:h-16 shrink-0 rounded-full bg-green-500 border-4 border-slate-700 shadow-[inset_0_-4px_6px_rgba(0,0,0,0.3)] flex items-center justify-center">
+                    <span class="text-slate-800 opacity-60 transform -rotate-45 font-bold text-lg sm:text-2xl">/%</span>
+                  </div>
+                  <div class="w-12 h-12 sm:w-16 sm:h-16 shrink-0 rounded-full bg-green-500 border-4 border-slate-700 shadow-[inset_0_-4px_6px_rgba(0,0,0,0.3)] flex items-center justify-center">
+                    <span class="text-slate-800 opacity-60 transform -rotate-45 font-bold text-lg sm:text-2xl">/%</span>
+                  </div>
+                  <div class="w-12 h-12 sm:w-16 sm:h-16 shrink-0 rounded-full bg-green-500 border-4 border-slate-700 shadow-[inset_0_-4px_6px_rgba(0,0,0,0.3)] flex items-center justify-center">
+                    <span class="text-slate-800 opacity-60 transform -rotate-45 font-bold text-lg sm:text-2xl">/%</span>
+                  </div>
+                  <div class="w-12 h-12 sm:w-16 sm:h-16 shrink-0 rounded-full bg-green-500 border-4 border-slate-700 shadow-[inset_0_-4px_6px_rgba(0,0,0,0.3)] flex items-center justify-center">
+                    <span class="text-slate-800 opacity-60 transform -rotate-45 font-bold text-lg sm:text-2xl">/%</span>
+                  </div>
+                  
+                  <!-- Falling coin animation dummy -->
+                  <div class="w-12 h-12 sm:w-16 sm:h-16 shrink-0 rounded-full bg-green-400 border-4 border-slate-600 shadow-[inset_0_-4px_6px_rgba(0,0,0,0.3)] absolute top-2 animate-bounce flex items-center justify-center z-10">
+                      <span class="text-slate-800 opacity-60 transform -rotate-45 font-bold text-lg sm:text-2xl">/%</span>
+                  </div>
+                </div>
+                <!-- Base Logo Area -->
+                <div class="w-10/12 mt-2 border border-slate-800 bg-slate-800/80 rounded py-1 flex items-center justify-center shadow-inner overflow-hidden">
+                  <span id="hero-custom-text" class="text-red-500 font-extrabold tracking-widest text-sm sm:text-lg drop-shadow-md font-serif truncate px-1">YMCA</span>
+                </div>
+            </div>
+
+            <!-- Stack of Tokens Mockup -->
+            <div class="flex flex-col gap-1 sm:gap-2 mb-8 sm:mb-12 relative z-10 transform -rotate-6 hover:rotate-0 transition-transform duration-300">
+              <div class="flex justify-center gap-1 sm:gap-2">
+                <div class="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-green-500 border-4 border-slate-700 shadow-[inset_0_-4px_6px_rgba(0,0,0,0.3)] flex items-center justify-center transform hover:scale-110 transition-transform cursor-pointer">
+                    <span class="text-slate-800 opacity-60 transform -rotate-45 font-bold text-lg sm:text-2xl">/%</span>
+                </div>
+                <div class="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-green-500 border-4 border-slate-700 shadow-[inset_0_-4px_6px_rgba(0,0,0,0.3)] flex items-center justify-center transform hover:scale-110 transition-transform cursor-pointer">
+                    <span class="text-slate-800 opacity-60 transform -rotate-45 font-bold text-lg sm:text-2xl">/%</span>
+                </div>
+              </div>
+              <div class="flex justify-center gap-1 sm:gap-2">
+                  <div class="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-green-500 border-4 border-slate-700 shadow-[inset_0_-4px_6px_rgba(0,0,0,0.3)] flex items-center justify-center transform hover:scale-110 transition-transform cursor-pointer">
+                    <span class="text-slate-800 opacity-60 transform -rotate-45 font-bold text-lg sm:text-2xl">/%</span>
+                </div>
+                  <div class="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-green-500 border-4 border-slate-700 shadow-[inset_0_-4px_6px_rgba(0,0,0,0.3)] flex items-center justify-center transform hover:scale-110 transition-transform cursor-pointer">
+                    <span class="text-slate-800 opacity-60 transform -rotate-45 font-bold text-lg sm:text-2xl">/%</span>
+                </div>
+              </div>
+                <div class="flex justify-center gap-1 sm:gap-2">
+                  <div class="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-green-500 border-4 border-slate-700 shadow-[inset_0_-4px_6px_rgba(0,0,0,0.3)] flex items-center justify-center transform hover:scale-110 transition-transform cursor-pointer">
+                    <span class="text-slate-800 opacity-60 transform -rotate-45 font-bold text-lg sm:text-2xl">/%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- How It Works -->
+  <section id="how-it-works" class="py-20 bg-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-16">
+        <h2 class="text-3xl lg:text-4xl font-bold text-slate-900 mb-4">A simple concept with massive impact</h2>
+        <p class="text-lg text-slate-600 max-w-2xl mx-auto">Foster a competitive yet collaborative environment where students are eager to participate and fill up their classroom's tower.</p>
+      </div>
+
+      <div class="grid md:grid-cols-3 gap-12 relative">
+        <!-- Connecting line for desktop -->
+        <div class="hidden md:block absolute top-12 left-1/6 right-1/6 h-0.5 bg-slate-100 -z-10"></div>
+        
+        <div class="text-center relative">
+          <div class="w-24 h-24 mx-auto bg-green-50 rounded-2xl flex items-center justify-center mb-6 shadow-sm border border-green-100 transform rotate-3">
+            <i data-lucide="coins" class="w-10 h-10 text-green-500"></i>
+          </div>
+          <div class="absolute top-0 right-1/4 -mt-2 -mr-2 w-8 h-8 bg-slate-900 text-white rounded-full flex items-center justify-center font-bold border-4 border-white">1</div>
+          <h3 class="text-xl font-bold text-slate-900 mb-3">Distribute Tokens</h3>
+          <p class="text-slate-600 leading-relaxed">Give out the vibrant green tokens at the start of class, or award them as students answer questions correctly.</p>
+        </div>
+
+        <div class="text-center relative">
+          <div class="w-24 h-24 mx-auto bg-green-50 rounded-2xl flex items-center justify-center mb-6 shadow-sm border border-green-100 -transform rotate-3">
+            <i data-lucide="users" class="w-10 h-10 text-green-500"></i>
+          </div>
+          <div class="absolute top-0 right-1/4 -mt-2 -mr-2 w-8 h-8 bg-slate-900 text-white rounded-full flex items-center justify-center font-bold border-4 border-white">2</div>
+          <h3 class="text-xl font-bold text-slate-900 mb-3">Engage & Learn</h3>
+          <p class="text-slate-600 leading-relaxed">Students physically hold a representation of their potential contribution, keeping them focused and eager.</p>
+        </div>
+
+        <div class="text-center relative">
+          <div class="w-24 h-24 mx-auto bg-green-50 rounded-2xl flex items-center justify-center mb-6 shadow-sm border border-green-100 transform rotate-3">
+            <i data-lucide="target" class="w-10 h-10 text-green-500"></i>
+          </div>
+          <div class="absolute top-0 right-1/4 -mt-2 -mr-2 w-8 h-8 bg-slate-900 text-white rounded-full flex items-center justify-center font-bold border-4 border-white">3</div>
+          <h3 class="text-xl font-bold text-slate-900 mb-3">Drop & Celebrate</h3>
+          <p class="text-slate-600 leading-relaxed">At the end of the lesson, students drop their earned tokens into the LemHand tower to track collective progress.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Video Demo Section -->
+  <section id="demo" class="py-20 bg-slate-50 border-y border-slate-200">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <h2 class="text-3xl lg:text-4xl font-bold text-slate-900 mb-6">See LemLearn in Action</h2>
+      <p class="text-lg text-slate-600 mb-10 max-w-2xl mx-auto">Watch how easy it is to integrate this tangible reward system into your daily teaching routine.</p>
+      
+      <div class="relative rounded-2xl overflow-hidden shadow-2xl bg-slate-900 aspect-video flex items-center justify-center group cursor-pointer border-4 border-white max-h-[600px]">
+        <div class="absolute inset-0 bg-gradient-to-tr from-green-500/20 to-slate-900/50 mix-blend-multiply"></div>
+        <img src="https://images.unsplash.com/photo-1580894732444-8ecded790047?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80" alt="Classroom demo" class="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-40 transition-opacity duration-300" />
+        <div class="relative z-10 w-20 h-20 bg-green-500 rounded-full flex items-center justify-center shadow-lg transform group-hover:scale-110 transition-transform duration-300">
+          <i data-lucide="play" class="w-8 h-8 text-white ml-1"></i>
+        </div>
+      </div>
+      <p class="text-sm text-slate-500 mt-4">*Demo video placeholder. Clicking would open a lightbox video player.*</p>
+    </div>
+  </section>
+
+  <!-- The Base Kit & 3D Printing Specs -->
+  <section id="specs" class="py-20 bg-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="lg:grid lg:grid-cols-2 gap-16 items-center">
+        <!-- Visual -->
+        <div class="mb-12 lg:mb-0 relative">
+          <div class="absolute inset-0 bg-green-100 rounded-full blur-3xl opacity-50 transform -translate-x-10"></div>
+          <div class="bg-slate-50 border border-slate-200 rounded-3xl p-8 relative z-10 shadow-lg">
+            <h3 class="text-2xl font-bold text-slate-900 mb-6 border-b border-slate-200 pb-4">What's in the Base Kit?</h3>
+            <ul class="space-y-4 mb-8">
+              <li class="flex items-center gap-4 bg-white p-4 rounded-xl shadow-sm border border-slate-100">
+                <div class="bg-slate-100 p-2 rounded-lg"><i data-lucide="box" class="w-6 h-6 text-slate-700"></i></div>
+                <div>
+                  <div class="font-bold text-slate-900">1x Main Tower</div>
+                  <div class="text-sm text-slate-500">Precision printed drop-track</div>
+                </div>
+              </li>
+              <li class="flex items-center gap-4 bg-white p-4 rounded-xl shadow-sm border border-slate-100">
+                <div class="bg-slate-100 p-2 rounded-lg"><i data-lucide="type" class="w-6 h-6 text-slate-700"></i></div>
+                <div>
+                  <div class="font-bold text-slate-900">1x Custom Base</div>
+                  <div class="text-sm text-slate-500">Your school/mascot text included</div>
+                </div>
+              </li>
+              <li class="flex items-center gap-4 bg-white p-4 rounded-xl shadow-sm border border-slate-100">
+                <div class="bg-green-100 p-2 rounded-lg"><i data-lucide="coins" class="w-6 h-6 text-green-600"></i></div>
+                <div>
+                  <div class="font-bold text-slate-900">30x LemLearn Tokens</div>
+                  <div class="text-sm text-slate-500">High-visibility green, durable</div>
+                </div>
+              </li>
+            </ul>
+          </div>
+        </div>
+        
+        <!-- Text -->
+        <div>
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-100 text-slate-700 text-sm font-semibold mb-6">
+            <i data-lucide="printer" class="w-4 h-4"></i>
+            Premium 3D Printed Manufacturing
+          </div>
+          <h2 class="text-3xl lg:text-4xl font-bold text-slate-900 mb-6">Engineered for the modern classroom</h2>
+          <p class="text-lg text-slate-600 mb-6 leading-relaxed">
+            Every LemHand LemLearn device is proudly manufactured using advanced 3D printing technology. This allows us to rapidly customize the base with your school's unique branding while maintaining incredible structural integrity.
+          </p>
+          <div class="grid sm:grid-cols-2 gap-6 mt-8">
+            <div>
+              <h4 class="font-bold text-slate-900 mb-2 flex items-center gap-2"><i data-lucide="leaf" class="w-5 h-5 text-green-500"></i> Eco-Friendly PLA</h4>
+              <p class="text-sm text-slate-600">Constructed from durable, plant-based polylactic acid plastic that is safe for classrooms.</p>
+            </div>
+            <div>
+              <h4 class="font-bold text-slate-900 mb-2 flex items-center gap-2"><i data-lucide="hammer" class="w-5 h-5 text-green-500"></i> Drop-Resistant</h4>
+              <p class="text-sm text-slate-600">High-infill printing guarantees the tower withstands knocks, drops, and energetic students.</p>
+            </div>
+            <div>
+              <h4 class="font-bold text-slate-900 mb-2 flex items-center gap-2"><i data-lucide="paintbrush" class="w-5 h-5 text-green-500"></i> Zero-Paint Finish</h4>
+              <p class="text-sm text-slate-600">Colors are inherent to the plastic itself, meaning no chipping, peeling, or fading over time.</p>
+            </div>
+            <div>
+              <h4 class="font-bold text-slate-900 mb-2 flex items-center gap-2"><i data-lucide="ruler" class="w-5 h-5 text-green-500"></i> Perfect Dimensions</h4>
+              <p class="text-sm text-slate-600">Stands at an ideal height for visibility from the back of the room without cluttering your desk.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features & Customization -->
+  <section id="features" class="py-20 bg-slate-900 text-white">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="lg:grid lg:grid-cols-2 gap-16 items-center">
+        
+        <div class="mb-12 lg:mb-0">
+          <h2 class="text-3xl lg:text-4xl font-bold mb-6">Built for the modern educator</h2>
+          <p class="text-slate-400 text-lg mb-8 leading-relaxed">
+            We designed LemHand LemLearn to be durable enough for daily classroom use, while remaining sleek enough to look great on any teacher's desk.
+          </p>
+          
+          <ul class="space-y-6">
+            <li class="flex items-start gap-4">
+              <div class="mt-1 bg-green-500/20 p-1 rounded-full">
+                <i data-lucide="check-circle" class="w-6 h-6 text-green-400"></i>
+              </div>
+              <div>
+                <h4 class="text-xl font-semibold mb-1">Tangible Gamification</h4>
+                <p class="text-slate-400">Moves away from purely digital points to something students can physically hold and interact with.</p>
+              </div>
+            </li>
+            <li class="flex items-start gap-4">
+              <div class="mt-1 bg-green-500/20 p-1 rounded-full">
+                <i data-lucide="check-circle" class="w-6 h-6 text-green-400"></i>
+              </div>
+              <div>
+                <h4 class="text-xl font-semibold mb-1">Visual Progress Tracking</h4>
+                <p class="text-slate-400">The clear display slot allows the whole class to see their collective participation grow in real-time.</p>
+              </div>
+            </li>
+            <li class="flex items-start gap-4">
+              <div class="mt-1 bg-green-500/20 p-1 rounded-full">
+                <i data-lucide="shield-check" class="w-6 h-6 text-green-400"></i>
+              </div>
+              <div>
+                <h4 class="text-xl font-semibold mb-1">Durable Construction</h4>
+                <p class="text-slate-400">Thick, sturdy materials ensure the tower and tokens survive accidental drops and enthusiastic students.</p>
+              </div>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Customization & Order Box -->
+        <div id="customization" class="bg-slate-800 rounded-3xl p-8 lg:p-12 border border-slate-700 shadow-2xl relative overflow-hidden scroll-mt-24">
+          <div class="absolute top-0 right-0 w-64 h-64 bg-green-500 opacity-10 blur-3xl rounded-full pointer-events-none"></div>
+          
+          <!-- Success State (Hidden initially) -->
+          <div id="order-success-container" class="hidden text-center py-8 relative z-10">
+            <div class="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg shadow-green-500/30">
+              <i data-lucide="check-circle" class="w-10 h-10 text-white"></i>
+            </div>
+            <h3 class="text-3xl font-bold text-white mb-4">Order Received!</h3>
+            <p class="text-slate-300 mb-8">
+              Thank you for your order of <span id="success-quantity">1</span>x <span id="success-product-name" class="font-bold text-white">Starter Kit</span> <span id="success-custom-text-wrapper">customized with "<span id="success-custom-text">YMCA</span>"</span>. We'll be in touch soon.
+            </p>
+            <button id="btn-order-another" class="bg-slate-700 text-white px-8 py-3 rounded-xl font-bold hover:bg-slate-600 transition-colors">
+              Order Another
+            </button>
+          </div>
+
+          <!-- Form State -->
+          <div id="order-form-container" class="relative z-10">
+            <h3 class="text-2xl font-bold mb-4 flex items-center gap-3">
+              <span class="bg-green-500 text-slate-900 px-3 py-1 text-sm rounded-full font-bold uppercase tracking-wider">Order Now</span>
+              Build Your Order
+            </h3>
+            <p class="text-slate-300 mb-8">
+              Choose your kit and enter your school's acronym or mascot text (max 6 letters) to see a live preview.
+            </p>
+            
+            <div class="grid sm:grid-cols-2 gap-8 items-start">
+              <!-- Controls -->
+              <div class="space-y-5">
+                <div>
+                  <label class="block text-sm font-medium text-slate-300 mb-2">Select Product</label>
+                  <select id="product-select" class="w-full bg-slate-900 border border-slate-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-green-500 transition-colors">
+                    <option value="base_kit">Starter Kit (Tower, Base, 30 Tokens) - $49</option>
+                    <option value="individual">Individual Tower & Base (No Tokens) - $3</option>
+                    <option value="tokens">Extra Tokens (Pack of 30) - $15</option>
+                  </select>
+                </div>
+
+                <div id="engraving-container" class="transition-opacity duration-300">
+                  <label class="block text-sm font-medium text-slate-300 mb-2">Base Engraving</label>
+                  <input
+                    type="text"
+                    id="custom-text-input"
+                    maxlength="6"
+                    value="YMCA"
+                    class="w-full bg-slate-900 border border-slate-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500 transition-colors font-serif tracking-widest uppercase disabled:opacity-50 disabled:cursor-not-allowed"
+                    placeholder="e.g. YMCA"
+                  />
+                </div>
+                
+                <div>
+                  <label class="block text-sm font-medium text-slate-300 mb-2">Quantity</label>
+                  <div class="flex items-center gap-4 bg-slate-900 border border-slate-600 rounded-xl p-1 w-fit">
+                    <button id="btn-minus" class="w-10 h-10 flex items-center justify-center text-slate-300 hover:text-white hover:bg-slate-800 rounded-lg transition-colors focus:outline-none">-</button>
+                    <span id="quantity-display" class="w-8 text-center font-bold text-lg">1</span>
+                    <button id="btn-plus" class="w-10 h-10 flex items-center justify-center text-slate-300 hover:text-white hover:bg-slate-800 rounded-lg transition-colors focus:outline-none">+</button>
+                  </div>
+                </div>
+
+                <div class="pt-4 border-t border-slate-700 mt-6">
+                  <div class="flex justify-between items-end mb-6">
+                    <span class="text-slate-300">Total Price:</span>
+                    <span id="total-price" class="text-3xl font-bold text-green-400">$49</span>
+                  </div>
+                  <button 
+                    id="btn-order"
+                    class="w-full bg-green-500 text-slate-900 py-4 rounded-xl font-bold text-lg hover:bg-green-400 transition-colors flex justify-center items-center disabled:opacity-70 disabled:cursor-not-allowed"
+                  >
+                    Place Order Now
+                  </button>
+                </div>
+              </div>
+
+              <!-- Live Preview -->
+              <div class="bg-slate-900 rounded-xl p-6 border border-slate-700 flex flex-col items-center justify-center h-full min-h-[200px]">
+                <div class="text-xs text-slate-500 uppercase tracking-widest mb-4">Live Engraving Preview</div>
+                <div class="w-full max-w-[200px] border-2 border-dashed border-slate-600 rounded px-4 py-3 bg-slate-800 flex justify-center overflow-hidden">
+                  <span id="order-custom-text" class="text-red-500 font-serif font-bold text-3xl tracking-widest drop-shadow-md truncate">YMCA</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- Testimonials -->
+  <section class="py-20 bg-slate-50 border-b border-slate-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-16">
+        <h2 class="text-3xl lg:text-4xl font-bold text-slate-900 mb-4">Loved by educators everywhere</h2>
+        <p class="text-lg text-slate-600 max-w-2xl mx-auto">See how LemHand LemLearn is changing classroom dynamics.</p>
+      </div>
+      <div class="grid md:grid-cols-3 gap-8">
+        <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-between">
+          <div>
+            <div class="flex text-yellow-400 mb-4">
+              <i data-lucide="star" class="w-5 h-5 fill-current"></i><i data-lucide="star" class="w-5 h-5 fill-current"></i><i data-lucide="star" class="w-5 h-5 fill-current"></i><i data-lucide="star" class="w-5 h-5 fill-current"></i><i data-lucide="star" class="w-5 h-5 fill-current"></i>
+            </div>
+            <p class="text-slate-600 mb-6 italic">"My 4th graders are obsessed with filling the tower. It completely changed the dynamic for my shy students—they actively look for ways to earn a green token now!"</p>
+          </div>
+          <div class="font-bold text-slate-900">- Sarah J., 4th Grade Teacher</div>
+        </div>
+        <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-between">
+          <div>
+            <div class="flex text-yellow-400 mb-4">
+              <i data-lucide="star" class="w-5 h-5 fill-current"></i><i data-lucide="star" class="w-5 h-5 fill-current"></i><i data-lucide="star" class="w-5 h-5 fill-current"></i><i data-lucide="star" class="w-5 h-5 fill-current"></i><i data-lucide="star" class="w-5 h-5 fill-current"></i>
+            </div>
+            <p class="text-slate-600 mb-6 italic">"Having our school mascot printed right on the base adds such a nice, professional touch. The 3D print quality is remarkably solid."</p>
+          </div>
+          <div class="font-bold text-slate-900">- Mark T., Middle School Principal</div>
+        </div>
+        <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-between">
+          <div>
+            <div class="flex text-yellow-400 mb-4">
+              <i data-lucide="star" class="w-5 h-5 fill-current"></i><i data-lucide="star" class="w-5 h-5 fill-current"></i><i data-lucide="star" class="w-5 h-5 fill-current"></i><i data-lucide="star" class="w-5 h-5 fill-current"></i><i data-lucide="star" class="w-5 h-5 fill-current"></i>
+            </div>
+            <p class="text-slate-600 mb-6 italic">"I moved away from digital behavior apps because students needed something tangible. The auditory 'clack' of the token dropping is incredibly satisfying for them."</p>
+          </div>
+          <div class="font-bold text-slate-900">- Emily R., Special Ed Coordinator</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ Section -->
+  <section id="faq" class="py-20 bg-white">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-16">
+        <h2 class="text-3xl lg:text-4xl font-bold text-slate-900 mb-4">Frequently Asked Questions</h2>
+      </div>
+      <div class="space-y-6">
+        <div class="bg-slate-50 p-6 rounded-2xl border border-slate-100">
+          <h4 class="text-lg font-bold text-slate-900 mb-2">How long does shipping take for a customized base?</h4>
+          <p class="text-slate-600">Because each customized base is 3D printed to order, please allow 3-5 business days for production, followed by standard shipping times. We'll send tracking information as soon as it ships.</p>
+        </div>
+        <div class="bg-slate-50 p-6 rounded-2xl border border-slate-100">
+          <h4 class="text-lg font-bold text-slate-900 mb-2">Can I order extra tokens?</h4>
+          <p class="text-slate-600">Absolutely! The base kit comes with 30 tokens, but we sell "Refill Packs" of 30 tokens. If your students are participating so much you run out, we count that as a massive win!</p>
+        </div>
+        <div class="bg-slate-50 p-6 rounded-2xl border border-slate-100">
+          <h4 class="text-lg font-bold text-slate-900 mb-2">Do you accept purchase orders (POs) from schools?</h4>
+          <p class="text-slate-600">Yes, we gladly accept formal Purchase Orders from educational institutions and districts. Please contact our support team to set up an invoice.</p>
+        </div>
+        <div class="bg-slate-50 p-6 rounded-2xl border border-slate-100">
+          <h4 class="text-lg font-bold text-slate-900 mb-2">How durable is the 3D printed plastic?</h4>
+          <p class="text-slate-600">Very durable. We use a high-density infill setting and thick walls to ensure the LemLearn tower can easily survive the rigors of daily classroom life, including accidental knocks off a desk.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Call to Action -->
+  <section class="py-24 bg-green-500 relative overflow-hidden">
+    <div class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMiIgY3k9IjIiIHI9IjIiIGZpbGw9IiNmZmZmZmYiIGZpbGwtb3BhY2l0eT0iMC4yIi8+PC9zdmc+')] opacity-30"></div>
+    <div class="max-w-4xl mx-auto px-4 text-center relative z-10">
+      <h2 class="text-4xl font-extrabold text-white mb-6">Ready to transform your classroom?</h2>
+      <p class="text-green-100 text-xl mb-10">Join hundreds of educators using LemHand LemLearn to boost participation and create a positive, rewarding learning environment.</p>
+      <div class="flex flex-col sm:flex-row justify-center gap-4">
+        <a href="#customization" class="bg-slate-900 text-white px-10 py-4 rounded-full font-bold text-lg hover:bg-slate-800 shadow-xl transition-all hover:-translate-y-1 inline-block">
+          Order Base Kit ($49)
+        </a>
+        <button class="bg-transparent border-2 border-white text-white px-10 py-4 rounded-full font-bold text-lg hover:bg-white hover:text-green-600 transition-colors">
+          Request a Sample
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="bg-slate-950 text-slate-400 py-12 border-t border-slate-900">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-4 gap-8">
+      <div class="col-span-1 md:col-span-2">
+        <div class="flex items-center gap-2 mb-4">
+          <span class="text-xl font-extrabold tracking-tight text-white">
+            LemHand <span class="text-green-500">LemLearn</span>
+          </span>
+        </div>
+        <p class="text-sm max-w-sm mb-6">
+          Making classroom participation tangible, visible, and rewarding for students of all ages.
+        </p>
+        <p class="text-sm text-slate-500">&copy; <span id="current-year"></span> LemHand Inc. All rights reserved.</p>
+      </div>
+      
+      <div>
+        <h4 class="text-white font-semibold mb-4">Product</h4>
+        <ul class="space-y-2 text-sm">
+          <li><a href="#customization" data-product="base_kit" class="product-link hover:text-green-400 transition-colors">Starter Kits</a></li>
+          <li><a href="#customization" data-product="tokens" class="product-link hover:text-green-400 transition-colors">Extra Tokens</a></li>
+          <li><a href="#customization" data-product="individual" class="product-link hover:text-green-400 transition-colors">Individual Bases</a></li>
+          <li><a href="#customization" class="hover:text-green-400 transition-colors">Bulk Pricing</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <h4 class="text-white font-semibold mb-4">Support</h4>
+        <ul class="space-y-2 text-sm">
+          <li><a href="#" class="hover:text-green-400 transition-colors">Contact Us</a></li>
+          <li><a href="#" class="hover:text-green-400 transition-colors">Shipping Info</a></li>
+          <li><a href="#" class="hover:text-green-400 transition-colors">Purchase Orders</a></li>
+          <li><a href="#" class="hover:text-green-400 transition-colors">FAQ</a></li>
+        </ul>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Application Logic -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // Initialize Lucide Icons
+      lucide.createIcons();
+
+      // State
+      let quantity = 1;
+      let currentProduct = 'base_kit';
+      const prices = {
+        base_kit: { price: 49, name: 'Starter Kit' },
+        individual: { price: 3, name: 'Individual Tower & Base' },
+        tokens: { price: 15, name: 'Extra Tokens (30 Pack)' }
+      };
+
+      // DOM Elements
+      const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+      const mobileMenu = document.getElementById('mobile-menu');
+      const menuIconOpen = document.getElementById('menu-icon-open');
+      const menuIconClose = document.getElementById('menu-icon-close');
+      
+      const customTextInput = document.getElementById('custom-text-input');
+      const heroCustomText = document.getElementById('hero-custom-text');
+      const orderCustomText = document.getElementById('order-custom-text');
+      const productSelect = document.getElementById('product-select');
+      const engravingContainer = document.getElementById('engraving-container');
+      
+      const btnMinus = document.getElementById('btn-minus');
+      const btnPlus = document.getElementById('btn-plus');
+      const quantityDisplay = document.getElementById('quantity-display');
+      const totalPriceDisplay = document.getElementById('total-price');
+      
+      const btnOrder = document.getElementById('btn-order');
+      const orderFormContainer = document.getElementById('order-form-container');
+      const orderSuccessContainer = document.getElementById('order-success-container');
+      const btnOrderAnother = document.getElementById('btn-order-another');
+      
+      const successQuantity = document.getElementById('success-quantity');
+      const successProductName = document.getElementById('success-product-name');
+      const successCustomText = document.getElementById('success-custom-text');
+      const successCustomTextWrapper = document.getElementById('success-custom-text-wrapper');
+
+      // Set current year in footer
+      document.getElementById('current-year').textContent = new Date().getFullYear();
+
+      // Mobile Menu Toggle
+      mobileMenuBtn.addEventListener('click', () => {
+        const isHidden = mobileMenu.classList.contains('hidden');
+        if (isHidden) {
+          mobileMenu.classList.remove('hidden');
+          menuIconOpen.classList.add('hidden');
+          menuIconClose.classList.remove('hidden');
+        } else {
+          mobileMenu.classList.add('hidden');
+          menuIconOpen.classList.remove('hidden');
+          menuIconClose.classList.add('hidden');
+        }
+      });
+
+      // Custom Text Sync (Live Preview)
+      customTextInput.addEventListener('input', (e) => {
+        const val = e.target.value.toUpperCase();
+        e.target.value = val; // Force uppercase in input
+        const displayText = val || '\u00A0'; // Keep spacing if empty
+        heroCustomText.textContent = displayText;
+        orderCustomText.textContent = displayText;
+      });
+
+      // Quantity Management
+      const updatePricing = () => {
+        quantityDisplay.textContent = quantity;
+        totalPriceDisplay.textContent = '$' + (quantity * prices[currentProduct].price);
+      };
+
+      // Product Selection Logic
+      productSelect.addEventListener('change', (e) => {
+        currentProduct = e.target.value;
+        
+        // Disable text engraving if only buying tokens
+        if (currentProduct === 'tokens') {
+          engravingContainer.classList.add('opacity-40');
+          customTextInput.disabled = true;
+        } else {
+          engravingContainer.classList.remove('opacity-40');
+          customTextInput.disabled = false;
+        }
+        
+        updatePricing();
+      });
+
+      // Footer Product Links Logic
+      document.querySelectorAll('.product-link').forEach(link => {
+        link.addEventListener('click', (e) => {
+          const product = link.getAttribute('data-product');
+          if (product) {
+            productSelect.value = product;
+            productSelect.dispatchEvent(new Event('change'));
+          }
+        });
+      });
+
+      btnMinus.addEventListener('click', () => {
+        if (quantity > 1) {
+          quantity--;
+          updatePricing();
+        }
+      });
+
+      btnPlus.addEventListener('click', () => {
+        quantity++;
+        updatePricing();
+      });
+
+      // Order Flow
+      btnOrder.addEventListener('click', () => {
+        // Set processing state
+        btnOrder.textContent = 'Processing...';
+        btnOrder.disabled = true;
+        btnOrder.classList.add('opacity-70', 'cursor-not-allowed');
+
+        // Simulate network request
+        setTimeout(() => {
+          // Hide form, show success
+          orderFormContainer.classList.add('hidden');
+          orderSuccessContainer.classList.remove('hidden');
+          
+          // Populate success message variables
+          successQuantity.textContent = quantity;
+          successProductName.textContent = prices[currentProduct].name;
+          
+          if (currentProduct === 'tokens') {
+            successCustomTextWrapper.style.display = 'none';
+          } else {
+            successCustomTextWrapper.style.display = 'inline';
+            successCustomText.textContent = customTextInput.value || 'YMCA';
+          }
+
+          // Reset button for next time
+          btnOrder.textContent = 'Place Order Now';
+          btnOrder.disabled = false;
+          btnOrder.classList.remove('opacity-70', 'cursor-not-allowed');
+        }, 1500);
+      });
+
+      btnOrderAnother.addEventListener('click', () => {
+        // Reset to form view
+        orderSuccessContainer.classList.add('hidden');
+        orderFormContainer.classList.remove('hidden');
+        
+        // Optional: Reset quantity and text here if desired
+        // quantity = 1;
+        // updatePricing();
+      });
+    });
+  </script>
+</body>
+</html>
