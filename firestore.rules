@@ -20,5 +20,10 @@ service cloud.firestore {
       // Owner only: Only the author can edit/delete
       allow update, delete: if request.auth != null && resource.data.authorId == request.auth.uid;
     }
+
+    // LAS Clients Rules
+    match /las_clients/{clientId} {
+      allow read: if true;
+    }
   }
 }

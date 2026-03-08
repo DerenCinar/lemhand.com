@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demo Site - Integrating LAS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
+    <div class="max-w-xl w-full mx-auto bg-white p-8 rounded-xl shadow-md border border-gray-100">
+        <h1 class="text-3xl font-bold mb-2 text-gray-900">Awesome Third Party App</h1>
+        <p class="text-gray-600 mb-8 border-b pb-4">This is a demo showing how to use LemHand Account Services (LAS) for authentication on external websites.</p>
+
+        <!-- Logged Out View -->
+        <div id="logged-out-view" class="py-4">
+            <h2 class="text-xl font-semibold mb-4 text-gray-800">Welcome Back</h2>
+            <p class="text-sm text-gray-500 mb-6">Log in to your account using your standard LemHand login.</p>
+            <button onclick="loginWithLemHand()" class="w-full flex items-center justify-center space-x-3 bg-white border border-gray-300 text-gray-700 font-medium py-3 px-6 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors shadow-sm">
+                <!-- Placeholder for LemHand Logo -->
+                <svg class="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2A10 10 0 002 12c0 5.52 4.48 10 10 10s10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg> 
+                <span>Sign in with LemHand</span>
+            </button>
+            <p class="text-xs text-center text-gray-400 mt-4">Securely provided by LemHand Account Services</p>
+        </div>
+
+        <!-- Logged In View -->
+        <div id="logged-in-view" class="hidden bg-green-50 border border-green-200 p-6 rounded-lg">
+            <div class="flex items-center space-x-3 mb-4">
+                <div class="w-10 h-10 bg-green-200 text-green-700 rounded-full flex items-center justify-center font-bold text-xl">
+                    <span id="user-initial">U</span>
+                </div>
+                <div>
+                    <h2 class="text-xl font-semibold text-green-900">Welcome!</h2>
+                    <p class="text-green-700 text-sm">You have successfully logged in via LAS.</p>
+                </div>
+            </div>
+            
+            <div class="mt-6 space-y-3">
+                <div class="bg-white p-3 rounded border border-green-100">
+                    <p class="text-xs text-gray-500 uppercase tracking-wider font-semibold">Name</p>
+                    <p id="user-name" class="text-gray-800 font-medium">-</p>
+                </div>
+                <div class="bg-white p-3 rounded border border-green-100">
+                    <p class="text-xs text-gray-500 uppercase tracking-wider font-semibold">Email</p>
+                    <p id="user-email" class="text-gray-800 font-medium">-</p>
+                </div>
+            </div>
+            <button onclick="logout()" class="mt-6 w-full text-center text-sm font-medium text-red-600 hover:text-red-800 border border-red-200 hover:bg-red-50 py-2 rounded transition-colors">Log out</button>
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        // The URL of this page where LAS should redirect back to
+        const REDIRECT_URI = window.location.href.split('?')[0]; 
+        
+        // This Client ID must be registered in the 'las_clients' Firestore collection
+        const CLIENT_ID = 'demo_client_123';
+
+        function loginWithLemHand() {
+            // Construct the LAS Sign-In URL
+            const lasUrl = new URL(window.location.origin + '/las-signin.html');
+            lasUrl.searchParams.append('client_id', CLIENT_ID);
+            lasUrl.searchParams.append('redirect_uri', REDIRECT_URI);
+
+            // Redirect to LAS
+            window.location.href = lasUrl.toString();
+        }
+
+        function checkAuthStatus() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const success = urlParams.get('success');
+            const email = urlParams.get('email');
+            const name = urlParams.get('name') || 'Not provided';
+
+            if (success === 'true' && email) {
+                // User is logged in! Update UI
+                document.getElementById('logged-out-view').classList.add('hidden');
+                document.getElementById('logged-in-view').classList.remove('hidden');
+                
+                document.getElementById('user-name').textContent = name;
+                document.getElementById('user-email').textContent = email;
+                
+                if (name !== 'Not provided') {
+                    document.getElementById('user-initial').textContent = name.charAt(0).toUpperCase();
+                } else {
+                    document.getElementById('user-initial').textContent = email.charAt(0).toUpperCase();
+                }
+
+                // Clean up the URL so the parameters aren't visible
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+        }
+
+        function logout() {
+            // Reset UI
+            document.getElementById('logged-in-view').classList.add('hidden');
+            document.getElementById('logged-out-view').classList.remove('hidden');
+            
+            // In a real app, you might want to call an API to clear the session or tokens here.
+        }
+
+        // Run on page load
+        checkAuthStatus();
+    </script>
+</body>
+</html>
