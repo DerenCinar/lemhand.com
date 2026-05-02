@@ -1,4 +1,8 @@
 {
+  "scripts": {
+    "dev": "cd frontend && npm run dev",
+    "build": "cd frontend && npm run build"
+  },
   "dependencies": {
     "bootstrap-icons": "^1.11.3"
   }
