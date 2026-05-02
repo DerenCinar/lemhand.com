@@ -86,7 +86,8 @@ const addPost = async () => {
       excerpt: excerpt.value,
       image: image.value || 'https://placehold.co/800x400/1d1d1f/fff?text=New+Post',
       date: new Date().toLocaleDateString(),
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
+      authorId: auth.currentUser.uid
     })
     
     title.value = ''
