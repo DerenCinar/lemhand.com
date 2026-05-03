@@ -1,9 +1,10 @@
 <script setup>
-import { RouterLink, RouterView } from "vue-router";
+import { RouterLink, RouterView, useRoute } from "vue-router";
 import { ref, onMounted, onUnmounted } from "vue";
 import { auth } from './firebase'
 import { onAuthStateChanged } from 'firebase/auth'
 
+const route = useRoute();
 const isDarkMode = ref(false);
 const isMegaMenuOpen = ref(false);
 const isMobileMenuOpen = ref(false);
@@ -46,7 +47,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <nav class="ms-nav">
+  <nav v-if="!route.path.startsWith('/office')" class="ms-nav">
     <div class="ms-nav-left">
       <RouterLink to="/" class="ms-nav-logo"> LemHand </RouterLink>
       <div class="desktop-only" style="display: flex; align-items: center; gap: 5px; height: 100%">
@@ -162,7 +163,7 @@ onUnmounted(() => {
 
   <RouterView />
 
-  <footer class="ms-footer">
+  <footer v-if="!route.path.startsWith('/office')" class="ms-footer">
     <div class="ms-footer-content">
       <div class="ms-footer-links">
         <RouterLink to="/page/sitemap">Sitemap</RouterLink>

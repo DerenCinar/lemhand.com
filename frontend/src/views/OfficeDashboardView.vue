@@ -25,10 +25,24 @@ const formatDate = (ts) => {
   if (!ts) return ''
   return new Date(ts).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
 }
+
+const showAnimations = ref(localStorage.getItem('lemhand_office_animations') !== 'false')
+const saveSettings = () => {
+  localStorage.setItem('lemhand_office_animations', showAnimations.value)
+}
 </script>
 
 <template>
-  <main style="padding: 60px 5%; min-height: 80vh; background-color: var(--bg-color); color: var(--text-color);">
+  <main style="padding: 60px 5%; min-height: 80vh; background-color: var(--bg-color); color: var(--text-color); position: relative;">
+    
+    <!-- Settings Toggle -->
+    <div style="position: absolute; top: 20px; right: 20px; display: flex; align-items: center; gap: 10px;">
+      <label style="font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 5px; opacity: 0.8;">
+        <input type="checkbox" v-model="showAnimations" @change="saveSettings">
+        Show Loading Animations
+      </label>
+    </div>
+
     <div style="max-width: 1000px; margin: 0 auto;">
       <div style="text-align: center; margin-bottom: 50px; display: flex; flex-direction: column; align-items: center; gap: 15px;">
         <svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: #d24726;">

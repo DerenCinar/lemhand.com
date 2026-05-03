@@ -33,6 +33,18 @@ let saveTimeout = null
 let isUpdatingFromServer = false
 let unsubscribe = null
 
+const showAnimations = localStorage.getItem('lemhand_office_animations') !== 'false';
+const isLoading = ref(showAnimations);
+let isDataLoaded = false;
+let isMinTimePassed = !showAnimations;
+
+if (showAnimations) {
+  setTimeout(() => {
+    isMinTimePassed = true;
+    if (isDataLoaded) isLoading.value = false;
+  }, 1500);
+}
+
 const handleUnload = () => {
   setDoc(doc(db, 'office', docId), {
     activeUsers: arrayRemove(myUserObj)
@@ -59,6 +71,8 @@ onMounted(() => {
   window.addEventListener('beforeunload', handleUnload)
 
   unsubscribe = onSnapshot(docRef, (docSnap) => {
+    isDataLoaded = true;
+    if (isMinTimePassed) isLoading.value = false;
     if (docSnap.exists()) {
       const data = docSnap.data()
       if (data.title) {
@@ -121,7 +135,9 @@ const addSlide = () => {
     title: 'New Slide',
     content: 'Add your content here',
     bgColor: '#ffffff',
-    textColor: '#d24726'
+    textColor: '#d24726',
+    transition: 'fade',
+    textBgImage: ''
   })
   activeSlideIndex.value = slides.value.length - 1
 }
@@ -161,6 +177,13 @@ const nextSlide = () => {
 const prevSlide = () => {
   if (activeSlideIndex.value > 0) {
     activeSlideIndex.value--
+  }
+}
+
+const setTextBgImage = () => {
+  const url = prompt("Enter Image URL for Text Fill (leave blank to remove):", slides.value[activeSlideIndex.value].textBgImage || "");
+  if (url !== null) {
+    slides.value[activeSlideIndex.value].textBgImage = url;
   }
 }
 
@@ -207,6 +230,21 @@ const copyLink = () => {
 </script>
 
 <template>
+  <!-- Loading Animation -->
+  <div v-if="isLoading" style="position: fixed; top:0; left:0; width:100vw; height:100vh; background:#f3f2f1; z-index:999999; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+    <svg width="150" height="120" viewBox="0 0 100 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect x="5" y="5" width="90" height="70" rx="4" fill="white" stroke="#d24726" stroke-width="4"/>
+      <path class="slide-line slide-line-1" d="M 15 20 L 50 20" stroke="#ccc" stroke-width="4" stroke-linecap="round"/>
+      <path class="slide-line slide-line-2" d="M 15 40 L 85 40" stroke="#ccc" stroke-width="2" stroke-linecap="round"/>
+      <path class="slide-line slide-line-3" d="M 15 50 L 70 50" stroke="#ccc" stroke-width="2" stroke-linecap="round"/>
+      <path class="slide-line slide-line-4" d="M 15 60 L 60 60" stroke="#ccc" stroke-width="2" stroke-linecap="round"/>
+    </svg>
+    <div style="position: absolute; bottom: 40px; display: flex; flex-direction: column; align-items: center; color: #d24726; font-weight: bold; font-size: 1.2rem;">
+      LemHand Office
+      <span style="font-size: 0.9rem; font-weight: normal; margin-top: 5px;">Loading LemPresent...</span>
+    </div>
+  </div>
+
   <!-- Presentation Mode -->
   <div v-if="isPresenting" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: black; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center;" @click="nextSlide">
     <div :style="{ backgroundColor: slides[activeSlideIndex].bgColor }" style="width: 80%; height: 80%; padding: 60px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; transition: background-color 0.3s;">
@@ -223,7 +261,7 @@ const copyLink = () => {
   </div>
 
   <!-- Edit Mode -->
-  <div v-else style="display: flex; flex-direction: column; height: calc(100vh - 54px); background-color: #f3f2f1;">
+  <div v-else style="display: flex; flex-direction: column; height: 100vh; background-color: #f3f2f1;">
     <!-- Enterprise Header -->
     <div style="background-color: #d24726; color: white; padding: 8px 20px; display: flex; align-items: center; justify-content: space-between;">
       <div style="display: flex; align-items: center; gap: 20px;">
@@ -267,7 +305,7 @@ const copyLink = () => {
     </div>
 
     <!-- Toolbar -->
-    <div style="background-color: white; padding: 8px 20px; border-bottom: 1px solid #e1dfdd; display: flex; align-items: center; gap: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+    <div class="toolbar-wrap" style="background-color: white; padding: 8px 20px; border-bottom: 1px solid #e1dfdd; display: flex; align-items: center; gap: 15px; flex-wrap: wrap; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
       <button @click="addSlide" style="padding: 6px 12px; background: #f3f2f1; border: 1px solid #e1dfdd; cursor: pointer; border-radius: 4px; font-weight: 600;">+ New Slide</button>
       <div style="width: 1px; height: 24px; background: #e1dfdd;"></div>
       
@@ -278,6 +316,18 @@ const copyLink = () => {
       <label style="font-size: 14px; display: flex; align-items: center; gap: 5px;">
         Text Color
         <input type="color" v-model="slides[activeSlideIndex].textColor" style="border: none; width: 24px; height: 24px; padding: 0; cursor: pointer;">
+      </label>
+      
+      <button @click="setTextBgImage" style="padding: 4px 8px; background: white; border: 1px solid #ccc; cursor: pointer; border-radius: 4px; font-size: 13px;">🖼 Text Fill Image</button>
+
+      <label style="font-size: 14px; display: flex; align-items: center; gap: 5px;">
+        Transition:
+        <select v-model="slides[activeSlideIndex].transition" style="padding: 4px; border: 1px solid #ccc; border-radius: 4px;">
+          <option value="none">None</option>
+          <option value="fade">Fade</option>
+          <option value="slide">Slide</option>
+          <option value="magic">Match & Move</option>
+        </select>
       </label>
       
       <div style="margin-left: auto; display: flex; gap: 8px;">
@@ -300,32 +350,34 @@ const copyLink = () => {
           >
             <div style="position: absolute; top: 5px; left: 5px; background: rgba(0,0,0,0.1); padding: 2px 6px; border-radius: 10px; font-weight: bold;">{{ index + 1 }}</div>
             <button v-if="slides.length > 1" @click.stop="deleteSlide(index)" style="position: absolute; top: 5px; right: 5px; color: red; background: transparent; cursor: pointer;">✕</button>
-            <strong :style="{ color: slide.textColor }" style="margin-bottom: 5px; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">{{ slide.title }}</strong>
+            <strong :style="{ color: slide.textColor, backgroundImage: slide.textBgImage ? `url(${slide.textBgImage})` : 'none', backgroundClip: slide.textBgImage ? 'text' : 'initial', WebkitBackgroundClip: slide.textBgImage ? 'text' : 'initial', WebkitTextFillColor: slide.textBgImage ? 'transparent' : 'initial', backgroundSize: 'cover', backgroundPosition: 'center' }" style="margin-bottom: 5px; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">{{ slide.title }}</strong>
           </div>
         </div>
       </div>
 
       <!-- Main Editor -->
       <div style="flex-grow: 1; padding: 40px; display: flex; justify-content: center; align-items: center; overflow: auto;">
-        <div :style="{ backgroundColor: slides[activeSlideIndex].bgColor }" style="width: 100%; max-width: 900px; aspect-ratio: 16/9; box-shadow: 0 4px 12px rgba(0,0,0,0.1); display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 60px; text-align: center; transition: background-color 0.3s;">
-          <input 
-            type="text" 
-            v-model="slides[activeSlideIndex].title" 
-            placeholder="Click to add title"
-            :style="{ color: slides[activeSlideIndex].textColor }"
-            style="font-size: 3rem; font-weight: 600; text-align: center; border: 1px dashed transparent; outline: none; width: 100%; margin-bottom: 30px; background: transparent;"
-            onfocus="this.style.border='1px dashed #ccc'"
-            onblur="this.style.border='1px dashed transparent'"
-          >
-          <textarea 
-            v-model="slides[activeSlideIndex].content" 
-            placeholder="Click to add text"
-            :style="{ color: slides[activeSlideIndex].textColor }"
-            style="font-size: 1.5rem; text-align: center; border: 1px dashed transparent; outline: none; width: 100%; height: 200px; resize: none; background: transparent; font-family: inherit;"
-            onfocus="this.style.border='1px dashed #ccc'"
-            onblur="this.style.border='1px dashed transparent'"
-          ></textarea>
-        </div>
+        <transition :name="slides[activeSlideIndex].transition || 'none'" mode="out-in">
+          <div :key="activeSlideIndex" :style="{ backgroundColor: slides[activeSlideIndex].bgColor }" style="width: 100%; max-width: 900px; aspect-ratio: 16/9; box-shadow: 0 4px 12px rgba(0,0,0,0.1); display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 60px; text-align: center; transition: background-color 0.3s;">
+            <input 
+              type="text" 
+              v-model="slides[activeSlideIndex].title" 
+              placeholder="Click to add title"
+              :style="{ color: slides[activeSlideIndex].textColor, backgroundImage: slides[activeSlideIndex].textBgImage ? `url(${slides[activeSlideIndex].textBgImage})` : 'none', backgroundClip: slides[activeSlideIndex].textBgImage ? 'text' : 'initial', WebkitBackgroundClip: slides[activeSlideIndex].textBgImage ? 'text' : 'initial', WebkitTextFillColor: slides[activeSlideIndex].textBgImage ? 'transparent' : 'initial', backgroundSize: 'cover', backgroundPosition: 'center' }"
+              style="font-size: 3rem; font-weight: 600; text-align: center; border: 1px dashed transparent; outline: none; width: 100%; margin-bottom: 30px; background-color: transparent;"
+              onfocus="this.style.border='1px dashed #ccc'"
+              onblur="this.style.border='1px dashed transparent'"
+            >
+            <textarea 
+              v-model="slides[activeSlideIndex].content" 
+              placeholder="Click to add text"
+              :style="{ color: slides[activeSlideIndex].textColor, backgroundImage: slides[activeSlideIndex].textBgImage ? `url(${slides[activeSlideIndex].textBgImage})` : 'none', backgroundClip: slides[activeSlideIndex].textBgImage ? 'text' : 'initial', WebkitBackgroundClip: slides[activeSlideIndex].textBgImage ? 'text' : 'initial', WebkitTextFillColor: slides[activeSlideIndex].textBgImage ? 'transparent' : 'initial', backgroundSize: 'cover', backgroundPosition: 'center' }"
+              style="font-size: 1.5rem; text-align: center; border: 1px dashed transparent; outline: none; width: 100%; height: 200px; resize: none; background-color: transparent; font-family: inherit;"
+              onfocus="this.style.border='1px dashed #ccc'"
+              onblur="this.style.border='1px dashed transparent'"
+            ></textarea>
+          </div>
+        </transition>
       </div>
     </div>
 
@@ -346,6 +398,16 @@ const copyLink = () => {
 </template>
 
 <style scoped>
+.toolbar-scroll::-webkit-scrollbar {
+  display: none;
+}
+.toolbar-scroll {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.toolbar-scroll > * {
+  flex-shrink: 0;
+}
 .menu-item {
   padding: 8px 15px;
   cursor: pointer;
@@ -354,5 +416,18 @@ const copyLink = () => {
 }
 .menu-item:hover {
   background: #f3f2f1;
+}
+.slide-line {
+  stroke-dasharray: 80;
+  stroke-dashoffset: 80;
+  animation: draw-slide 1.5s infinite ease-in-out alternate;
+}
+.slide-line-1 { animation-delay: 0s; }
+.slide-line-2 { animation-delay: 0.2s; }
+.slide-line-3 { animation-delay: 0.4s; }
+.slide-line-4 { animation-delay: 0.6s; }
+@keyframes draw-slide {
+  0% { stroke-dashoffset: 80; }
+  100% { stroke-dashoffset: 0; }
 }
 </style>

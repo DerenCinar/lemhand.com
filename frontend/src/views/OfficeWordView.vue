@@ -29,6 +29,18 @@ let saveTimeout = null;
 let isUpdatingFromServer = false;
 let unsubscribe = null;
 
+const showAnimations = localStorage.getItem('lemhand_office_animations') !== 'false';
+const isLoading = ref(showAnimations);
+let isDataLoaded = false;
+let isMinTimePassed = !showAnimations;
+
+if (showAnimations) {
+  setTimeout(() => {
+    isMinTimePassed = true;
+    if (isDataLoaded) isLoading.value = false;
+  }, 1500);
+}
+
 const handleUnload = () => {
   setDoc(doc(db, 'office', docId), {
     activeUsers: arrayRemove(myUserObj)
@@ -56,6 +68,8 @@ onMounted(() => {
   window.addEventListener('beforeunload', handleUnload)
 
   unsubscribe = onSnapshot(docRef, (docSnap) => {
+    isDataLoaded = true;
+    if (isMinTimePassed) isLoading.value = false;
     if (docSnap.exists() && editorDiv.value) {
       const data = docSnap.data()
       if (data.title) {
@@ -146,8 +160,54 @@ const insertLink = () => {
 }
 
 const insertImage = () => {
-  const url = prompt('Enter the image URL:', 'http://')
-  if (url) execCmd('insertImage', url)
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = 'image/*';
+  input.onchange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (readerEvent) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+          const max_width = 800; // compress image for firestore
+          if (width > max_width) {
+            height *= max_width / width;
+            width = max_width;
+          }
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.6);
+          execCmd('insertImage', dataUrl);
+        }
+        img.src = readerEvent.target.result;
+      }
+      reader.readAsDataURL(file);
+    }
+  };
+  input.click();
+}
+
+const insertTable = () => {
+  const rows = prompt("Number of rows:", "3");
+  const cols = prompt("Number of columns:", "3");
+  if (rows && cols) {
+    let table = '<table style="width:100%; border-collapse: collapse; border: 1px solid #ccc; margin-bottom: 15px;">';
+    for (let r = 0; r < rows; r++) {
+      table += '<tr>';
+      for (let c = 0; c < cols; c++) {
+        table += '<td style="border: 1px solid #ccc; padding: 8px;">&nbsp;</td>';
+      }
+      table += '</tr>';
+    }
+    table += '</table><br/>';
+    execCmd('insertHTML', table);
+  }
 }
 
 const printDoc = () => {
@@ -196,7 +256,22 @@ const copyLink = () => {
 </script>
 
 <template>
-  <div style="display: flex; flex-direction: column; height: calc(100vh - 54px); background-color: #f3f2f1; position: relative;">
+  <div style="display: flex; flex-direction: column; height: 100vh; background-color: #f3f2f1; position: relative;">
+    
+    <!-- Loading Animation -->
+    <div v-if="isLoading" style="position: fixed; top:0; left:0; width:100vw; height:100vh; background:#f3f2f1; z-index:999999; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+      <svg width="120" height="150" viewBox="0 0 100 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="10" y="10" width="80" height="100" rx="4" fill="white" stroke="#2b579a" stroke-width="4"/>
+        <path class="doc-line doc-line-1" d="M 25 35 L 75 35" stroke="#ccc" stroke-width="4" stroke-linecap="round"/>
+        <path class="doc-line doc-line-2" d="M 25 50 L 75 50" stroke="#ccc" stroke-width="4" stroke-linecap="round"/>
+        <path class="doc-line doc-line-3" d="M 25 65 L 60 65" stroke="#ccc" stroke-width="4" stroke-linecap="round"/>
+      </svg>
+      <div style="position: absolute; bottom: 40px; display: flex; flex-direction: column; align-items: center; color: #2b579a; font-weight: bold; font-size: 1.2rem;">
+        LemHand Office
+        <span style="font-size: 0.9rem; font-weight: normal; margin-top: 5px;">Loading LemWord...</span>
+      </div>
+    </div>
+
     <!-- Enterprise Header -->
     <div style="background-color: #2b579a; color: white; padding: 8px 20px; display: flex; align-items: center; justify-content: space-between;">
       <div style="display: flex; align-items: center; gap: 20px;">
@@ -250,7 +325,7 @@ const copyLink = () => {
     </div>
 
     <!-- Toolbar -->
-    <div style="background-color: white; padding: 8px 20px; border-bottom: 1px solid #e1dfdd; display: flex; gap: 8px; flex-wrap: wrap; box-shadow: 0 2px 4px rgba(0,0,0,0.05); align-items: center;">
+    <div class="toolbar-wrap" style="background-color: white; padding: 8px 20px; border-bottom: 1px solid #e1dfdd; display: flex; gap: 8px; flex-wrap: wrap; box-shadow: 0 2px 4px rgba(0,0,0,0.05); align-items: center;">
       <!-- Undo / Redo -->
       <button class="toolbar-btn" @click="execCmd('undo')" title="Undo">↩</button>
       <button class="toolbar-btn" @click="execCmd('redo')" title="Redo">↪</button>
@@ -308,6 +383,7 @@ const copyLink = () => {
       <!-- Insert -->
       <button class="toolbar-btn" @click="insertLink" title="Insert Link">🔗</button>
       <button class="toolbar-btn" @click="insertImage" title="Insert Image">🖼</button>
+      <button class="toolbar-btn" @click="insertTable" title="Insert Table">▦</button>
 
       <!-- Print/Download -->
       <div style="margin-left: auto; display: flex; gap: 8px;">
@@ -345,47 +421,69 @@ const copyLink = () => {
 </template>
 
 <style scoped>
+.toolbar-scroll::-webkit-scrollbar {
+  display: none;
+}
+.toolbar-scroll {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.toolbar-scroll > * {
+  flex-shrink: 0;
+}
 .menu-item {
   padding: 8px 15px;
   cursor: pointer;
   font-size: 13px;
+  color: #333;
 }
 .menu-item:hover {
   background: #f3f2f1;
 }
 .toolbar-btn {
-  padding: 6px 10px;
   background: transparent;
   border: 1px solid transparent;
+  padding: 4px 8px;
   border-radius: 4px;
   cursor: pointer;
-  font-size: 14px;
-  color: #323130;
+  font-size: 16px;
+  min-width: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
+  color: #333;
 }
 .toolbar-btn:hover {
   background: #f3f2f1;
-  border-color: #e1dfdd;
 }
 .toolbar-select {
-  padding: 4px 8px;
+  padding: 4px;
   border: 1px solid transparent;
   border-radius: 4px;
   background: transparent;
-  color: #323130;
-  font-size: 13px;
   cursor: pointer;
+  font-family: inherit;
 }
 .toolbar-select:hover {
   background: #f3f2f1;
-  border-color: #e1dfdd;
 }
 .toolbar-divider {
   width: 1px; 
   height: 24px; 
   background: #e1dfdd; 
   margin: 0 5px;
+}
+
+.doc-line {
+  stroke-dasharray: 50;
+  stroke-dashoffset: 50;
+  animation: write-line 1.5s infinite ease-in-out alternate;
+}
+.doc-line-1 { animation-delay: 0s; }
+.doc-line-2 { animation-delay: 0.3s; }
+.doc-line-3 { animation-delay: 0.6s; }
+@keyframes write-line {
+  0% { stroke-dashoffset: 50; }
+  100% { stroke-dashoffset: 0; }
 }
 </style>

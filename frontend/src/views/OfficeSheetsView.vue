@@ -18,6 +18,10 @@ const rawData = reactive(
   Array(rows).fill().map(() => Array(cols).fill(''))
 )
 
+const stylesData = reactive(
+  Array(rows).fill().map(() => Array(cols).fill({ bold: false, italic: false, color: '#666666', bg: 'transparent' }))
+)
+
 const activeCell = ref({ r: 0, c: 0 })
 const activeMenu = ref(null)
 const username = ref('Anonymous')
@@ -30,12 +34,21 @@ if (!clientId) {
 }
 const myUserObj = { id: clientId, name: '' }
 
-const isShareOpen = ref(false)
-const shareLink = ref('')
-const copyStatus = ref('')
 let saveTimeout = null
 let isUpdatingFromServer = false
 let unsubscribe = null
+
+const showAnimations = localStorage.getItem('lemhand_office_animations') !== 'false';
+const isLoading = ref(showAnimations);
+let isDataLoaded = false;
+let isMinTimePassed = !showAnimations;
+
+if (showAnimations) {
+  setTimeout(() => {
+    isMinTimePassed = true;
+    if (isDataLoaded) isLoading.value = false;
+  }, 1500);
+}
 
 const handleUnload = () => {
   setDoc(doc(db, 'office', docId), {
@@ -63,6 +76,8 @@ onMounted(() => {
   window.addEventListener('beforeunload', handleUnload)
 
   unsubscribe = onSnapshot(docRef, (docSnap) => {
+    isDataLoaded = true;
+    if (isMinTimePassed) isLoading.value = false;
     if (docSnap.exists()) {
       const data = docSnap.data()
       if (data.title) {
@@ -74,12 +89,23 @@ onMounted(() => {
         avatars.value = Array.from(new Set(data.activeUsers.filter(u => u.id !== myUserObj.id).map(u => u.name)))
       }
       
-      if (data.grid && !isUpdatingFromServer) {
+      if (!isUpdatingFromServer) {
         isUpdatingFromServer = true
-        for (let r = 0; r < rows; r++) {
-          for (let c = 0; c < cols; c++) {
-            if (data.grid[r] && data.grid[r][c] !== undefined) {
-              rawData[r][c] = data.grid[r][c]
+        if (data.grid) {
+          for (let r = 0; r < rows; r++) {
+            for (let c = 0; c < cols; c++) {
+              if (data.grid[r] && data.grid[r][c] !== undefined) {
+                rawData[r][c] = data.grid[r][c]
+              }
+            }
+          }
+        }
+        if (data.styles) {
+          for (let r = 0; r < rows; r++) {
+            for (let c = 0; c < cols; c++) {
+              if (data.styles[r] && data.styles[r][c]) {
+                stylesData[r][c] = { ...stylesData[r][c], ...data.styles[r][c] }
+              }
             }
           }
         }
@@ -109,9 +135,11 @@ const saveToCloud = () => {
     try {
       // Clean up empty rows to save space
       const gridToSave = rawData.map(row => [...row]);
+      const stylesToSave = stylesData.map(row => [...row]);
       await setDoc(doc(db, 'office', docId), {
         title: documentTitle.value,
         grid: gridToSave,
+        styles: stylesToSave,
         lastUpdated: new Date()
       }, { merge: true })
       saveToRecents()
@@ -123,13 +151,28 @@ const saveToCloud = () => {
 
 watch(documentTitle, saveToCloud)
 
-// Deep watch the rawData grid
-watch(() => [...rawData.map(row => [...row])], () => {
-  saveToCloud()
-}, { deep: true })
+// Deep watch the grids
+watch(() => [...rawData.map(row => [...row])], saveToCloud, { deep: true })
+watch(() => [...stylesData.map(row => [...row])], saveToCloud, { deep: true })
 
 const selectCell = (r, c) => {
   activeCell.value = { r, c }
+}
+
+const toggleBold = () => {
+  stylesData[activeCell.value.r][activeCell.value.c].bold = !stylesData[activeCell.value.r][activeCell.value.c].bold
+}
+
+const toggleItalic = () => {
+  stylesData[activeCell.value.r][activeCell.value.c].italic = !stylesData[activeCell.value.r][activeCell.value.c].italic
+}
+
+const setCellColor = (e) => {
+  stylesData[activeCell.value.r][activeCell.value.c].color = e.target.value
+}
+
+const setCellBg = (e) => {
+  stylesData[activeCell.value.r][activeCell.value.c].bg = e.target.value
 }
 
 const getColumnLabel = (index) => {
@@ -224,6 +267,10 @@ document.addEventListener('click', (e) => {
   }
 })
 
+const isShareOpen = ref(false)
+const shareLink = ref('')
+const copyStatus = ref('')
+
 const openShare = () => {
   shareLink.value = window.location.href;
   isShareOpen.value = true;
@@ -241,7 +288,24 @@ const copyLink = () => {
 </script>
 
 <template>
-  <div style="display: flex; flex-direction: column; height: calc(100vh - 54px); background-color: white;">
+  <div style="display: flex; flex-direction: column; height: 100vh; background-color: white; position: relative;">
+    
+    <!-- Loading Animation -->
+    <div v-if="isLoading" style="position: fixed; top:0; left:0; width:100vw; height:100vh; background:#f3f2f1; z-index:999999; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+      <svg width="120" height="150" viewBox="0 0 100 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="10" y="10" width="80" height="100" rx="4" fill="white" stroke="#217346" stroke-width="4"/>
+        <path class="grid-line grid-line-v" d="M 36 10 L 36 110" stroke="#ccc" stroke-width="2"/>
+        <path class="grid-line grid-line-v" d="M 62 10 L 62 110" stroke="#ccc" stroke-width="2"/>
+        <path class="grid-line grid-line-h" d="M 10 35 L 90 35" stroke="#ccc" stroke-width="2"/>
+        <path class="grid-line grid-line-h" d="M 10 60 L 90 60" stroke="#ccc" stroke-width="2"/>
+        <path class="grid-line grid-line-h" d="M 10 85 L 90 85" stroke="#ccc" stroke-width="2"/>
+      </svg>
+      <div style="position: absolute; bottom: 40px; display: flex; flex-direction: column; align-items: center; color: #217346; font-weight: bold; font-size: 1.2rem;">
+        LemHand Office
+        <span style="font-size: 0.9rem; font-weight: normal; margin-top: 5px;">Loading LemSheet...</span>
+      </div>
+    </div>
+
     <!-- Enterprise Header -->
     <div style="background-color: #217346; color: white; padding: 8px 20px; display: flex; align-items: center; justify-content: space-between;">
       <div style="display: flex; align-items: center; gap: 20px;">
@@ -282,10 +346,23 @@ const copyLink = () => {
     </div>
 
     <!-- Toolbar -->
-    <div style="background-color: white; padding: 8px 20px; border-bottom: 1px solid #e1dfdd; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
-      <button @click="clearGrid" style="background: transparent; color: #d83b01; padding: 4px 10px; border: 1px solid #e1dfdd; border-radius: 4px; font-weight: bold; cursor: pointer;">🗑 Clear Grid</button>
+    <div class="toolbar-wrap" style="background-color: white; padding: 8px 20px; border-bottom: 1px solid #e1dfdd; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+      <button @click="toggleBold" style="padding: 4px 8px; border-radius: 4px; border: 1px solid transparent; background: transparent; cursor: pointer; font-weight: bold; font-size: 16px;">B</button>
+      <button @click="toggleItalic" style="padding: 4px 8px; border-radius: 4px; border: 1px solid transparent; background: transparent; cursor: pointer; font-style: italic; font-size: 16px;">I</button>
       <div style="width: 1px; height: 24px; background: #e1dfdd; margin: 0 5px;"></div>
-      <button @click="downloadCSV" style="background: #217346; color: white; padding: 4px 10px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer;">⬇ Download CSV</button>
+      <label style="display: flex; align-items: center; gap: 5px; font-size: 13px; cursor: pointer;">
+        Text
+        <input type="color" @change="setCellColor" style="border: none; width: 24px; height: 24px; padding: 0; cursor: pointer;">
+      </label>
+      <label style="display: flex; align-items: center; gap: 5px; font-size: 13px; cursor: pointer;">
+        Fill
+        <input type="color" @change="setCellBg" style="border: none; width: 24px; height: 24px; padding: 0; cursor: pointer;">
+      </label>
+      <div style="width: 1px; height: 24px; background: #e1dfdd; margin: 0 5px;"></div>
+      <button @click="clearGrid" style="background: transparent; color: #d83b01; padding: 4px 10px; border: 1px solid #e1dfdd; border-radius: 4px; font-weight: bold; cursor: pointer;">🗑 Clear Grid</button>
+      <div style="margin-left: auto;">
+        <button @click="downloadCSV" style="background: #217346; color: white; padding: 4px 10px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer;">⬇ Download CSV</button>
+      </div>
     </div>
 
     <!-- Formula Bar -->
@@ -319,14 +396,21 @@ const copyLink = () => {
               v-for="(col, cIndex) in row" 
               :key="'c'+cIndex"
               @click="selectCell(rIndex, cIndex)"
-              style="border: 1px solid #e1dfdd; padding: 0;"
-              :style="{ outline: (activeCell.r === rIndex && activeCell.c === cIndex) ? '2px solid #217346' : 'none' }"
+              :style="{ 
+                outline: (activeCell.r === rIndex && activeCell.c === cIndex) ? '2px solid #217346' : 'none',
+                backgroundColor: stylesData[rIndex][cIndex].bg,
+                color: stylesData[rIndex][cIndex].color,
+                fontWeight: stylesData[rIndex][cIndex].bold ? 'bold' : 'normal',
+                fontStyle: stylesData[rIndex][cIndex].italic ? 'italic' : 'normal',
+                border: '1px solid #e1dfdd',
+                padding: '0'
+              }"
             >
               <input 
                 v-if="activeCell.r === rIndex && activeCell.c === cIndex"
                 type="text"
                 v-model="rawData[rIndex][cIndex]"
-                style="width: 100%; height: 100%; border: none; outline: none; padding: 4px; font-family: inherit;"
+                style="width: 100%; height: 100%; border: none; outline: none; padding: 4px; font-family: inherit; background: transparent; color: inherit; font-weight: inherit; font-style: inherit;"
                 autofocus
               >
               <div v-else style="padding: 4px; min-height: 24px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
@@ -355,6 +439,16 @@ const copyLink = () => {
 </template>
 
 <style scoped>
+.toolbar-scroll::-webkit-scrollbar {
+  display: none;
+}
+.toolbar-scroll {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.toolbar-scroll > * {
+  flex-shrink: 0;
+}
 .menu-item {
   padding: 8px 15px;
   cursor: pointer;
@@ -363,5 +457,14 @@ const copyLink = () => {
 }
 .menu-item:hover {
   background: #f3f2f1;
+}
+.grid-line {
+  stroke-dasharray: 100;
+  stroke-dashoffset: 100;
+  animation: draw-grid 1.5s infinite ease-in-out alternate;
+}
+@keyframes draw-grid {
+  0% { stroke-dashoffset: 100; }
+  100% { stroke-dashoffset: 0; }
 }
 </style>
