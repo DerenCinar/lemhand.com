@@ -6,6 +6,7 @@ import { onAuthStateChanged } from 'firebase/auth'
 
 const isDarkMode = ref(false);
 const isMegaMenuOpen = ref(false);
+const isMobileMenuOpen = ref(false);
 const userEmail = ref(null);
 
 let unsubscribeAuth = null;
@@ -48,7 +49,7 @@ onUnmounted(() => {
   <nav class="ms-nav">
     <div class="ms-nav-left">
       <RouterLink to="/" class="ms-nav-logo"> LemHand </RouterLink>
-      <div style="display: flex; align-items: center; gap: 5px; height: 100%">
+      <div class="desktop-only" style="display: flex; align-items: center; gap: 5px; height: 100%">
         <RouterLink to="/products" class="ms-nav-link">Products</RouterLink>
         <RouterLink to="/bustracker" class="ms-nav-link">BusTracker</RouterLink>
         <RouterLink to="/blog" class="ms-nav-link">Blog</RouterLink>
@@ -78,13 +79,30 @@ onUnmounted(() => {
         </button>
         <RouterLink
           to="/login"
-          style="font-weight: 600; cursor: pointer; margin-right: 10px"
+          style="font-weight: 600; cursor: pointer;"
+          class="desktop-only"
           >{{ userEmail ? 'Account' : 'Sign in' }}</RouterLink
         >
+        <!-- Mobile hamburger -->
+        <button class="mobile-only ms-nav-link" @click="isMobileMenuOpen = !isMobileMenuOpen" style="font-size: 20px; padding: 10px;">
+          ☰
+        </button>
       </div>
     </div>
   </nav>
 
+  <!-- Mobile Menu Dropdown -->
+  <div v-show="isMobileMenuOpen" class="mega-menu mobile-only" @click.self="isMobileMenuOpen = false">
+    <div class="mega-menu-content" style="padding: 15px;">
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        <RouterLink to="/products" class="ms-nav-link" style="font-size: 1.1rem;" @click="isMobileMenuOpen = false">Products</RouterLink>
+        <RouterLink to="/bustracker" class="ms-nav-link" style="font-size: 1.1rem;" @click="isMobileMenuOpen = false">BusTracker</RouterLink>
+        <RouterLink to="/blog" class="ms-nav-link" style="font-size: 1.1rem;" @click="isMobileMenuOpen = false">Blog</RouterLink>
+        <div style="height: 1px; background: var(--border-color); margin: 10px 0;"></div>
+        <RouterLink to="/login" class="ms-nav-link" style="font-weight: 600; font-size: 1.1rem;" @click="isMobileMenuOpen = false">{{ userEmail ? 'Account' : 'Sign in' }}</RouterLink>
+      </div>
+    </div>
+  </div>
   <!-- Mega Menu Dropdown -->
   <div
     v-show="isMegaMenuOpen"
@@ -98,7 +116,7 @@ onUnmounted(() => {
           <RouterLink to="/page/internet" @click="isMegaMenuOpen = false"
             >LemHand Internet</RouterLink
           >
-          <RouterLink to="/page/office" @click="isMegaMenuOpen = false"
+          <RouterLink to="/office" @click="isMegaMenuOpen = false"
             >LemHand Office</RouterLink
           >
           <a href="https://drive.google.com/drive/folders/1Sf-zlXAhgixnsCynqq0EsUE8HMdXxA7G?usp=sharing" target="_blank" @click="isMegaMenuOpen = false"

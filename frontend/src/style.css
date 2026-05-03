@@ -397,3 +397,59 @@ button {
   border-top: 1px solid var(--border-color);
   text-align: center;
 }
+
+/* Responsive Utilities */
+.mobile-only {
+  display: none !important;
+}
+
+@media (max-width: 768px) {
+  .desktop-only {
+    display: none !important;
+  }
+  
+  .mobile-only {
+    display: flex !important;
+  }
+  
+  /* Mega menu stacking on mobile */
+  .mega-menu-grid {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+  
+  .mega-menu-content {
+    padding: 15px 5%;
+  }
+  
+  /* Hero section adjustments */
+  .ms-hero-title {
+    font-size: 2rem;
+  }
+  
+  .ms-hero-desc {
+    font-size: 1rem;
+  }
+  
+  .ms-hero-content {
+    padding: 30px 5%;
+  }
+
+  /* Nav padding adjustments */
+  .ms-nav {
+    padding: 0 15px;
+  }
+  
+  .ms-nav-link {
+    padding: 16px 8px;
+  }
+  
+  /* Generic Container Adjustments */
+  .page-container {
+    padding: 30px 15px !important;
+  }
+  
+  h1 {
+    font-size: 2rem !important;
+  }
+}

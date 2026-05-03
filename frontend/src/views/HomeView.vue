@@ -102,7 +102,7 @@ onUnmounted(() => {
           <p class="ms-card-text">
             The complete productivity suite for your home and business.
           </p>
-          <RouterLink to="/page/office" class="ms-link">For up to 6 people</RouterLink>
+          <RouterLink to="/office" class="ms-link">Launch Office Suite</RouterLink>
         </div>
       </div>
     </section>

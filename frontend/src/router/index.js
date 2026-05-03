@@ -40,6 +40,26 @@ const router = createRouter({
       component: () => import('../views/LoginView.vue')
     },
     {
+      path: '/office',
+      name: 'office',
+      component: () => import('../views/OfficeDashboardView.vue')
+    },
+    {
+      path: '/office/word/:id',
+      name: 'office-word',
+      component: () => import('../views/OfficeWordView.vue')
+    },
+    {
+      path: '/office/sheets/:id',
+      name: 'office-sheets',
+      component: () => import('../views/OfficeSheetsView.vue')
+    },
+    {
+      path: '/office/present/:id',
+      name: 'office-present',
+      component: () => import('../views/OfficePresentView.vue')
+    },
+    {
       path: '/page/:id',
       name: 'generic',
       component: GenericPage

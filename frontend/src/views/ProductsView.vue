@@ -46,7 +46,7 @@
           <div class="ms-hero-badge" style="background-color: #7fba00; color: white;">Productivity</div>
           <h3 class="ms-card-title">LemHand Office</h3>
           <p class="ms-card-text">The complete productivity suite for your home and business. Includes LemWord, LemSheet, and LemPresent.</p>
-          <RouterLink to="/page/office" class="ms-link">For up to 6 people</RouterLink>
+          <RouterLink to="/office" class="ms-link">Launch Office Suite</RouterLink>
         </div>
       </div>
       
