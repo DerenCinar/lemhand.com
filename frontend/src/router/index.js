@@ -63,6 +63,21 @@ const router = createRouter({
       path: '/page/:id',
       name: 'generic',
       component: GenericPage
+    },
+    {
+      path: '/las/signin',
+      name: 'las-signin',
+      component: () => import('../views/LASSignInView.vue')
+    },
+    {
+      path: '/las/demo',
+      name: 'las-demo',
+      component: () => import('../views/LASDemoView.vue')
+    },
+    {
+      path: '/:pathMatch(.*)*',
+      name: 'not-found',
+      component: () => import('../views/NotFoundView.vue')
     }
   ],
   scrollBehavior() {
