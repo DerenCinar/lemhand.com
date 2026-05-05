@@ -2,6 +2,9 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 
+import { db } from '../firebase'
+import { doc, deleteDoc as firestoreDelete } from 'firebase/firestore'
+
 const router = useRouter()
 const recentDocs = ref([])
 
@@ -31,11 +34,16 @@ const saveSettings = () => {
   localStorage.setItem('lemhand_office_animations', showAnimations.value)
 }
 
-const deleteDoc = (e, id) => {
+const deleteDoc = async (e, id) => {
   e.stopPropagation()
-  if (confirm('Are you sure you want to remove this document from your recents?')) {
-    recentDocs.value = recentDocs.value.filter(d => d.id !== id)
-    localStorage.setItem('lemhand_office_recents', JSON.stringify(recentDocs.value))
+  if (confirm('Are you sure you want to PERMANENTLY delete this document from LemCloud? This cannot be undone.')) {
+    try {
+      await firestoreDelete(doc(db, 'office', id))
+      recentDocs.value = recentDocs.value.filter(d => d.id !== id)
+      localStorage.setItem('lemhand_office_recents', JSON.stringify(recentDocs.value))
+    } catch (err) {
+      alert('Error deleting document: ' + err.message)
+    }
   }
 }
 </script>

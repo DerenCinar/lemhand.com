@@ -1,13 +1,17 @@
 <script setup>
 import { ref, reactive, computed, watch, onMounted, onUnmounted } from 'vue'
 import { db } from '../firebase'
-import { doc, onSnapshot, setDoc, arrayUnion, arrayRemove } from 'firebase/firestore'
-import { useRoute } from 'vue-router'
+import { doc, onSnapshot, setDoc, arrayUnion, arrayRemove, deleteDoc as firestoreDelete } from 'firebase/firestore'
+import { useRoute, useRouter } from 'vue-router'
 
 const route = useRoute()
+const router = useRouter()
 const docId = route.params.id
 
 const documentTitle = ref('Untitled Spreadsheet')
+const activeTab = ref('Home')
+const isRibbonVisible = ref(true)
+const isCloudSaving = ref(false)
 
 // Create a larger grid
 const cols = 26
@@ -19,11 +23,10 @@ const rawData = reactive(
 )
 
 const stylesData = reactive(
-  Array(rows).fill().map(() => Array(cols).fill({ bold: false, italic: false, color: '#666666', bg: 'transparent' }))
+  Array(rows).fill().map(() => Array(cols).fill({ bold: false, italic: false, color: '#000000', bg: 'transparent', align: 'left' }))
 )
 
 const activeCell = ref({ r: 0, c: 0 })
-const activeMenu = ref(null)
 const username = ref('Anonymous')
 const avatars = ref([])
 
@@ -57,7 +60,6 @@ const handleUnload = () => {
 }
 
 onMounted(() => {
-  // Setup User
   let storedName = localStorage.getItem('lemhand_office_name')
   if (!storedName) {
     storedName = prompt("Enter your name to join this document:") || "Anonymous"
@@ -66,12 +68,9 @@ onMounted(() => {
   username.value = storedName
   myUserObj.name = storedName
 
-  // Save to Recents
   saveToRecents()
 
   const docRef = doc(db, 'office', docId)
-
-  // Join the document
   setDoc(docRef, { activeUsers: arrayUnion(myUserObj) }, { merge: true })
   window.addEventListener('beforeunload', handleUnload)
 
@@ -94,18 +93,14 @@ onMounted(() => {
         if (data.grid) {
           for (let r = 0; r < rows; r++) {
             for (let c = 0; c < cols; c++) {
-              if (data.grid[r] && data.grid[r][c] !== undefined) {
-                rawData[r][c] = data.grid[r][c]
-              }
+              if (data.grid[r] && data.grid[r][c] !== undefined) { rawData[r][c] = data.grid[r][c] }
             }
           }
         }
         if (data.styles) {
           for (let r = 0; r < rows; r++) {
             for (let c = 0; c < cols; c++) {
-              if (data.styles[r] && data.styles[r][c]) {
-                stylesData[r][c] = { ...stylesData[r][c], ...data.styles[r][c] }
-              }
+              if (data.styles[r] && data.styles[r][c]) { stylesData[r][c] = { ...stylesData[r][c], ...data.styles[r][c] } }
             }
           }
         }
@@ -130,54 +125,37 @@ const saveToRecents = () => {
 
 const saveToCloud = () => {
   if (isUpdatingFromServer) return;
+  isCloudSaving.value = true;
   clearTimeout(saveTimeout);
   saveTimeout = setTimeout(async () => {
     try {
-      // Clean up empty rows to save space
-      const gridToSave = rawData.map(row => [...row]);
-      const stylesToSave = stylesData.map(row => [...row]);
       await setDoc(doc(db, 'office', docId), {
         title: documentTitle.value,
-        grid: gridToSave,
-        styles: stylesToSave,
+        grid: rawData,
+        styles: stylesData,
         lastUpdated: new Date()
       }, { merge: true })
       saveToRecents()
+      isCloudSaving.value = false;
     } catch (e) {
       console.error("Error saving:", e)
+      isCloudSaving.value = false;
     }
-  }, 1000); // 1s debounce
+  }, 1000);
 }
 
 watch(documentTitle, saveToCloud)
-
-// Deep watch the grids
 watch(() => [...rawData.map(row => [...row])], saveToCloud, { deep: true })
 watch(() => [...stylesData.map(row => [...row])], saveToCloud, { deep: true })
 
-const selectCell = (r, c) => {
-  activeCell.value = { r, c }
-}
+const selectCell = (r, c) => { activeCell.value = { r, c } }
+const toggleBold = () => { stylesData[activeCell.value.r][activeCell.value.c].bold = !stylesData[activeCell.value.r][activeCell.value.c].bold }
+const toggleItalic = () => { stylesData[activeCell.value.r][activeCell.value.c].italic = !stylesData[activeCell.value.r][activeCell.value.c].italic }
+const setCellColor = (e) => { stylesData[activeCell.value.r][activeCell.value.c].color = e.target.value }
+const setCellBg = (e) => { stylesData[activeCell.value.r][activeCell.value.c].bg = e.target.value }
+const setAlign = (dir) => { stylesData[activeCell.value.r][activeCell.value.c].align = dir }
 
-const toggleBold = () => {
-  stylesData[activeCell.value.r][activeCell.value.c].bold = !stylesData[activeCell.value.r][activeCell.value.c].bold
-}
-
-const toggleItalic = () => {
-  stylesData[activeCell.value.r][activeCell.value.c].italic = !stylesData[activeCell.value.r][activeCell.value.c].italic
-}
-
-const setCellColor = (e) => {
-  stylesData[activeCell.value.r][activeCell.value.c].color = e.target.value
-}
-
-const setCellBg = (e) => {
-  stylesData[activeCell.value.r][activeCell.value.c].bg = e.target.value
-}
-
-const getColumnLabel = (index) => {
-  return String.fromCharCode(65 + index)
-}
+const getColumnLabel = (index) => String.fromCharCode(65 + index)
 
 const evaluateCell = (r, c) => {
   let val = rawData[r][c]
@@ -195,100 +173,62 @@ const evaluateCell = (r, c) => {
         return 0
       })
       const safeExpr = expr.replace(/[^0-9+\-*/(). ]/g, '')
-      if (safeExpr) {
-        return new Function('return ' + safeExpr)()
-      }
-    } catch (e) {
-      return '#ERROR!'
-    }
+      return safeExpr ? new Function('return ' + safeExpr)() : ''
+    } catch (e) { return '#ERROR!' }
   }
   return val
 }
 
 const displayData = computed(() => {
-  return rawData.map((row, r) => 
-    row.map((col, c) => {
-      if (activeCell.value.r === r && activeCell.value.c === c) {
-        return rawData[r][c]
-      }
-      return evaluateCell(r, c)
-    })
-  )
+  return rawData.map((row, r) => row.map((col, c) => {
+    if (activeCell.value.r === r && activeCell.value.c === c) return rawData[r][c]
+    return evaluateCell(r, c)
+  }))
 })
+
+const deleteDocument = async () => {
+  if (confirm('Are you sure you want to PERMANENTLY delete this spreadsheet? This cannot be undone.')) {
+    try {
+      await firestoreDelete(doc(db, 'office', docId))
+      let recents = JSON.parse(localStorage.getItem('lemhand_office_recents') || '[]')
+      recents = recents.filter(d => d.id !== docId)
+      localStorage.setItem('lemhand_office_recents', JSON.stringify(recents))
+      router.push('/office')
+    } catch (e) {
+      alert('Error deleting: ' + e.message)
+    }
+  }
+}
 
 const downloadCSV = () => {
   let csvContent = ''
   for (let r = 0; r < rows; r++) {
     let rowValues = []
-    let rowHasData = false
     for (let c = 0; c < cols; c++) {
-      let val = evaluateCell(r, c)
-      if (val !== '') rowHasData = true
-      // Escape commas and quotes
-      let strVal = String(val).replace(/"/g, '""')
-      if (strVal.includes(',') || strVal.includes('"') || strVal.includes('\n')) {
-        strVal = `"${strVal}"`
-      }
-      rowValues.push(strVal)
+      let val = evaluateCell(r, c); let strVal = String(val).replace(/"/g, '""');
+      if (strVal.includes(',') || strVal.includes('"')) strVal = `"${strVal}"`;
+      rowValues.push(strVal);
     }
-    // Only include rows that have at least some data, up to the last row with data
     csvContent += rowValues.join(',') + '\n'
   }
-  
   const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
-  const url = URL.createObjectURL(blob)
-  const link = document.createElement('a')
-  link.setAttribute('href', url)
-  link.setAttribute('download', `${documentTitle.value}.csv`)
-  link.style.visibility = 'hidden'
-  document.body.appendChild(link)
-  link.click()
-  document.body.removeChild(link)
+  const url = URL.createObjectURL(blob); const link = document.createElement('a');
+  link.setAttribute('href', url); link.setAttribute('download', `${documentTitle.value}.csv`);
+  link.click();
 }
 
-const clearGrid = () => {
-  if(confirm("Are you sure you want to clear the entire spreadsheet?")) {
-    for (let r = 0; r < rows; r++) {
-      for (let c = 0; c < cols; c++) {
-        rawData[r][c] = ''
-      }
-    }
-    saveToCloud()
-  }
-}
-
-const toggleMenu = (menu) => {
-  activeMenu.value = activeMenu.value === menu ? null : menu
-}
-
-document.addEventListener('click', (e) => {
-  if (!e.target.closest('.menu-container')) {
-    activeMenu.value = null
-  }
-})
-
-const isShareOpen = ref(false)
-const shareLink = ref('')
-const copyStatus = ref('')
-
-const openShare = () => {
-  shareLink.value = window.location.href;
-  isShareOpen.value = true;
-  copyStatus.value = '';
-}
-
+const isShareOpen = ref(false); const shareLink = ref(''); const copyStatus = ref('');
+const openShare = () => { shareLink.value = window.location.href; isShareOpen.value = true; }
 const copyLink = () => {
   navigator.clipboard.writeText(shareLink.value).then(() => {
-    copyStatus.value = 'Link copied to clipboard!';
+    copyStatus.value = 'Copied!';
     setTimeout(() => { copyStatus.value = ''; }, 3000);
-  }).catch(err => {
-    copyStatus.value = 'Failed to copy';
   });
 }
 </script>
 
 <template>
-  <div style="display: flex; flex-direction: column; height: 100vh; background-color: white; position: relative;">
+  <div style="display: flex; flex-direction: column; height: 100vh; background-color: #f3f2f1; overflow: hidden;">
     
     <!-- Loading Animation -->
     <div v-if="isLoading" style="position: fixed; top:0; left:0; width:100vw; height:100vh; background:#f3f2f1; z-index:999999; display:flex; flex-direction:column; align-items:center; justify-content:center;">
@@ -298,7 +238,6 @@ const copyLink = () => {
         <path class="grid-line grid-line-v" d="M 62 10 L 62 110" stroke="#ccc" stroke-width="2"/>
         <path class="grid-line grid-line-h" d="M 10 35 L 90 35" stroke="#ccc" stroke-width="2"/>
         <path class="grid-line grid-line-h" d="M 10 60 L 90 60" stroke="#ccc" stroke-width="2"/>
-        <path class="grid-line grid-line-h" d="M 10 85 L 90 85" stroke="#ccc" stroke-width="2"/>
       </svg>
       <div style="position: absolute; bottom: 40px; display: flex; flex-direction: column; align-items: center; color: #217346; font-weight: bold; font-size: 1.2rem;">
         LemHand Office
@@ -306,132 +245,161 @@ const copyLink = () => {
       </div>
     </div>
 
-    <!-- Enterprise Header -->
-    <div style="background-color: #217346; color: white; padding: 8px 20px; display: flex; align-items: center; justify-content: space-between;">
-      <div style="display: flex; align-items: center; gap: 20px;">
-        <RouterLink to="/office" style="color: white; font-size: 1.2rem; text-decoration: none; padding: 4px 8px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.3); display: flex; align-items: center; gap: 5px;">
-          <strong style="background: white; color: #217346; padding: 0px 4px; border-radius: 2px;">X</strong> 
-          ⌂
-        </RouterLink>
-        <div class="menu-container" style="display: flex; flex-direction: column; gap: 2px;">
-          <input type="text" v-model="documentTitle" style="background: transparent; border: 1px solid transparent; color: white; font-size: 1.1rem; outline: none; font-weight: 600; width: 300px; padding: 2px 4px; border-radius: 2px;" onfocus="this.style.border='1px solid rgba(255,255,255,0.5)'" onblur="this.style.border='1px solid transparent'">
-          <div style="display: flex; gap: 5px; font-size: 13px; color: rgba(255,255,255,0.9); margin-left: 2px;">
-            <div style="position: relative;">
-              <span @click="toggleMenu('file')" style="cursor: pointer; padding: 2px 8px; border-radius: 2px;" :style="{ background: activeMenu === 'file' ? 'rgba(255,255,255,0.2)' : 'transparent' }">File</span>
-              <div v-if="activeMenu === 'file'" style="position: absolute; top: 100%; left: 0; background: white; color: #333; box-shadow: 0 4px 12px rgba(0,0,0,0.15); border: 1px solid #e1dfdd; border-radius: 2px; padding: 5px 0; min-width: 150px; z-index: 100;">
-                <div @click="downloadCSV(); activeMenu=null" class="menu-item">Download .CSV</div>
-              </div>
-            </div>
-            <div style="position: relative;">
-              <span @click="toggleMenu('edit')" style="cursor: pointer; padding: 2px 8px; border-radius: 2px;" :style="{ background: activeMenu === 'edit' ? 'rgba(255,255,255,0.2)' : 'transparent' }">Edit</span>
-              <div v-if="activeMenu === 'edit'" style="position: absolute; top: 100%; left: 0; background: white; color: #333; box-shadow: 0 4px 12px rgba(0,0,0,0.15); border: 1px solid #e1dfdd; border-radius: 2px; padding: 5px 0; min-width: 150px; z-index: 100;">
-                <div @click="clearGrid(); activeMenu=null" class="menu-item" style="color: #d83b01;">Clear Entire Grid</div>
-              </div>
-            </div>
-          </div>
-        </div>
+    <!-- Top Header -->
+    <div style="background-color: #217346; color: white; padding: 4px 15px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; font-size: 12px; height: 32px;">
+      <div style="display: flex; align-items: center; gap: 15px; flex-grow: 1;">
+        <RouterLink to="/office" style="color: white; text-decoration: none; font-weight: bold; font-size: 14px;">X</RouterLink>
+        <div style="width: 1px; height: 16px; background: rgba(255,255,255,0.3);"></div>
+        <button @click="saveToCloud" class="quick-btn">💾</button>
+        <div style="width: 1px; height: 16px; background: rgba(255,255,255,0.3);"></div>
+        
+        <!-- Renaming Input -->
+        <input 
+          v-model="documentTitle" 
+          class="header-title-input"
+          placeholder="Enter spreadsheet title..."
+        >
+        
+        <span v-if="isCloudSaving" style="font-size: 10px; opacity: 0.7; margin-left: 10px;">Saving...</span>
+        <span v-else style="font-size: 10px; opacity: 0.7; margin-left: 10px;">Saved to LemCloud</span>
       </div>
       
-      <!-- Collaboration -->
-      <div style="display: flex; align-items: center; gap: 15px;">
-        <span style="font-size: 12px; color: rgba(255,255,255,0.6);">☁ Saved to LemCloud</span>
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <button @click="openShare" style="background: white; color: #217346; padding: 2px 12px; border-radius: 2px; border: none; font-weight: 600; font-size: 11px; cursor: pointer;">Share</button>
         <div style="display: flex; align-items: center;">
-          <div style="width: 32px; height: 32px; border-radius: 50%; background: #0078d4; border: 2px solid #217346; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; margin-right: -10px; z-index: 99;" :title="username + ' (You)'">{{ (username || '??').substring(0, 2).toUpperCase() }}</div>
-          <div v-for="(avatar, idx) in avatars" :key="idx" :style="{ background: ['#d83b01', '#2b579a', '#8764b8', '#c239b3'][idx % 4], zIndex: 98 - idx }" style="width: 32px; height: 32px; border-radius: 50%; border: 2px solid #217346; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; margin-right: -10px;" :title="avatar">{{ (avatar || '??').substring(0, 2).toUpperCase() }}</div>
+          <div :title="username + ' (You)'" style="width: 24px; height: 24px; border-radius: 50%; background: #0078d4; border: 1px solid white; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; z-index: 10;">{{ (username || '??').substring(0, 2).toUpperCase() }}</div>
+          <div v-for="(avatar, idx) in avatars" :key="idx" :title="avatar" :style="{ background: ['#d83b01', '#2b579a', '#8764b8', '#c239b3'][idx % 4] }" style="width: 24px; height: 24px; border-radius: 50%; border: 1px solid white; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; margin-left: -8px; z-index: 5;">{{ (avatar || '??').substring(0, 2).toUpperCase() }}</div>
         </div>
-        <button @click="openShare" style="background: white; color: #217346; padding: 6px 16px; border-radius: 20px; font-weight: 600; font-size: 13px; display: flex; align-items: center; gap: 5px; cursor: pointer;">
-          👤 Share
-        </button>
       </div>
     </div>
 
-    <!-- Toolbar -->
-    <div class="toolbar-wrap" style="background-color: white; padding: 8px 20px; border-bottom: 1px solid #e1dfdd; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
-      <button @click="toggleBold" style="padding: 4px 8px; border-radius: 4px; border: 1px solid transparent; background: transparent; cursor: pointer; font-weight: bold; font-size: 16px;">B</button>
-      <button @click="toggleItalic" style="padding: 4px 8px; border-radius: 4px; border: 1px solid transparent; background: transparent; cursor: pointer; font-style: italic; font-size: 16px;">I</button>
-      <div style="width: 1px; height: 24px; background: #e1dfdd; margin: 0 5px;"></div>
-      <label style="display: flex; align-items: center; gap: 5px; font-size: 13px; cursor: pointer;">
-        Text
-        <input type="color" @change="setCellColor" style="border: none; width: 24px; height: 24px; padding: 0; cursor: pointer;">
-      </label>
-      <label style="display: flex; align-items: center; gap: 5px; font-size: 13px; cursor: pointer;">
-        Fill
-        <input type="color" @change="setCellBg" style="border: none; width: 24px; height: 24px; padding: 0; cursor: pointer;">
-      </label>
-      <div style="width: 1px; height: 24px; background: #e1dfdd; margin: 0 5px;"></div>
-      <button @click="clearGrid" style="background: transparent; color: #d83b01; padding: 4px 10px; border: 1px solid #e1dfdd; border-radius: 4px; font-weight: bold; cursor: pointer;">🗑 Clear Grid</button>
-      <div style="margin-left: auto;">
-        <button @click="downloadCSV" style="background: #217346; color: white; padding: 4px 10px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer;">⬇ Download CSV</button>
+    <!-- Ribbon Tabs -->
+    <div style="background: #f3f2f1; display: flex; gap: 2px; padding: 0 10px; border-bottom: 1px solid #e1dfdd; flex-shrink: 0;">
+      <div v-for="tab in ['File', 'Home', 'Insert', 'Layout', 'Formulas', 'Data', 'View', 'Help']" :key="tab" 
+           @click="activeTab = tab" 
+           class="ribbon-tab" :class="{ active: activeTab === tab }">
+        {{ tab }}
       </div>
+    </div>
+
+    <!-- Ribbon Panel -->
+    <div class="ribbon-panel" :class="{ hidden: !isRibbonVisible }">
+      <!-- Home Tab -->
+      <template v-if="activeTab === 'Home'">
+        <div class="ribbon-group">
+          <div style="display: flex; gap: 4px;">
+            <button @click="toggleBold" class="small-ribbon-btn" :class="{active: stylesData[activeCell.r][activeCell.c].bold}"><b>B</b></button>
+            <button @click="toggleItalic" class="small-ribbon-btn" :class="{active: stylesData[activeCell.r][activeCell.c].italic}"><i>I</i></button>
+          </div>
+          <label>Font</label>
+        </div>
+        <div class="ribbon-group">
+          <div style="display: flex; gap: 10px;">
+            <label class="color-label">Text <input type="color" @change="setCellColor" :value="stylesData[activeCell.r][activeCell.c].color"></label>
+            <label class="color-label">Fill <input type="color" @change="setCellBg" :value="stylesData[activeCell.r][activeCell.c].bg"></label>
+          </div>
+          <label>Colors</label>
+        </div>
+        <div class="ribbon-group">
+           <div style="display: flex; gap: 2px;">
+              <button @click="setAlign('left')" class="small-ribbon-btn">⫷</button>
+              <button @click="setAlign('center')" class="small-ribbon-btn">≡</button>
+              <button @click="setAlign('right')" class="small-ribbon-btn">⫸</button>
+           </div>
+           <label>Alignment</label>
+        </div>
+        <div class="ribbon-group">
+           <button class="small-ribbon-btn">$ Currency</button>
+           <button class="small-ribbon-btn">% Percent</button>
+           <label>Number</label>
+        </div>
+      </template>
+
+      <!-- Formulas Tab -->
+      <template v-if="activeTab === 'Formulas'">
+        <div class="ribbon-group">
+          <div style="display: flex; gap: 5px;">
+            <button @click="rawData[activeCell.r][activeCell.c] = '=SUM()'" class="small-ribbon-btn">Σ Sum</button>
+            <button @click="rawData[activeCell.r][activeCell.c] = '=AVG()'" class="small-ribbon-btn">x̄ Average</button>
+          </div>
+          <label>Function Library</label>
+        </div>
+      </template>
+
+      <!-- Data Tab -->
+      <template v-if="activeTab === 'Data'">
+         <div class="ribbon-group">
+            <button class="small-ribbon-btn">↑ Sort A-Z</button>
+            <button class="small-ribbon-btn">↓ Sort Z-A</button>
+            <label>Sort & Filter</label>
+         </div>
+      </template>
+
+      <!-- File Tab -->
+      <template v-if="activeTab === 'File'">
+        <div class="ribbon-group">
+          <button @click="downloadCSV" class="big-ribbon-btn">📥 Download CSV</button>
+          <button @click="deleteDocument" class="big-ribbon-btn" style="color: #d13438;">🗑 Delete Spreadsheet</button>
+          <label>Actions</label>
+        </div>
+      </template>
     </div>
 
     <!-- Formula Bar -->
-    <div style="padding: 10px 20px; border-bottom: 1px solid #e1dfdd; display: flex; gap: 10px; align-items: center; background: #f3f2f1;">
-      <span style="font-weight: 600; min-width: 40px;">{{ getColumnLabel(activeCell.c) }}{{ activeCell.r + 1 }}</span>
-      <span style="color: #666;">fx</span>
-      <input 
-        type="text" 
-        v-model="rawData[activeCell.r][activeCell.c]" 
-        style="flex-grow: 1; padding: 5px; border: 1px solid #c8c6c4; outline: none;"
-      >
+    <div style="padding: 6px 15px; border-bottom: 1px solid #e1dfdd; display: flex; gap: 10px; align-items: center; background: #fff; flex-shrink: 0;">
+      <span style="font-weight: bold; min-width: 40px; font-size: 12px; color: #666;">{{ getColumnLabel(activeCell.c) }}{{ activeCell.r + 1 }}</span>
+      <span style="color: #217346; font-style: italic; font-weight: bold;">fx</span>
+      <input type="text" v-model="rawData[activeCell.r][activeCell.c]" style="flex-grow: 1; border: 1px solid #e1dfdd; padding: 2px 8px; outline: none; font-size: 13px;">
     </div>
 
-    <!-- Grid -->
-    <div style="flex-grow: 1; overflow: auto;">
-      <table style="border-collapse: collapse; width: 100%; min-width: 800px;">
+    <!-- Grid Area -->
+    <div style="flex-grow: 1; overflow: auto; background: #fff;">
+      <table style="border-collapse: collapse; width: 100%; font-size: 13px;">
         <thead>
-          <tr>
-            <th style="width: 40px; background: #f3f2f1; border: 1px solid #c8c6c4; position: sticky; top: 0; z-index: 2;"></th>
-            <th v-for="c in cols" :key="'h'+c" style="background: #f3f2f1; border: 1px solid #c8c6c4; padding: 5px; min-width: 100px; position: sticky; top: 0; z-index: 1;">
-              {{ getColumnLabel(c - 1) }}
-            </th>
+          <tr style="background: #f3f2f1;">
+            <th style="width: 40px; border: 1px solid #ccc; position: sticky; top: 0; left: 0; z-index: 3;"></th>
+            <th v-for="c in cols" :key="'h'+c" style="border: 1px solid #ccc; padding: 4px; min-width: 100px; position: sticky; top: 0; z-index: 2;">{{ getColumnLabel(c - 1) }}</th>
           </tr>
         </thead>
         <tbody>
           <tr v-for="(row, rIndex) in rawData" :key="'r'+rIndex">
-            <td style="background: #f3f2f1; border: 1px solid #c8c6c4; text-align: center; color: #666; font-size: 0.9em; position: sticky; left: 0;">
-              {{ rIndex + 1 }}
-            </td>
-            <td 
-              v-for="(col, cIndex) in row" 
-              :key="'c'+cIndex"
-              @click="selectCell(rIndex, cIndex)"
-              :style="{ 
-                outline: (activeCell.r === rIndex && activeCell.c === cIndex) ? '2px solid #217346' : 'none',
-                backgroundColor: stylesData[rIndex][cIndex].bg,
-                color: stylesData[rIndex][cIndex].color,
-                fontWeight: stylesData[rIndex][cIndex].bold ? 'bold' : 'normal',
-                fontStyle: stylesData[rIndex][cIndex].italic ? 'italic' : 'normal',
-                border: '1px solid #e1dfdd',
-                padding: '0'
-              }"
-            >
-              <input 
-                v-if="activeCell.r === rIndex && activeCell.c === cIndex"
-                type="text"
-                v-model="rawData[rIndex][cIndex]"
-                style="width: 100%; height: 100%; border: none; outline: none; padding: 4px; font-family: inherit; background: transparent; color: inherit; font-weight: inherit; font-style: inherit;"
-                autofocus
-              >
-              <div v-else style="padding: 4px; min-height: 24px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                {{ displayData[rIndex][cIndex] }}
-              </div>
+            <td style="background: #f3f2f1; border: 1px solid #ccc; text-align: center; position: sticky; left: 0; z-index: 2;">{{ rIndex + 1 }}</td>
+            <td v-for="(col, cIndex) in row" :key="'c'+cIndex" @click="selectCell(rIndex, cIndex)"
+                :style="{ 
+                  outline: (activeCell.r === rIndex && activeCell.c === cIndex) ? '2px solid #217346' : 'none', 
+                  backgroundColor: stylesData[rIndex][cIndex].bg, 
+                  color: stylesData[rIndex][cIndex].color, 
+                  fontWeight: stylesData[rIndex][cIndex].bold ? 'bold' : 'normal', 
+                  fontStyle: stylesData[rIndex][cIndex].italic ? 'italic' : 'normal', 
+                  textAlign: stylesData[rIndex][cIndex].align || 'left',
+                  border: '1px solid #e1dfdd', 
+                  padding: '0', 
+                  position: (activeCell.r === rIndex && activeCell.c === cIndex) ? 'relative' : 'static', 
+                  zIndex: (activeCell.r === rIndex && activeCell.c === cIndex) ? 1 : 0 
+                }">
+              <input v-if="activeCell.r === rIndex && activeCell.c === cIndex" type="text" v-model="rawData[rIndex][cIndex]" style="width: 100%; height: 100%; border: none; outline: none; padding: 4px; background: transparent; color: inherit; font: inherit;" autofocus>
+              <div v-else style="padding: 4px; min-height: 20px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ displayData[rIndex][cIndex] }}</div>
             </td>
           </tr>
         </tbody>
       </table>
     </div>
 
+    <!-- Status Bar -->
+    <div style="background: #217346; color: white; height: 24px; padding: 0 15px; display: flex; align-items: center; justify-content: space-between; font-size: 11px;">
+      <div>Ready | Sum: 0</div>
+      <div>100% | LemCloud {{ isCloudSaving ? 'Syncing...' : 'Connected' }}</div>
+    </div>
+
     <!-- Share Modal -->
-    <div v-if="isShareOpen" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.5); z-index: 9999; display: flex; align-items: center; justify-content: center;">
-      <div style="background: white; padding: 30px; border-radius: 8px; width: 400px; box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
-        <h2 style="margin-bottom: 20px; color: #323130;">Share Spreadsheet</h2>
-        <p style="margin-bottom: 10px; color: #666; font-size: 14px;">Anyone with this link can join and collaborate in real-time.</p>
-        <input type="text" readonly :value="shareLink" @click="$event.target.select()" style="width: 100%; padding: 10px; border: 1px solid #c8c6c4; border-radius: 4px; margin-bottom: 15px; outline: none; background: #f3f2f1; color: #333;">
-        <p v-if="copyStatus" style="color: #107c41; margin-bottom: 15px; font-weight: 600; font-size: 14px;">{{ copyStatus }}</p>
+    <div v-if="isShareOpen" class="modal-overlay">
+      <div class="modal">
+        <h2>Share Spreadsheet</h2>
+        <input type="text" readonly :value="shareLink" @click="$event.target.select()" class="share-input">
+        <p v-if="copyStatus" style="color: green;">{{ copyStatus }}</p>
         <div style="display: flex; justify-content: flex-end; gap: 10px;">
-          <button @click="isShareOpen = false" style="padding: 8px 16px; background: #e1dfdd; border: none; border-radius: 4px; cursor: pointer; font-weight: 600; color: black;">Close</button>
-          <button @click="copyLink" style="padding: 8px 16px; background: #217346; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 600;">Copy Link</button>
+          <button @click="isShareOpen = false">Close</button>
+          <button @click="copyLink" style="background: #217346; color: white; border: none; padding: 5px 15px; border-radius: 4px;">Copy</button>
         </div>
       </div>
     </div>
@@ -439,32 +407,61 @@ const copyLink = () => {
 </template>
 
 <style scoped>
-.toolbar-scroll::-webkit-scrollbar {
-  display: none;
+.quick-btn { background: transparent; border: none; color: white; padding: 4px 8px; cursor: pointer; border-radius: 2px; }
+.quick-btn:hover { background: rgba(255,255,255,0.2); }
+
+.header-title-input {
+  background: transparent;
+  border: 1px solid transparent;
+  color: white;
+  font-weight: 600;
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 2px;
+  outline: none;
+  width: 250px;
+  transition: all 0.2s;
 }
-.toolbar-scroll {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
+.header-title-input:hover {
+  background: rgba(255,255,255,0.1);
 }
-.toolbar-scroll > * {
-  flex-shrink: 0;
+.header-title-input:focus {
+  background: white;
+  color: #217346;
+  border-color: white;
 }
-.menu-item {
-  padding: 8px 15px;
-  cursor: pointer;
-  font-size: 13px;
-  color: #333;
-}
-.menu-item:hover {
-  background: #f3f2f1;
-}
+
+.ribbon-tab { padding: 6px 12px; font-size: 12px; color: #333; cursor: pointer; border-bottom: 3px solid transparent; }
+.ribbon-tab:hover { background: #e1dfdd; }
+.ribbon-tab.active { border-bottom-color: #217346; font-weight: 600; background: #fff; }
+
+.ribbon-panel { background: #fff; height: 90px; display: flex; padding: 5px 10px; gap: 15px; border-bottom: 1px solid #e1dfdd; flex-shrink: 0; overflow-x: auto; }
+.ribbon-panel.hidden { height: 0; padding: 0; overflow: hidden; }
+
+.ribbon-group { display: flex; flex-direction: column; align-items: center; border-right: 1px solid #f3f2f1; padding-right: 15px; height: 100%; min-width: max-content; }
+.ribbon-group label { font-size: 9px; color: #666; margin-top: auto; text-transform: uppercase; padding-top: 5px; }
+
+.big-ribbon-btn { display: flex; flex-direction: column; align-items: center; justify-content: center; background: transparent; border: 1px solid transparent; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 11px; gap: 2px; }
+.big-ribbon-btn:hover { background: #f3f2f1; border-color: #e1dfdd; }
+
+.small-ribbon-btn { background: transparent; border: 1px solid transparent; padding: 2px 6px; border-radius: 2px; cursor: pointer; font-size: 12px; }
+.small-ribbon-btn:hover { background: #f3f2f1; border-color: #e1dfdd; }
+.small-ribbon-btn.active { background: #e1dfdd; border-color: #217346; }
+
+.color-label { font-size: 10px; display: flex; align-items: center; gap: 4px; cursor: pointer; }
+.color-label input { width: 16px; height: 16px; border: none; padding: 0; background: none; cursor: pointer; }
+
+.modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+.modal { background: white; padding: 30px; border-radius: 8px; width: 400px; }
+.share-input { width: 100%; padding: 10px; border: 1px solid #ccc; margin: 15px 0; }
+
 .grid-line {
-  stroke-dasharray: 100;
-  stroke-dashoffset: 100;
+  stroke-dasharray: 40;
+  stroke-dashoffset: 40;
   animation: draw-grid 1.5s infinite ease-in-out alternate;
 }
 @keyframes draw-grid {
-  0% { stroke-dashoffset: 100; }
+  0% { stroke-dashoffset: 40; }
   100% { stroke-dashoffset: 0; }
 }
 </style>

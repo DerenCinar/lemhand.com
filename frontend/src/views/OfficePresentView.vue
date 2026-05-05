@@ -1,21 +1,39 @@
 <script setup>
 import { ref, onMounted, onUnmounted, watch } from 'vue'
 import { db } from '../firebase'
-import { doc, onSnapshot, setDoc, arrayUnion, arrayRemove } from 'firebase/firestore'
-import { useRoute } from 'vue-router'
+import { doc, onSnapshot, setDoc, arrayUnion, arrayRemove, deleteDoc as firestoreDelete } from 'firebase/firestore'
+import { useRoute, useRouter } from 'vue-router'
 
 const route = useRoute()
+const router = useRouter()
 const docId = route.params.id
 
 const documentTitle = ref('Untitled Presentation')
+const activeTab = ref('Home')
+const zoom = ref(0.5)
+const isRibbonVisible = ref(true)
+const isCloudSaving = ref(false)
 
 const slides = ref([
-  { id: 1, title: 'Welcome to LemPresent', content: 'Create beautiful slides easily.', bgColor: '#ffffff', textColor: '#d24726' }
+  { 
+    id: 1, 
+    bgColor: '#ffffff', 
+    transition: 'fade',
+    aspectRatio: '16/9',
+    notes: '',
+    elements: [
+      { id: 'e1', type: 'text', x: 192, y: 216, w: 1536, h: 216, content: 'Welcome to LemPresent', animation: 'fade-in', style: { color: '#d24726', fontSize: '80px', fontWeight: 'bold', textAlign: 'center' } },
+      { id: 'e2', type: 'text', x: 384, y: 540, w: 1152, h: 108, content: 'Create professional presentations in real-time.', animation: 'slide-up', style: { color: '#333', fontSize: '32px', textAlign: 'center' } }
+    ]
+  }
 ])
 
 const activeSlideIndex = ref(0)
+const selectedElementId = ref(null)
 const isPresenting = ref(false)
+const showNotes = ref(false)
 const activeMenu = ref(null)
+const contextMenu = ref({ visible: false, x: 0, y: 0 })
 const username = ref('Anonymous')
 const avatars = ref([])
 
@@ -52,7 +70,6 @@ const handleUnload = () => {
 }
 
 onMounted(() => {
-  // Setup User
   let storedName = localStorage.getItem('lemhand_office_name')
   if (!storedName) {
     storedName = prompt("Enter your name to join this presentation:") || "Anonymous"
@@ -61,12 +78,9 @@ onMounted(() => {
   username.value = storedName
   myUserObj.name = storedName
 
-  // Save to Recents
   saveToRecents()
 
   const docRef = doc(db, 'office', docId)
-
-  // Join the document
   setDoc(docRef, { activeUsers: arrayUnion(myUserObj) }, { merge: true })
   window.addEventListener('beforeunload', handleUnload)
 
@@ -111,6 +125,7 @@ const saveToRecents = () => {
 
 const saveToCloud = () => {
   if (isUpdatingFromServer) return;
+  isCloudSaving.value = true;
   clearTimeout(saveTimeout);
   saveTimeout = setTimeout(async () => {
     try {
@@ -120,124 +135,188 @@ const saveToCloud = () => {
         lastUpdated: new Date()
       }, { merge: true })
       saveToRecents()
+      isCloudSaving.value = false;
     } catch (e) {
       console.error("Error saving:", e)
+      isCloudSaving.value = false;
     }
-  }, 1000); // 1s debounce
+  }, 1000);
 }
 
 watch(documentTitle, saveToCloud)
 watch(slides, saveToCloud, { deep: true })
 
+const deletePresentation = async () => {
+  if (confirm('Are you sure you want to PERMANENTLY delete this presentation? This cannot be undone.')) {
+    try {
+      await firestoreDelete(doc(db, 'office', docId))
+      let recents = JSON.parse(localStorage.getItem('lemhand_office_recents') || '[]')
+      recents = recents.filter(d => d.id !== docId)
+      localStorage.setItem('lemhand_office_recents', JSON.stringify(recents))
+      router.push('/office')
+    } catch (e) {
+      alert('Error deleting: ' + e.message)
+    }
+  }
+}
+
+const isDragging = ref(false)
+const isResizing = ref(false)
+const dragStart = { x: 0, y: 0 }
+const initialPos = { x: 0, y: 0, w: 0, h: 0 }
+const resizeHandle = ref(null)
+
+const selectElement = (id) => {
+  selectedElementId.value = id
+}
+
+const addElement = (type) => {
+  const newEl = {
+    id: 'e' + Date.now(),
+    type: type,
+    x: 400,
+    y: 300,
+    w: type === 'image' ? 600 : 800,
+    h: type === 'image' ? 400 : 150,
+    content: type === 'text' ? 'New Text Box' : (type === 'image' ? 'https://via.placeholder.com/600x400' : ''),
+    animation: 'none',
+    style: {
+      color: '#333',
+      fontSize: '24px',
+      backgroundColor: type === 'shape' ? '#d24726' : 'transparent',
+      borderRadius: type === 'shape' ? '8px' : '0',
+      textAlign: 'center'
+    }
+  }
+  slides.value[activeSlideIndex.value].elements.push(newEl)
+  selectedElementId.value = newEl.id
+}
+
+const updateElementPos = (e) => {
+  if (!isDragging.value && !isResizing.value) return
+  const slideRect = document.querySelector('.slide-canvas').getBoundingClientRect()
+  const scale = 1920 / slideRect.width
+  const dx = (e.clientX - dragStart.x) * scale
+  const dy = (e.clientY - dragStart.y) * scale
+  const el = slides.value[activeSlideIndex.value].elements.find(el => el.id === selectedElementId.value)
+  if (!el) return
+  if (isDragging.value) {
+    el.x = Math.max(0, Math.min(1920 - el.w, initialPos.x + dx))
+    el.y = Math.max(0, Math.min(1080 - el.h, initialPos.y + dy))
+  } else if (isResizing.value) {
+    const h = resizeHandle.value
+    if (h.includes('e')) el.w = Math.max(50, initialPos.w + dx)
+    if (h.includes('s')) el.h = Math.max(50, initialPos.h + dy)
+    if (h.includes('w')) {
+      const newW = Math.max(50, initialPos.w - dx)
+      el.x = Math.max(0, initialPos.x + (initialPos.w - newW))
+      el.w = newW
+    }
+    if (h.includes('n')) {
+      const newH = Math.max(50, initialPos.h - dy)
+      el.y = Math.max(0, initialPos.y + (initialPos.h - newH))
+      el.h = newH
+    }
+  }
+}
+
+const startDrag = (e, id) => {
+  if (isPresenting.value) return
+  selectedElementId.value = id; isDragging.value = true; dragStart.x = e.clientX; dragStart.y = e.clientY
+  const el = slides.value[activeSlideIndex.value].elements.find(el => el.id === id)
+  initialPos.x = el.x; initialPos.y = el.y
+  window.addEventListener('mousemove', updateElementPos); window.addEventListener('mouseup', stopInteraction)
+}
+
+const startResize = (e, id, handle) => {
+  e.stopPropagation(); selectedElementId.value = id; isResizing.value = true; resizeHandle.value = handle
+  dragStart.x = e.clientX; dragStart.y = e.clientY
+  const el = slides.value[activeSlideIndex.value].elements.find(el => el.id === id)
+  initialPos.x = el.x; initialPos.y = el.y; initialPos.w = el.w; initialPos.h = el.h
+  window.addEventListener('mousemove', updateElementPos); window.addEventListener('mouseup', stopInteraction)
+}
+
+const stopInteraction = () => {
+  isDragging.value = false; isResizing.value = false
+  window.removeEventListener('mousemove', updateElementPos); window.removeEventListener('mouseup', stopInteraction)
+}
+
 const addSlide = () => {
   slides.value.push({
-    id: Date.now(),
-    title: 'New Slide',
-    content: 'Add your content here',
-    bgColor: '#ffffff',
-    textColor: '#d24726',
-    transition: 'fade',
-    textBgImage: ''
+    id: Date.now(), bgColor: '#ffffff', transition: 'fade', aspectRatio: slides.value[activeSlideIndex.value].aspectRatio, notes: '',
+    elements: [{ id: 't' + Date.now(), type: 'text', x: 192, y: 216, w: 1536, h: 162, content: 'New Slide Title', animation: 'fade-in', style: { color: '#d24726', fontSize: '64px', fontWeight: 'bold', textAlign: 'center' } }]
   })
   activeSlideIndex.value = slides.value.length - 1
 }
 
-const selectSlide = (index) => {
-  activeSlideIndex.value = index
-}
-
+const selectSlide = (index) => { activeSlideIndex.value = index; selectedElementId.value = null }
 const deleteSlide = (index) => {
   if (slides.value.length > 1) {
     slides.value.splice(index, 1)
-    if (activeSlideIndex.value >= slides.value.length) {
-      activeSlideIndex.value = slides.value.length - 1
-    }
+    if (activeSlideIndex.value >= slides.value.length) activeSlideIndex.value = slides.value.length - 1
   }
 }
 
 const togglePresent = () => {
   isPresenting.value = !isPresenting.value
   if (isPresenting.value) {
-    document.documentElement.requestFullscreen().catch((e) => {
-      console.log('Fullscreen failed:', e)
-    })
-  } else {
-    if (document.fullscreenElement) {
-      document.exitFullscreen()
-    }
-  }
+    selectedElementId.value = null
+    document.documentElement.requestFullscreen().catch(() => {})
+  } else if (document.fullscreenElement) document.exitFullscreen()
 }
 
 const nextSlide = () => {
-  if (activeSlideIndex.value < slides.value.length - 1) {
-    activeSlideIndex.value++
+  if (activeSlideIndex.value < slides.value.length - 1) activeSlideIndex.value++
+  else if (isPresenting.value) togglePresent()
+}
+
+const prevSlide = () => { if (activeSlideIndex.value > 0) activeSlideIndex.value-- }
+
+const handleImageUpload = (e) => {
+  const file = e.target.files[0]
+  if (file) {
+    const reader = new FileReader()
+    reader.onload = (event) => {
+      slides.value[activeSlideIndex.value].elements.push({ id: 'img' + Date.now(), type: 'image', x: 480, y: 270, w: 960, h: 540, content: event.target.result, animation: 'scale-up', style: {} })
+    }
+    reader.readAsDataURL(file)
   }
 }
 
-const prevSlide = () => {
-  if (activeSlideIndex.value > 0) {
-    activeSlideIndex.value--
-  }
-}
+const setAspectRatio = (ratio) => slides.value.forEach(s => s.aspectRatio = ratio)
 
-const setTextBgImage = () => {
-  const url = prompt("Enter Image URL for Text Fill (leave blank to remove):", slides.value[activeSlideIndex.value].textBgImage || "");
-  if (url !== null) {
-    slides.value[activeSlideIndex.value].textBgImage = url;
-  }
-}
-
-const printPresentation = () => {
-  window.print()
+const applyTheme = (theme) => {
+  const themes = { modern: { bg: '#ffffff', text: '#333333', primary: '#d24726' }, dark: { bg: '#1e1e1e', text: '#ffffff', primary: '#0078d4' }, nature: { bg: '#f0f4f0', text: '#2d4d2d', primary: '#107c41' }, corporate: { bg: '#f3f2f1', text: '#323130', primary: '#2b579a' } }
+  const t = themes[theme]; const slide = slides.value[activeSlideIndex.value]
+  slide.bgColor = t.bg; slide.elements.forEach(el => { if (el.type === 'text') el.style.color = t.text; if (el.id.startsWith('t')) el.style.color = t.primary })
 }
 
 const downloadPPT = () => {
-  let content = slides.value.map(s => `<div style="background:${s.bgColor};color:${s.textColor};padding:50px;margin-bottom:20px;border:1px solid #ccc;page-break-after:always;"><h1>${s.title}</h1><p>${s.content}</p></div>`).join('');
-  const htmlContent = `<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:p='urn:schemas-microsoft-com:office:powerpoint' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><title>${documentTitle.value}</title></head><body>${content}</body></html>`;
-  const blob = new Blob(['\ufeff', htmlContent], { type: 'application/vnd.ms-powerpoint' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `${documentTitle.value}.ppt`;
-  a.click();
-  URL.revokeObjectURL(url);
+  let content = slides.value.map(s => {
+    const els = s.elements.map(el => `<div style="position:absolute;left:${el.x}px;top:${el.y}px;width:${el.w}px;height:${el.h}px;">${el.content}</div>`).join('')
+    return `<div style="background:${s.bgColor};position:relative;width:1920px;height:1080px;page-break-after:always;">${els}</div>`
+  }).join('');
+  const htmlContent = `<html><body style="margin:0;">${content}</body></html>`;
+  const blob = new Blob([htmlContent], { type: 'application/vnd.ms-powerpoint' });
+  const url = URL.createObjectURL(blob); const a = document.createElement('a');
+  a.href = url; a.download = `${documentTitle.value}.ppt`; a.click();
 }
 
-const toggleMenu = (menu) => {
-  activeMenu.value = activeMenu.value === menu ? null : menu
-}
-
-document.addEventListener('click', (e) => {
-  if (!e.target.closest('.menu-container')) {
-    activeMenu.value = null
-  }
-})
-
-const openShare = () => {
-  shareLink.value = window.location.href;
-  isShareOpen.value = true;
-  copyStatus.value = '';
-}
-
+const openShare = () => { shareLink.value = window.location.href; isShareOpen.value = true; }
 const copyLink = () => {
   navigator.clipboard.writeText(shareLink.value).then(() => {
-    copyStatus.value = 'Link copied to clipboard!';
+    copyStatus.value = 'Copied!';
     setTimeout(() => { copyStatus.value = ''; }, 3000);
-  }).catch(err => {
-    copyStatus.value = 'Failed to copy';
   });
 }
 </script>
 
 <template>
-  <!-- Loading Animation -->
   <div v-if="isLoading" style="position: fixed; top:0; left:0; width:100vw; height:100vh; background:#f3f2f1; z-index:999999; display:flex; flex-direction:column; align-items:center; justify-content:center;">
     <svg width="150" height="120" viewBox="0 0 100 80" fill="none" xmlns="http://www.w3.org/2000/svg">
       <rect x="5" y="5" width="90" height="70" rx="4" fill="white" stroke="#d24726" stroke-width="4"/>
-      <path class="slide-line slide-line-1" d="M 15 20 L 50 20" stroke="#ccc" stroke-width="4" stroke-linecap="round"/>
-      <path class="slide-line slide-line-2" d="M 15 40 L 85 40" stroke="#ccc" stroke-width="2" stroke-linecap="round"/>
-      <path class="slide-line slide-line-3" d="M 15 50 L 70 50" stroke="#ccc" stroke-width="2" stroke-linecap="round"/>
-      <path class="slide-line slide-line-4" d="M 15 60 L 60 60" stroke="#ccc" stroke-width="2" stroke-linecap="round"/>
+      <path class="slide-line" d="M 15 20 L 50 20" stroke="#ccc" stroke-width="4" stroke-linecap="round"/>
+      <path class="slide-line" d="M 15 40 L 85 40" stroke="#ccc" stroke-width="2" stroke-linecap="round"/>
     </svg>
     <div style="position: absolute; bottom: 40px; display: flex; flex-direction: column; align-items: center; color: #d24726; font-weight: bold; font-size: 1.2rem;">
       LemHand Office
@@ -245,189 +324,165 @@ const copyLink = () => {
     </div>
   </div>
 
-  <!-- Presentation Mode -->
-  <div v-if="isPresenting" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: black; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center;" @click="nextSlide">
-    <div :style="{ backgroundColor: slides[activeSlideIndex].bgColor }" style="width: 80%; height: 80%; padding: 60px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; transition: background-color 0.3s;">
-      <h1 :style="{ color: slides[activeSlideIndex].textColor }" style="font-size: 4rem; margin-bottom: 40px;">{{ slides[activeSlideIndex].title }}</h1>
-      <p style="font-size: 2rem; color: #333;">{{ slides[activeSlideIndex].content }}</p>
-    </div>
-    
-    <div style="position: absolute; bottom: 20px; color: rgba(255,255,255,0.5); display: flex; gap: 20px; align-items: center;">
-      <button @click.stop="prevSlide" style="color: white; background: transparent; font-size: 20px;">◀</button>
-      <span>{{ activeSlideIndex + 1 }} / {{ slides.length }}</span>
-      <button @click.stop="nextSlide" style="color: white; background: transparent; font-size: 20px;">▶</button>
-      <button @click.stop="togglePresent" style="color: white; background: rgba(255,255,255,0.2); padding: 5px 10px; border-radius: 4px; margin-left: 20px;">Exit</button>
+  <div v-if="isPresenting" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: black; z-index: 9999; display: flex; align-items: center; justify-content: center;" @click="nextSlide">
+    <div :style="{ backgroundColor: slides[activeSlideIndex].bgColor, aspectRatio: slides[activeSlideIndex].aspectRatio }" style="width: 100vw; height: 100vh; position: relative; overflow: hidden;">
+      <div :style="{ width: '1920px', height: '1080px', backgroundColor: slides[activeSlideIndex].bgColor, transform: `scale(${Math.min(window.innerWidth/1920, window.innerHeight/1080)})`, transformOrigin: 'center center', position: 'absolute' }">
+        <div v-for="el in slides[activeSlideIndex].elements" :key="el.id" :class="['animated-el', el.animation]" :style="{ position: 'absolute', left: el.x + 'px', top: el.y + 'px', width: el.w + 'px', height: el.h + 'px', ...el.style, backgroundImage: el.type === 'image' ? `url(${el.content})` : 'none', backgroundSize: 'cover' }">
+          <template v-if="el.type === 'text'">{{ el.content }}</template>
+        </div>
+      </div>
     </div>
   </div>
 
-  <!-- Edit Mode -->
-  <div v-else style="display: flex; flex-direction: column; height: 100vh; background-color: #f3f2f1;">
-    <!-- Enterprise Header -->
-    <div style="background-color: #d24726; color: white; padding: 8px 20px; display: flex; align-items: center; justify-content: space-between;">
-      <div style="display: flex; align-items: center; gap: 20px;">
-        <RouterLink to="/office" style="color: white; font-size: 1.2rem; text-decoration: none; padding: 4px 8px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.3); display: flex; align-items: center; gap: 5px;">
-          <strong style="background: white; color: #d24726; padding: 0px 4px; border-radius: 2px;">P</strong> 
-          ⌂
-        </RouterLink>
-        <div class="menu-container" style="display: flex; flex-direction: column; gap: 2px;">
-          <input type="text" v-model="documentTitle" style="background: transparent; border: 1px solid transparent; color: white; font-size: 1.1rem; outline: none; font-weight: 600; width: 300px; padding: 2px 4px; border-radius: 2px;" onfocus="this.style.border='1px solid rgba(255,255,255,0.5)'" onblur="this.style.border='1px solid transparent'">
-          <div style="display: flex; gap: 5px; font-size: 13px; color: rgba(255,255,255,0.9); margin-left: 2px;">
-            <div style="position: relative;">
-              <span @click="toggleMenu('file')" style="cursor: pointer; padding: 2px 8px; border-radius: 2px;" :style="{ background: activeMenu === 'file' ? 'rgba(255,255,255,0.2)' : 'transparent' }">File</span>
-              <div v-if="activeMenu === 'file'" style="position: absolute; top: 100%; left: 0; background: white; color: #333; box-shadow: 0 4px 12px rgba(0,0,0,0.15); border: 1px solid #e1dfdd; border-radius: 2px; padding: 5px 0; min-width: 150px; z-index: 100;">
-                <div @click="downloadPPT(); activeMenu=null" class="menu-item">Download .PPT</div>
-                <div @click="printPresentation(); activeMenu=null" class="menu-item">Print...</div>
-              </div>
-            </div>
-            <div style="position: relative;">
-              <span @click="toggleMenu('edit')" style="cursor: pointer; padding: 2px 8px; border-radius: 2px;" :style="{ background: activeMenu === 'edit' ? 'rgba(255,255,255,0.2)' : 'transparent' }">Edit</span>
-              <div v-if="activeMenu === 'edit'" style="position: absolute; top: 100%; left: 0; background: white; color: #333; box-shadow: 0 4px 12px rgba(0,0,0,0.15); border: 1px solid #e1dfdd; border-radius: 2px; padding: 5px 0; min-width: 150px; z-index: 100;">
-                <div @click="addSlide(); activeMenu=null" class="menu-item">New Slide</div>
-                <div @click="deleteSlide(activeSlideIndex); activeMenu=null" class="menu-item" style="color: #d83b01;">Delete Current Slide</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Collaboration & Actions -->
-      <div style="display: flex; align-items: center; gap: 15px;">
-        <span style="font-size: 12px; color: rgba(255,255,255,0.6);">☁ Saved to LemCloud</span>
-        <div style="display: flex; align-items: center; margin-right: 10px;">
-          <div style="width: 32px; height: 32px; border-radius: 50%; background: #0078d4; border: 2px solid #d24726; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; margin-right: -10px; z-index: 99;" :title="username + ' (You)'">{{ (username || '??').substring(0, 2).toUpperCase() }}</div>
-          <div v-for="(avatar, idx) in avatars" :key="idx" :style="{ background: ['#107c41', '#2b579a', '#8764b8', '#c239b3'][idx % 4], zIndex: 98 - idx }" style="width: 32px; height: 32px; border-radius: 50%; border: 2px solid #d24726; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; margin-right: -10px;" :title="avatar">{{ (avatar || '??').substring(0, 2).toUpperCase() }}</div>
-        </div>
+  <div v-else style="display: flex; flex-direction: column; height: 100vh; background-color: #f3f2f1; overflow: hidden;">
+    <!-- Top Header -->
+    <div style="background-color: #d24726; color: white; padding: 4px 15px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; font-size: 12px; height: 32px;">
+      <div style="display: flex; align-items: center; gap: 15px; flex-grow: 1;">
+        <RouterLink to="/office" style="color: white; text-decoration: none; font-weight: bold; font-size: 14px;">P</RouterLink>
+        <div style="width: 1px; height: 16px; background: rgba(255,255,255,0.3);"></div>
+        <button @click="saveToCloud" class="quick-btn">💾</button>
+        <button @click="togglePresent" class="quick-btn">▶</button>
+        <div style="width: 1px; height: 16px; background: rgba(255,255,255,0.3);"></div>
         
-        <button @click="openShare" style="background: white; color: #d24726; padding: 6px 16px; border-radius: 20px; font-weight: 600; font-size: 13px; display: flex; align-items: center; gap: 5px; cursor: pointer;">
-          👤 Share
-        </button>
+        <input v-model="documentTitle" class="header-title-input" placeholder="Presentation title...">
+        
+        <span v-if="isCloudSaving" style="font-size: 10px; opacity: 0.7; margin-left: 10px;">Saving...</span>
+        <span v-else style="font-size: 10px; opacity: 0.7; margin-left: 10px;">Saved to LemCloud</span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <button @click="openShare" style="background: white; color: #d24726; padding: 2px 12px; border-radius: 2px; border: none; font-weight: 600; font-size: 11px; cursor: pointer;">Share</button>
+        <div style="display: flex; align-items: center;">
+          <div :title="username + ' (You)'" style="width: 24px; height: 24px; border-radius: 50%; background: #0078d4; border: 1px solid white; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; z-index: 10;">{{ (username || '??').substring(0, 2).toUpperCase() }}</div>
+          <div v-for="(avatar, idx) in avatars" :key="idx" :title="avatar" :style="{ background: ['#107c41', '#2b579a', '#8764b8', '#c239b3'][idx % 4] }" style="width: 24px; height: 24px; border-radius: 50%; border: 1px solid white; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; margin-left: -8px; z-index: 5;">{{ (avatar || '??').substring(0, 2).toUpperCase() }}</div>
+        </div>
       </div>
     </div>
 
-    <!-- Toolbar -->
-    <div class="toolbar-wrap" style="background-color: white; padding: 8px 20px; border-bottom: 1px solid #e1dfdd; display: flex; align-items: center; gap: 15px; flex-wrap: wrap; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
-      <button @click="addSlide" style="padding: 6px 12px; background: #f3f2f1; border: 1px solid #e1dfdd; cursor: pointer; border-radius: 4px; font-weight: 600;">+ New Slide</button>
-      <div style="width: 1px; height: 24px; background: #e1dfdd;"></div>
-      
-      <label style="font-size: 14px; display: flex; align-items: center; gap: 5px;">
-        Background
-        <input type="color" v-model="slides[activeSlideIndex].bgColor" style="border: none; width: 24px; height: 24px; padding: 0; cursor: pointer;">
-      </label>
-      <label style="font-size: 14px; display: flex; align-items: center; gap: 5px;">
-        Text Color
-        <input type="color" v-model="slides[activeSlideIndex].textColor" style="border: none; width: 24px; height: 24px; padding: 0; cursor: pointer;">
-      </label>
-      
-      <button @click="setTextBgImage" style="padding: 4px 8px; background: white; border: 1px solid #ccc; cursor: pointer; border-radius: 4px; font-size: 13px;">🖼 Text Fill Image</button>
-
-      <label style="font-size: 14px; display: flex; align-items: center; gap: 5px;">
-        Transition:
-        <select v-model="slides[activeSlideIndex].transition" style="padding: 4px; border: 1px solid #ccc; border-radius: 4px;">
-          <option value="none">None</option>
-          <option value="fade">Fade</option>
-          <option value="slide">Slide</option>
-          <option value="magic">Match & Move</option>
-        </select>
-      </label>
-      
-      <div style="margin-left: auto; display: flex; gap: 8px;">
-        <button @click="downloadPPT" style="background: #e1dfdd; color: #d24726; padding: 6px 16px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer;">⬇ .PPT</button>
-        <button @click="printPresentation" style="background: white; color: #333; border: 1px solid #ccc; padding: 6px 16px; border-radius: 4px; font-weight: bold; cursor: pointer;">🖨️ PDF</button>
-        <button @click="togglePresent" style="background: #d24726; color: white; border: none; padding: 6px 16px; border-radius: 4px; font-weight: bold; cursor: pointer;">▶ Present</button>
+    <!-- Ribbon Tabs -->
+    <div style="background: #f3f2f1; display: flex; gap: 2px; padding: 0 10px; border-bottom: 1px solid #e1dfdd; flex-shrink: 0;">
+      <div v-for="tab in ['File', 'Home', 'Insert', 'Draw', 'Design', 'Transitions', 'Animations', 'Slide Show', 'Review', 'View']" :key="tab" 
+           @click="activeTab = tab" 
+           class="ribbon-tab" :class="{ active: activeTab === tab }">
+        {{ tab }}
       </div>
     </div>
 
+    <!-- Ribbon Panel -->
+    <div class="ribbon-panel" :class="{ hidden: !isRibbonVisible }">
+      <template v-if="activeTab === 'Home'">
+        <div class="ribbon-group">
+          <button @click="addSlide" class="big-ribbon-btn">➕ New Slide</button>
+          <label>Slides</label>
+        </div>
+        <div class="ribbon-group">
+           <div v-if="selectedElementId" style="display: flex; flex-direction: column; gap: 4px;">
+              <div style="display: flex; gap: 2px;">
+                <select v-model="slides[activeSlideIndex].elements.find(el => el.id === selectedElementId).style.fontSize" class="ribbon-select">
+                  <option value="12px">12</option><option value="24px">24</option><option value="48px">48</option><option value="80px">80</option>
+                </select>
+              </div>
+              <div style="display: flex; gap: 2px;">
+                <button @click="slides[activeSlideIndex].elements.find(el => el.id === selectedElementId).style.fontWeight = 'bold'" class="small-ribbon-btn">B</button>
+                <input type="color" v-model="slides[activeSlideIndex].elements.find(el => el.id === selectedElementId).style.color" style="width: 20px; height: 20px;">
+              </div>
+           </div>
+           <label>Font</label>
+        </div>
+        <div class="ribbon-group">
+           <div style="display: flex; gap: 4px;">
+              <button @click="addElement('text')" class="small-ribbon-btn">T Box</button>
+              <button @click="addElement('shape')" class="small-ribbon-btn">Shape</button>
+           </div>
+           <label>Drawing</label>
+        </div>
+      </template>
+      <template v-if="activeTab === 'Slide Show'">
+         <div class="ribbon-group">
+            <button @click="activeSlideIndex = 0; togglePresent()" class="big-ribbon-btn">🎬 Beginning</button>
+            <button @click="togglePresent" class="big-ribbon-btn">📽 Current</button>
+            <label>Start</label>
+         </div>
+      </template>
+      <template v-if="activeTab === 'File'">
+        <div class="ribbon-group">
+          <button @click="downloadPPT" class="big-ribbon-btn">📥 Download PPT</button>
+          <button @click="deletePresentation" class="big-ribbon-btn" style="color: #d13438;">🗑 Delete</button>
+          <label>Actions</label>
+        </div>
+      </template>
+    </div>
+
+    <!-- Workspace -->
     <div style="display: flex; flex-grow: 1; overflow: hidden;">
       <!-- Sidebar -->
-      <div style="width: 250px; background: white; border-right: 1px solid #e1dfdd; display: flex; flex-direction: column;">
-        <div style="flex-grow: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 15px;">
-          <div 
-            v-for="(slide, index) in slides" 
-            :key="slide.id"
-            @click="selectSlide(index)"
-            :style="{ borderColor: activeSlideIndex === index ? '#d24726' : '#e1dfdd', backgroundColor: slide.bgColor }"
-            style="aspect-ratio: 16/9; border: 2px solid; border-radius: 4px; cursor: pointer; position: relative; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 10px; text-align: center; font-size: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);"
-          >
-            <div style="position: absolute; top: 5px; left: 5px; background: rgba(0,0,0,0.1); padding: 2px 6px; border-radius: 10px; font-weight: bold;">{{ index + 1 }}</div>
-            <button v-if="slides.length > 1" @click.stop="deleteSlide(index)" style="position: absolute; top: 5px; right: 5px; color: red; background: transparent; cursor: pointer;">✕</button>
-            <strong :style="{ color: slide.textColor, backgroundImage: slide.textBgImage ? `url(${slide.textBgImage})` : 'none', backgroundClip: slide.textBgImage ? 'text' : 'initial', WebkitBackgroundClip: slide.textBgImage ? 'text' : 'initial', WebkitTextFillColor: slide.textBgImage ? 'transparent' : 'initial', backgroundSize: 'cover', backgroundPosition: 'center' }" style="margin-bottom: 5px; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">{{ slide.title }}</strong>
-          </div>
+      <div style="width: 180px; background: #fff; border-right: 1px solid #e1dfdd; overflow-y: auto; padding: 10px; display: flex; flex-direction: column; gap: 10px;">
+        <div v-for="(slide, index) in slides" :key="slide.id" @click="selectSlide(index)"
+             :style="{ borderColor: activeSlideIndex === index ? '#d24726' : 'transparent', backgroundColor: slide.bgColor }"
+             style="border: 2px solid; border-radius: 2px; cursor: pointer; aspect-ratio: 16/9; position: relative; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+           <div style="position: absolute; top: 2px; left: 4px; font-size: 10px; font-weight: bold; color: #666;">{{ index + 1 }}</div>
         </div>
+        <button @click="addSlide" style="padding: 10px; border: 1px dashed #ccc; background: transparent; cursor: pointer; color: #666;">+ Add Slide</button>
       </div>
 
-      <!-- Main Editor -->
-      <div style="flex-grow: 1; padding: 40px; display: flex; justify-content: center; align-items: center; overflow: auto;">
-        <transition :name="slides[activeSlideIndex].transition || 'none'" mode="out-in">
-          <div :key="activeSlideIndex" :style="{ backgroundColor: slides[activeSlideIndex].bgColor }" style="width: 100%; max-width: 900px; aspect-ratio: 16/9; box-shadow: 0 4px 12px rgba(0,0,0,0.1); display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 60px; text-align: center; transition: background-color 0.3s;">
-            <input 
-              type="text" 
-              v-model="slides[activeSlideIndex].title" 
-              placeholder="Click to add title"
-              :style="{ color: slides[activeSlideIndex].textColor, backgroundImage: slides[activeSlideIndex].textBgImage ? `url(${slides[activeSlideIndex].textBgImage})` : 'none', backgroundClip: slides[activeSlideIndex].textBgImage ? 'text' : 'initial', WebkitBackgroundClip: slides[activeSlideIndex].textBgImage ? 'text' : 'initial', WebkitTextFillColor: slides[activeSlideIndex].textBgImage ? 'transparent' : 'initial', backgroundSize: 'cover', backgroundPosition: 'center' }"
-              style="font-size: 3rem; font-weight: 600; text-align: center; border: 1px dashed transparent; outline: none; width: 100%; margin-bottom: 30px; background-color: transparent;"
-              onfocus="this.style.border='1px dashed #ccc'"
-              onblur="this.style.border='1px dashed transparent'"
-            >
-            <textarea 
-              v-model="slides[activeSlideIndex].content" 
-              placeholder="Click to add text"
-              :style="{ color: slides[activeSlideIndex].textColor, backgroundImage: slides[activeSlideIndex].textBgImage ? `url(${slides[activeSlideIndex].textBgImage})` : 'none', backgroundClip: slides[activeSlideIndex].textBgImage ? 'text' : 'initial', WebkitBackgroundClip: slides[activeSlideIndex].textBgImage ? 'text' : 'initial', WebkitTextFillColor: slides[activeSlideIndex].textBgImage ? 'transparent' : 'initial', backgroundSize: 'cover', backgroundPosition: 'center' }"
-              style="font-size: 1.5rem; text-align: center; border: 1px dashed transparent; outline: none; width: 100%; height: 200px; resize: none; background-color: transparent; font-family: inherit;"
-              onfocus="this.style.border='1px dashed #ccc'"
-              onblur="this.style.border='1px dashed transparent'"
-            ></textarea>
+      <!-- Canvas Area -->
+      <div style="flex-grow: 1; display: flex; justify-content: center; align-items: center; background: #e1dfdd; overflow: auto; padding: 50px;">
+        <div class="slide-canvas" :style="{ width: '1920px', height: '1080px', backgroundColor: slides[activeSlideIndex].bgColor, transform: `scale(${zoom})`, transformOrigin: 'center center', boxShadow: '0 10px 40px rgba(0,0,0,0.2)' }" style="position: relative; flex-shrink: 0;">
+          <div v-for="el in slides[activeSlideIndex].elements" :key="el.id" class="slide-element" @mousedown.stop="startDrag($event, el.id)"
+               :style="{ position: 'absolute', left: el.x + 'px', top: el.y + 'px', width: el.w + 'px', height: el.h + 'px', outline: selectedElementId === el.id ? '4px solid #0078d4' : 'none', ...el.style, backgroundImage: el.type === 'image' ? `url(${el.content})` : 'none', backgroundSize: 'cover' }">
+             <template v-if="el.type === 'text'">
+                <textarea v-model="el.content" style="width: 100%; height: 100%; background: transparent; border: none; outline: none; color: inherit; font: inherit; resize: none; text-align: inherit;"></textarea>
+             </template>
+             <template v-if="selectedElementId === el.id">
+                <div class="resize-handle se" @mousedown.stop="startResize($event, el.id, 'se')"></div>
+             </template>
           </div>
-        </transition>
+        </div>
       </div>
     </div>
 
-    <!-- Share Modal -->
-    <div v-if="isShareOpen" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.5); z-index: 9999; display: flex; align-items: center; justify-content: center;">
-      <div style="background: white; padding: 30px; border-radius: 8px; width: 400px; box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
-        <h2 style="margin-bottom: 20px; color: #323130;">Share Presentation</h2>
-        <p style="margin-bottom: 10px; color: #666; font-size: 14px;">Anyone with this link can join and collaborate in real-time.</p>
-        <input type="text" readonly :value="shareLink" @click="$event.target.select()" style="width: 100%; padding: 10px; border: 1px solid #c8c6c4; border-radius: 4px; margin-bottom: 15px; outline: none; background: #f3f2f1; color: #333;">
-        <p v-if="copyStatus" style="color: #107c41; margin-bottom: 15px; font-weight: 600; font-size: 14px;">{{ copyStatus }}</p>
-        <div style="display: flex; justify-content: flex-end; gap: 10px;">
-          <button @click="isShareOpen = false" style="padding: 8px 16px; background: #e1dfdd; border: none; border-radius: 4px; cursor: pointer; font-weight: 600; color: black;">Close</button>
-          <button @click="copyLink" style="padding: 8px 16px; background: #d24726; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 600;">Copy Link</button>
-        </div>
+    <!-- Status Bar -->
+    <div style="background: #d24726; color: white; height: 24px; padding: 0 15px; display: flex; align-items: center; justify-content: space-between; font-size: 11px;">
+      <div>Slide {{ activeSlideIndex + 1 }} of {{ slides.length }} | English (US)</div>
+      <div style="display: flex; gap: 15px; align-items: center;">
+         <input type="range" v-model="zoom" min="0.1" max="1" step="0.05" style="width: 100px;">
+         <span>{{ Math.round(zoom * 100) }}% | LemCloud {{ isCloudSaving ? 'Syncing...' : 'Connected' }}</span>
       </div>
     </div>
   </div>
 </template>
 
 <style scoped>
-.toolbar-scroll::-webkit-scrollbar {
-  display: none;
-}
-.toolbar-scroll {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-.toolbar-scroll > * {
-  flex-shrink: 0;
-}
-.menu-item {
-  padding: 8px 15px;
-  cursor: pointer;
-  font-size: 13px;
-  color: #333;
-}
-.menu-item:hover {
-  background: #f3f2f1;
-}
-.slide-line {
-  stroke-dasharray: 80;
-  stroke-dashoffset: 80;
-  animation: draw-slide 1.5s infinite ease-in-out alternate;
-}
-.slide-line-1 { animation-delay: 0s; }
-.slide-line-2 { animation-delay: 0.2s; }
-.slide-line-3 { animation-delay: 0.4s; }
-.slide-line-4 { animation-delay: 0.6s; }
-@keyframes draw-slide {
-  0% { stroke-dashoffset: 80; }
-  100% { stroke-dashoffset: 0; }
-}
+.quick-btn { background: transparent; border: none; color: white; padding: 4px 8px; cursor: pointer; border-radius: 2px; }
+.quick-btn:hover { background: rgba(255,255,255,0.2); }
+
+.header-title-input { background: transparent; border: 1px solid transparent; color: white; font-weight: 600; font-size: 12px; padding: 2px 8px; border-radius: 2px; outline: none; width: 250px; }
+.header-title-input:hover { background: rgba(255,255,255,0.1); }
+.header-title-input:focus { background: white; color: #d24726; }
+
+.ribbon-tab { padding: 6px 12px; font-size: 11px; color: #333; cursor: pointer; border-bottom: 3px solid transparent; }
+.ribbon-tab:hover { background: #e1dfdd; }
+.ribbon-tab.active { border-bottom-color: #d24726; font-weight: 600; background: #fff; }
+
+.ribbon-panel { background: #fff; height: 90px; display: flex; padding: 5px 10px; gap: 15px; border-bottom: 1px solid #e1dfdd; flex-shrink: 0; position: relative; }
+.ribbon-panel.hidden { height: 0; padding: 0; overflow: hidden; }
+
+.ribbon-group { display: flex; flex-direction: column; align-items: center; border-right: 1px solid #f3f2f1; padding-right: 15px; height: 100%; min-width: max-content; }
+.ribbon-group label { font-size: 9px; color: #666; margin-top: auto; text-transform: uppercase; padding-top: 5px; }
+
+.big-ribbon-btn { display: flex; flex-direction: column; align-items: center; justify-content: center; background: transparent; border: 1px solid transparent; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 11px; gap: 2px; }
+.big-ribbon-btn:hover { background: #f3f2f1; border-color: #e1dfdd; }
+
+.small-ribbon-btn { background: transparent; border: 1px solid transparent; padding: 2px 6px; border-radius: 2px; cursor: pointer; font-size: 11px; }
+.small-ribbon-btn:hover { background: #f3f2f1; border-color: #e1dfdd; }
+
+.resize-handle.se { position: absolute; bottom: -6px; right: -6px; width: 12px; height: 12px; background: white; border: 2px solid #0078d4; cursor: se-resize; z-index: 5; }
+
+.animated-el { transition: all 0.8s ease-out; }
+.fade-in { animation: fadeIn 0.8s forwards; }
+.slide-up { animation: slideUp 0.8s forwards; }
+.scale-up { animation: scaleUp 0.8s forwards; }
+
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideUp { from { opacity: 0; transform: translateY(50px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes scaleUp { from { opacity: 0; transform: scale(0.5); } to { opacity: 1; transform: scale(1); } }
 </style>
