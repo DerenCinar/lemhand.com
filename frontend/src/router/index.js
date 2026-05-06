@@ -60,6 +60,21 @@ const router = createRouter({
       component: () => import('../views/OfficePresentView.vue')
     },
     {
+      path: '/app/word',
+      name: 'app-word',
+      component: () => import('../views/AppWordDashboard.vue')
+    },
+    {
+      path: '/app/sheets',
+      name: 'app-sheets',
+      component: () => import('../views/AppSheetsDashboard.vue')
+    },
+    {
+      path: '/app/present',
+      name: 'app-present',
+      component: () => import('../views/AppPresentDashboard.vue')
+    },
+    {
       path: '/page/:id',
       name: 'generic',
       component: GenericPage

@@ -13,6 +13,7 @@ const userEmail = ref(null);
 const hideLayout = computed(() => {
   return route.path.startsWith('/office') || 
          route.path.startsWith('/las') || 
+         route.path.startsWith('/app') ||
          route.name === 'not-found';
 });
 
