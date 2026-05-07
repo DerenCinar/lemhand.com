@@ -3,6 +3,7 @@ import { ref, reactive, computed, watch, onMounted, onUnmounted } from 'vue'
 import { db } from '../firebase'
 import { doc, onSnapshot, setDoc, arrayUnion, arrayRemove, deleteDoc as firestoreDelete } from 'firebase/firestore'
 import { useRoute, useRouter } from 'vue-router'
+import * as XLSX from 'xlsx'
 
 const route = useRoute()
 const router = useRouter()
@@ -13,6 +14,7 @@ const activeTab = ref('Home')
 const isRibbonVisible = ref(true)
 const isCloudSaving = ref(false)
 const showGridlines = ref(true)
+const originalFormat = ref('')
 
 const returnPath = computed(() => {
   const app = localStorage.getItem('lemhand_standalone_app')
@@ -104,6 +106,7 @@ onMounted(() => {
         if (data.grid) { for (let r = 0; r < rows; r++) { for (let c = 0; c < cols; c++) if (data.grid[r] && data.grid[r][c] !== undefined) rawData[r][c] = data.grid[r][c] } }
         if (data.styles) { for (let r = 0; r < rows; r++) { for (let c = 0; c < cols; c++) if (data.styles[r] && data.styles[r][c]) stylesData[r][c] = { ...stylesData[r][c], ...data.styles[r][c] } } }
         if (data.sheetSettings) sheetSettings.value = { ...sheetSettings.value, ...data.sheetSettings }
+        if (data.originalFormat) originalFormat.value = data.originalFormat
         setTimeout(() => { isUpdatingFromServer = false }, 100)
       }
     }
@@ -123,7 +126,7 @@ const saveToCloud = () => {
   if (isUpdatingFromServer) return; isCloudSaving.value = true; clearTimeout(saveTimeout)
   saveTimeout = setTimeout(async () => {
     try {
-      await setDoc(doc(db, 'office', docId), { title: documentTitle.value, grid: rawData, styles: stylesData, sheetSettings: sheetSettings.value, lastUpdated: new Date() }, { merge: true })
+      await setDoc(doc(db, 'office', docId), { title: documentTitle.value, grid: rawData, styles: stylesData, sheetSettings: sheetSettings.value, originalFormat: originalFormat.value, lastUpdated: new Date() }, { merge: true })
       saveToRecents(); isCloudSaving.value = false
     } catch (e) { isCloudSaving.value = false }
   }, 1000)
@@ -181,6 +184,43 @@ const deleteDocument = async () => { showModal("Delete Spreadsheet", "Permanent?
 const downloadCSV = () => {
   let csv = rawData.map(row => row.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n')
   const blob = new Blob([csv], { type: 'text/csv' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `${documentTitle.value}.csv`; a.click()
+}
+const downloadExcel = () => {
+  const ws = XLSX.utils.aoa_to_sheet(rawData)
+  const wb = XLSX.utils.book_new()
+  XLSX.utils.book_append_sheet(wb, ws, "Sheet1")
+  XLSX.writeFile(wb, `${documentTitle.value}.xlsx`)
+}
+const uploadExcel = () => {
+  const input = document.createElement('input')
+  input.type = 'file'
+  input.accept = '.xlsx,.xls,.csv'
+  input.onchange = async (e) => {
+    const file = e.target.files[0]
+    if (file) {
+      try {
+        const arrayBuffer = await file.arrayBuffer()
+        const wb = XLSX.read(arrayBuffer)
+        const sheetName = wb.SheetNames[0]
+        const sheet = XLSX.utils.sheet_to_json(wb.Sheets[sheetName], { header: 1 })
+        
+        for (let r = 0; r < rows; r++) {
+          for (let c = 0; c < cols; c++) {
+            if (sheet[r] && sheet[r][c] !== undefined) {
+              rawData[r][c] = sheet[r][c]
+            } else {
+              rawData[r][c] = ''
+            }
+          }
+        }
+        originalFormat.value = file.name.split('.').pop()
+        saveToCloud()
+      } catch (err) {
+        showModal("Error", "Could not parse document: " + err.message)
+      }
+    }
+  }
+  input.click()
 }
 const insertFunction = (f) => { rawData[activeCell.value.r][activeCell.value.c] = `=${f}()` }
 
@@ -263,7 +303,8 @@ const isInDragRange = (r, c) => {
         <div style="width: 1px; height: 16px; background: rgba(255,255,255,0.3);"></div>
         <button @click="saveToCloud" class="quick-btn" v-html="icons.save"></button>
         <input v-model="documentTitle" class="header-title-input" placeholder="Spreadsheet title...">
-        <span style="font-size: 10px; opacity: 0.7;">{{ isCloudSaving ? 'Saving...' : 'Saved' }}</span>
+        <div v-if="originalFormat" style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.4); border-radius: 4px; padding: 2px 6px; font-size: 10px; font-weight: bold; margin-left: 5px; color: white;">.{{ originalFormat }}</div>
+        <span style="font-size: 10px; opacity: 0.7; margin-left: 10px;">{{ isCloudSaving ? 'Saving...' : 'Saved' }}</span>
       </div>
       <div style="display: flex; align-items: center; gap: 10px;">
         <button @click="openShare" class="share-header-btn">Share</button>
@@ -382,7 +423,15 @@ const isInDragRange = (r, c) => {
       </template>
       <template v-if="activeTab === 'File'">
         <div class="ribbon-group">
+          <button @click="uploadExcel" class="big-ribbon-btn">📤 <br>Upload .xlsx</button>
+          <label>Import</label>
+        </div>
+        <div class="ribbon-group">
+          <button @click="downloadExcel" class="big-ribbon-btn">📥 <br>Download</button>
           <button @click="downloadCSV" class="big-ribbon-btn" v-html="icons.download + '<span>CSV</span>'"></button>
+          <label>Export</label>
+        </div>
+        <div class="ribbon-group">
           <button @click="deleteDocument" class="big-ribbon-btn" style="color: #d13438;" v-html="icons.delete + '<span>Delete</span>'"></button>
           <label>Actions</label>
         </div>

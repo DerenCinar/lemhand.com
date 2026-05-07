@@ -1,8 +1,10 @@
 <script setup>
-import { ref, reactive, onMounted, onUnmounted, watch } from 'vue'
+import { ref, reactive, onMounted, onUnmounted, watch, computed } from 'vue'
 import { db } from '../firebase'
 import { doc, onSnapshot, setDoc, arrayUnion, arrayRemove, deleteDoc as firestoreDelete } from 'firebase/firestore'
 import { useRoute, useRouter } from 'vue-router'
+import JSZip from 'jszip'
+import pptxgen from 'pptxgenjs'
 
 const route = useRoute()
 const router = useRouter()
@@ -15,6 +17,7 @@ const isRibbonVisible = ref(true)
 const isCloudSaving = ref(false)
 const showGrid = ref(false)
 const spellcheckEnabled = ref(true)
+const originalFormat = ref('')
 
 const returnPath = computed(() => {
   const app = localStorage.getItem('lemhand_standalone_app')
@@ -101,6 +104,9 @@ onMounted(() => {
         if (activeSlideIndex.value >= slides.value.length) activeSlideIndex.value = slides.value.length - 1
         setTimeout(() => { isUpdatingFromServer = false }, 100)
       }
+      if (data.originalFormat) {
+        originalFormat.value = data.originalFormat
+      }
     }
   })
 })
@@ -118,7 +124,7 @@ const saveToCloud = () => {
   if (isUpdatingFromServer) return; isCloudSaving.value = true; clearTimeout(saveTimeout)
   saveTimeout = setTimeout(async () => {
     try {
-      await setDoc(doc(db, 'office', docId), { title: documentTitle.value, slides: slides.value, lastUpdated: new Date() }, { merge: true })
+      await setDoc(doc(db, 'office', docId), { title: documentTitle.value, slides: slides.value, originalFormat: originalFormat.value, lastUpdated: new Date() }, { merge: true })
       saveToRecents(); isCloudSaving.value = false
     } catch (e) { isCloudSaving.value = false }
   }, 1000)
@@ -126,10 +132,11 @@ const saveToCloud = () => {
 
 watch(documentTitle, saveToCloud); watch(slides, saveToCloud, { deep: true })
 
-const addElement = (type) => {
+const addElement = (type, shapeType = 'rectangle') => {
   const newEl = { 
     id: 'e' + Date.now(), 
     type, 
+    shapeType,
     x: 400, y: 300, 
     w: type === 'image' ? 600 : (type === 'shape' ? 400 : 800), 
     h: type === 'image' ? 400 : (type === 'shape' ? 400 : 150), 
@@ -141,7 +148,8 @@ const addElement = (type) => {
       textAlign: 'center', 
       fontFamily: 'Arial',
       backgroundColor: type === 'shape' ? '#d24726' : 'transparent',
-      borderRadius: '0'
+      borderRadius: shapeType === 'circle' ? '50%' : '0',
+      clipPath: shapeType === 'triangle' ? 'polygon(50% 0%, 0% 100%, 100% 100%)' : 'none'
     } 
   }
   slides.value[activeSlideIndex.value].elements.push(newEl); selectedElementId.value = newEl.id
@@ -195,14 +203,128 @@ const deletePresentation = async () => {
 }
 
 const downloadPPT = () => {
-  let content = slides.value.map(s => `<div style="background:${s.bgColor};position:relative;width:1920px;height:1080px;page-break-after:always;">${s.elements.map(el => `<div style="position:absolute;left:${el.x}px;top:${el.y}px;width:${el.w}px;height:${el.h}px;color:${el.style.color};font-size:${el.style.fontSize};font-family:${el.style.fontFamily};text-align:${el.style.textAlign};">${el.content}</div>`).join('')}</div>`).join('')
-  const blob = new Blob([`<html><body style="margin:0;">${content}</body></html>`], { type: 'application/vnd.ms-powerpoint' })
-  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `${documentTitle.value}.ppt`; a.click()
+  const pres = new pptxgen()
+  pres.title = documentTitle.value
+  slides.value.forEach(slide => {
+    const s = pres.addSlide()
+    s.background = { color: slide.bgColor.replace('#', '') }
+    slide.elements.forEach(el => {
+      // Very rough mapping of coordinates for PPTXGenJS (it uses inches, approx 1 inch = 100px for 1920x1080 -> 10x5.625 inches)
+      const opts = { x: el.x/192, y: el.y/192, w: el.w/192, h: el.h/192, fontSize: parseInt(el.style.fontSize) || 14, color: el.style.color.replace('#','') }
+      if (el.type === 'text') s.addText(el.content, opts)
+      if (el.type === 'shape') s.addShape(pres.ShapeType.rect, { ...opts, fill: { color: el.style.backgroundColor.replace('#','') }})
+    })
+  })
+  pres.writeFile({ fileName: `${documentTitle.value}.pptx` })
+}
+
+const uploadPPTX = () => {
+  const input = document.createElement('input')
+  input.type = 'file'
+  input.accept = '.pptx'
+  input.onchange = async (e) => {
+    const file = e.target.files[0]
+    if (file) {
+      try {
+        const arrayBuffer = await file.arrayBuffer()
+        const zip = await JSZip.loadAsync(arrayBuffer)
+        const newSlides = []
+        // Extract basic text from slide XMLs
+        const slideFiles = Object.keys(zip.files).filter(k => k.match(/^ppt\/slides\/slide\d+\.xml$/)).sort()
+        for (let i = 0; i < slideFiles.length; i++) {
+          const slideXml = await zip.file(slideFiles[i]).async("text")
+          const texts = [...slideXml.matchAll(/<a:t>(.*?)<\/a:t>/g)].map(m => m[1])
+          const elements = texts.map((t, idx) => ({
+            id: 'e' + Date.now() + idx,
+            type: 'text',
+            shapeType: 'rectangle',
+            x: 100, y: 100 + (idx * 60),
+            w: 1200, h: 50,
+            content: t,
+            animation: 'none',
+            style: { color: '#333', fontSize: '32px', textAlign: 'left', fontFamily: 'Arial', backgroundColor: 'transparent', borderRadius: '0', clipPath: 'none' }
+          }))
+          newSlides.push({
+            id: Date.now() + i,
+            bgColor: '#ffffff',
+            transition: 'fade',
+            aspectRatio: '16/9',
+            elements
+          })
+        }
+        if (newSlides.length > 0) {
+          slides.value = newSlides
+          activeSlideIndex.value = 0
+          originalFormat.value = 'pptx'
+          saveToCloud()
+        } else {
+          showModal("Warning", "No text found in PPTX.")
+        }
+      } catch (err) {
+        showModal("Error", "Could not parse presentation: " + err.message)
+      }
+    }
+  }
+  input.click()
 }
 
 const isShareOpen = ref(false); const shareLink = ref(''); const copyStatus = ref('')
 const openShare = () => { shareLink.value = window.location.href; isShareOpen.value = true }
 const copyLink = () => { navigator.clipboard.writeText(shareLink.value).then(() => { copyStatus.value = 'Copied!'; setTimeout(() => copyStatus.value = '', 3000) }) }
+
+// Context Menu
+const contextMenu = ref({ visible: false, x: 0, y: 0, elementId: null })
+const openContextMenu = (e, id) => { e.preventDefault(); contextMenu.value = { visible: true, x: e.clientX, y: e.clientY, elementId: id }; selectedElementId.value = id }
+const closeContextMenu = () => { contextMenu.value.visible = false }
+
+onMounted(() => {
+  window.addEventListener('click', closeContextMenu)
+})
+onUnmounted(() => {
+  window.removeEventListener('click', closeContextMenu)
+})
+
+const deleteElement = () => {
+  if (!contextMenu.value.elementId) return
+  const slide = slides.value[activeSlideIndex.value]
+  slide.elements = slide.elements.filter(e => e.id !== contextMenu.value.elementId)
+  selectedElementId.value = null
+  saveToCloud()
+}
+
+const bringToFront = () => {
+  if (!contextMenu.value.elementId) return
+  const slide = slides.value[activeSlideIndex.value]
+  const idx = slide.elements.findIndex(e => e.id === contextMenu.value.elementId)
+  if (idx !== -1) {
+    const el = slide.elements.splice(idx, 1)[0]
+    slide.elements.push(el)
+    saveToCloud()
+  }
+}
+
+const sendToBack = () => {
+  if (!contextMenu.value.elementId) return
+  const slide = slides.value[activeSlideIndex.value]
+  const idx = slide.elements.findIndex(e => e.id === contextMenu.value.elementId)
+  if (idx !== -1) {
+    const el = slide.elements.splice(idx, 1)[0]
+    slide.elements.unshift(el)
+    saveToCloud()
+  }
+}
+
+const flipHorizontal = () => {
+  if (!contextMenu.value.elementId) return
+  const el = slides.value[activeSlideIndex.value].elements.find(e => e.id === contextMenu.value.elementId)
+  if (el) { el.style.transform = el.style.transform === 'scaleX(-1)' ? 'none' : 'scaleX(-1)'; saveToCloud() }
+}
+
+const flipVertical = () => {
+  if (!contextMenu.value.elementId) return
+  const el = slides.value[activeSlideIndex.value].elements.find(e => e.id === contextMenu.value.elementId)
+  if (el) { el.style.transform = el.style.transform === 'scaleY(-1)' ? 'none' : 'scaleY(-1)'; saveToCloud() }
+}
 </script>
 
 <template>
@@ -251,7 +373,8 @@ const copyLink = () => { navigator.clipboard.writeText(shareLink.value).then(() 
           <button @click="saveToCloud" class="quick-btn" v-html="icons.save"></button>
           <button @click="togglePresent" class="quick-btn" v-html="icons.play"></button>
           <input v-model="documentTitle" class="header-title-input" placeholder="Presentation title...">
-          <span style="font-size: 10px; opacity: 0.7;">{{ isCloudSaving ? 'Saving...' : 'Saved to LemCloud' }}</span>
+          <div v-if="originalFormat" style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.4); border-radius: 4px; padding: 2px 6px; font-size: 10px; font-weight: bold; margin-left: 5px; color: white;">.{{ originalFormat }}</div>
+          <span style="font-size: 10px; opacity: 0.7; margin-left: 10px;">{{ isCloudSaving ? 'Saving...' : 'Saved to LemCloud' }}</span>
         </div>
         <div style="display: flex; align-items: center; gap: 10px;">
           <button @click="openShare" class="share-header-btn">Share</button>
@@ -278,7 +401,7 @@ const copyLink = () => { navigator.clipboard.writeText(shareLink.value).then(() 
             <div v-if="selectedElementId" style="display: flex; flex-direction: column; gap: 4px;">
               <div style="display: flex; gap: 4px;">
                 <select v-model="slides[activeSlideIndex].elements.find(el => el.id === selectedElementId).style.fontFamily" class="ribbon-select" style="width: 90px;">
-                  <option v-for="f in ['Arial','Times New Roman','Courier New','Georgia','Verdana']" :key="f" :value="f">{{ f }}</option>
+                  <option v-for="f in ['Arial','Times New Roman','Courier New','Georgia','Verdana','Inter','Roboto','Outfit','Comic Sans MS','Impact','Trebuchet MS','Tahoma']" :key="f" :value="f">{{ f }}</option>
                 </select>
                 <select v-model="slides[activeSlideIndex].elements.find(el => el.id === selectedElementId).style.fontSize" class="ribbon-select">
                   <option v-for="s in ['12px','24px','32px','48px','64px','80px','120px']" :key="s" :value="s">{{ s.replace('px','') }}</option>
@@ -288,16 +411,19 @@ const copyLink = () => { navigator.clipboard.writeText(shareLink.value).then(() 
                 <button @click="slides[activeSlideIndex].elements.find(el => el.id === selectedElementId).style.fontWeight = 'bold'" class="small-ribbon-btn">B</button>
                 <button @click="slides[activeSlideIndex].elements.find(el => el.id === selectedElementId).style.textAlign = 'left'" class="small-ribbon-btn">L</button>
                 <button @click="slides[activeSlideIndex].elements.find(el => el.id === selectedElementId).style.textAlign = 'center'" class="small-ribbon-btn">C</button>
-                <input type="color" v-model="slides[activeSlideIndex].elements.find(el => el.id === selectedElementId).style.color">
+                <input type="color" v-model="slides[activeSlideIndex].elements.find(el => el.id === selectedElementId).style.color" title="Text Color">
+                <input type="color" v-model="slides[activeSlideIndex].elements.find(el => el.id === selectedElementId).style.backgroundColor" title="Shape/Background Color">
               </div>
             </div>
             <div v-else style="font-size:10px; color:#999; padding:10px;">Select item to style</div>
             <label>Font & Style</label>
           </div>
           <div class="ribbon-group">
-             <div style="display: flex; gap: 4px;">
+             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4px;">
                 <button @click="addElement('text')" class="small-ribbon-btn">Text</button>
-                <button @click="addElement('shape')" class="small-ribbon-btn">Shape</button>
+                <button @click="addElement('shape', 'rectangle')" class="small-ribbon-btn">Rect</button>
+                <button @click="addElement('shape', 'circle')" class="small-ribbon-btn">Circle</button>
+                <button @click="addElement('shape', 'triangle')" class="small-ribbon-btn">Tri</button>
              </div>
              <label>Drawing</label>
           </div>
@@ -309,8 +435,14 @@ const copyLink = () => { navigator.clipboard.writeText(shareLink.value).then(() 
             <label>Slides</label>
           </div>
           <div class="ribbon-group">
-            <button @click="addElement('image')" class="big-ribbon-btn" v-html="icons.image + '<span>Picture</span>'"></button>
-            <button @click="addElement('shape')" class="big-ribbon-btn" v-html="icons.shape + '<span>Shapes</span>'"></button>
+            <div style="display: flex; gap: 8px;">
+              <button @click="addElement('image')" class="big-ribbon-btn" v-html="icons.image + '<span>Picture</span>'"></button>
+              <div style="display: flex; flex-direction: column; gap: 4px;">
+                <button @click="addElement('shape', 'rectangle')" class="small-ribbon-btn" style="text-align: left;">Rectangle</button>
+                <button @click="addElement('shape', 'circle')" class="small-ribbon-btn" style="text-align: left;">Circle</button>
+                <button @click="addElement('shape', 'triangle')" class="small-ribbon-btn" style="text-align: left;">Triangle</button>
+              </div>
+            </div>
             <label>Illustrations</label>
           </div>
         </template>
@@ -390,7 +522,14 @@ const copyLink = () => { navigator.clipboard.writeText(shareLink.value).then(() 
 
         <template v-if="activeTab === 'File'">
           <div class="ribbon-group">
+            <button @click="uploadPPTX" class="big-ribbon-btn">📤 <br>Upload .pptx</button>
+            <label>Import</label>
+          </div>
+          <div class="ribbon-group">
             <button @click="downloadPPT" class="big-ribbon-btn" v-html="icons.ppt + '<span>Download</span>'"></button>
+            <label>Export</label>
+          </div>
+          <div class="ribbon-group">
             <button @click="deletePresentation" class="big-ribbon-btn" style="color: #d13438;" v-html="icons.delete + '<span>Delete</span>'"></button>
             <label>Actions</label>
           </div>
@@ -403,7 +542,7 @@ const copyLink = () => { navigator.clipboard.writeText(shareLink.value).then(() 
           <div v-for="(slide, index) in slides" :key="slide.id" @click="activeSlideIndex = index; selectedElementId = null" :class="{active: activeSlideIndex === index}" class="slide-thumb" :style="{ backgroundColor: slide.bgColor }">
              <span class="thumb-num">{{ index + 1 }}</span>
              <div class="thumb-preview">
-                <div v-for="el in slide.elements" :key="el.id" :style="{ position: 'absolute', left: (el.x/1920*100)+'%', top: (el.y/1080*100)+'%', width: (el.w/1920*100)+'%', height: (el.h/1080*100)+'%', background: el.type==='shape' ? el.style.backgroundColor : 'transparent', border: el.type==='text' ? '0.5px solid #ccc' : 'none' }"></div>
+                <div v-for="el in slide.elements" :key="el.id" :style="{ position: 'absolute', left: (el.x/1920*100)+'%', top: (el.y/1080*100)+'%', width: (el.w/1920*100)+'%', height: (el.h/1080*100)+'%', background: el.type==='shape' ? el.style.backgroundColor : 'transparent', border: el.type==='text' ? '0.5px solid #ccc' : 'none', borderRadius: el.style.borderRadius, clipPath: el.style.clipPath }"></div>
              </div>
           </div>
           <button @click="addSlide" class="add-slide-btn">+ Add Slide</button>
@@ -411,7 +550,7 @@ const copyLink = () => { navigator.clipboard.writeText(shareLink.value).then(() 
         <div class="canvas-area">
           <div class="slide-canvas" :style="{ width: '1920px', height: '1080px', backgroundColor: slides[activeSlideIndex].bgColor, transform: `scale(${zoom})` }">
             <div v-if="showGrid" class="slide-grid"></div>
-            <div v-for="el in slides[activeSlideIndex].elements" :key="el.id" class="slide-element" @mousedown.stop="startDrag($event, el.id)" :style="{ position: 'absolute', left: el.x + 'px', top: el.y + 'px', width: el.w + 'px', height: el.h + 'px', outline: selectedElementId === el.id ? '4px solid #0078d4' : 'none', ...el.style, backgroundImage: el.type === 'image' ? `url(${el.content})` : 'none', backgroundSize: 'cover' }">
+            <div v-for="el in slides[activeSlideIndex].elements" :key="el.id" class="slide-element" @contextmenu.prevent="openContextMenu($event, el.id)" @mousedown.stop="startDrag($event, el.id)" :style="{ position: 'absolute', left: el.x + 'px', top: el.y + 'px', width: el.w + 'px', height: el.h + 'px', outline: selectedElementId === el.id ? '4px solid #0078d4' : 'none', ...el.style, backgroundImage: el.type === 'image' ? `url(${el.content})` : 'none', backgroundSize: 'cover' }">
                <textarea v-if="el.type === 'text'" v-model="el.content" @input="saveToCloud" :spellcheck="spellcheckEnabled"></textarea>
                <div v-if="el.type === 'shape'" style="width: 100%; height: 100%;"></div>
                <div v-if="selectedElementId === el.id" class="resize-handle" @mousedown.stop="startResize($event, el.id, 'se')"></div>
@@ -441,10 +580,21 @@ const copyLink = () => { navigator.clipboard.writeText(shareLink.value).then(() 
         </div>
       </div>
     </div>
+    <!-- Context Menu -->
+    <div v-if="contextMenu.visible" :style="{ position: 'fixed', top: contextMenu.y + 'px', left: contextMenu.x + 'px', background: 'white', border: '1px solid #ccc', boxShadow: '0 2px 10px rgba(0,0,0,0.2)', borderRadius: '4px', zIndex: 10000, minWidth: '150px' }">
+      <div @click="bringToFront" class="context-item">Bring to Front</div>
+      <div @click="sendToBack" class="context-item">Send to Back</div>
+      <div @click="flipHorizontal" class="context-item">Flip Horizontal</div>
+      <div @click="flipVertical" class="context-item">Flip Vertical</div>
+      <div style="height: 1px; background: #eee; margin: 4px 0;"></div>
+      <div @click="deleteElement" class="context-item" style="color: #d13438;">Delete</div>
+    </div>
   </div>
 </template>
 
 <style scoped>
+.context-item { padding: 8px 12px; font-size: 13px; cursor: pointer; color: #333; }
+.context-item:hover { background: #f3f2f1; }
 .quick-btn { background: transparent; border: none; color: white; padding: 4px 8px; cursor: pointer; border-radius: 2px; }
 .header-title-input { background: transparent; border: 1px solid transparent; color: white; font-weight: 600; font-size: 12px; padding: 2px 8px; border-radius: 2px; outline: none; width: 250px; }
 .header-title-input:hover { background: rgba(255,255,255,0.1); }

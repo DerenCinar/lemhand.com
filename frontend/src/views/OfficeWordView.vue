@@ -3,6 +3,8 @@ import { ref, onMounted, onUnmounted, watch, computed } from 'vue'
 import { db } from '../firebase'
 import { doc, onSnapshot, setDoc, arrayUnion, arrayRemove, deleteDoc as firestoreDelete } from 'firebase/firestore'
 import { useRoute, useRouter } from 'vue-router'
+import mammoth from 'mammoth'
+import * as HtmlDocx from 'html-docx-js-typescript'
 
 const route = useRoute()
 const router = useRouter()
@@ -20,6 +22,7 @@ const copyStatus = ref('')
 const username = ref('Anonymous')
 const avatars = ref([])
 const isCloudSaving = ref(false)
+const originalFormat = ref('')
 
 const returnPath = computed(() => {
   const app = localStorage.getItem('lemhand_standalone_app')
@@ -172,6 +175,9 @@ onMounted(() => {
       if (data.pageSettings) {
         pageSettings.value = { ...pageSettings.value, ...data.pageSettings }
       }
+      if (data.originalFormat) {
+        originalFormat.value = data.originalFormat
+      }
     }
   })
 })
@@ -205,6 +211,7 @@ const saveToCloud = () => {
         headerContent: headerDiv.value?.innerHTML || '',
         footerContent: footerDiv.value?.innerHTML || '',
         pageSettings: pageSettings.value,
+        originalFormat: originalFormat.value,
         lastUpdated: new Date()
       }, { merge: true })
       saveToRecents()
@@ -294,6 +301,43 @@ const copyLink = () => {
     setTimeout(() => { copyStatus.value = ''; }, 3000);
   });
 }
+
+const uploadWord = () => {
+  const input = document.createElement('input')
+  input.type = 'file'
+  input.accept = '.docx'
+  input.onchange = async (e) => {
+    const file = e.target.files[0]
+    if (file) {
+      try {
+        const arrayBuffer = await file.arrayBuffer()
+        const result = await mammoth.convertToHtml({ arrayBuffer })
+        if (editorDiv.value) {
+          editorDiv.value.innerHTML = result.value
+          originalFormat.value = 'docx'
+          saveToCloud()
+        }
+      } catch (err) {
+        showModal("Error", "Could not parse document: " + err.message)
+      }
+    }
+  }
+  input.click()
+}
+
+const downloadWord = async () => {
+  if (!editorDiv.value) return
+  const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${documentTitle.value}</title></head><body>${editorDiv.value.innerHTML}</body></html>`;
+  try {
+    const blob = await HtmlDocx.asBlob(html);
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `${documentTitle.value}.docx`;
+    a.click();
+  } catch (err) {
+    showModal("Error", "Could not generate download: " + err.message)
+  }
+}
 </script>
 
 <template>
@@ -338,6 +382,8 @@ const copyLink = () => {
         
         <input v-model="documentTitle" class="header-title-input" placeholder="Enter document title...">
         
+        <div v-if="originalFormat" style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.4); border-radius: 4px; padding: 2px 6px; font-size: 10px; font-weight: bold; margin-left: 5px;">.{{ originalFormat }}</div>
+
         <span v-if="isCloudSaving" style="font-size: 10px; opacity: 0.7; margin-left: 10px;">Saving...</span>
         <span v-else style="font-size: 10px; opacity: 0.7; margin-left: 10px;">Saved to LemCloud</span>
       </div>
@@ -428,8 +474,16 @@ const copyLink = () => {
       <!-- File Tab -->
       <template v-if="activeTab === 'File'">
         <div class="ribbon-group">
-          <button @click="window.print()" class="big-ribbon-btn">Print</button>
-          <button @click="deleteDocument" class="big-ribbon-btn" style="color: #d13438;">Delete</button>
+          <button @click="uploadWord" class="big-ribbon-btn">📤 <br>Upload .docx</button>
+          <label>Import</label>
+        </div>
+        <div class="ribbon-group">
+          <button @click="downloadWord" class="big-ribbon-btn">📥 <br>Download .docx</button>
+          <button @click="window.print()" class="big-ribbon-btn">🖨️ <br>Print</button>
+          <label>Export</label>
+        </div>
+        <div class="ribbon-group">
+          <button @click="deleteDocument" class="big-ribbon-btn" style="color: #d13438;">🗑️ <br>Delete</button>
           <label>Actions</label>
         </div>
       </template>
