@@ -50,6 +50,16 @@ const router = createRouter({
       component: () => import('../views/OfficeWordView.vue')
     },
     {
+      path: '/office/form/:id',
+      name: 'office-form',
+      component: () => import('../views/OfficeFormView.vue')
+    },
+    {
+      path: '/office/form/:id/respond',
+      name: 'form-respond',
+      component: () => import('../views/OfficeFormResponderView.vue')
+    },
+    {
       path: '/office/sheets/:id',
       name: 'office-sheets',
       component: () => import('../views/OfficeSheetsView.vue')

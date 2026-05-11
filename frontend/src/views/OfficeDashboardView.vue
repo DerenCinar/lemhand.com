@@ -43,6 +43,7 @@ const icons = {
   word: `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M14 2H6C4.89543 2 4 2.89543 4 4V20C4 21.1046 4.89543 22 6 22H18C19.1046 22 20 21.1046 20 20V8L14 2Z" fill="#2b579a"/><path d="M14 2V8H20L14 2Z" fill="#1e3a5f"/><text x="7" y="18" fill="white" font-size="10" font-weight="bold" font-family="Arial">W</text></svg>`,
   sheets: `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M14 2H6C4.89543 2 4 2.89543 4 4V20C4 21.1046 4.89543 22 6 22H18C19.1046 22 20 21.1046 20 20V8L14 2Z" fill="#217346"/><path d="M14 2V8H20L14 2Z" fill="#154a2d"/><text x="8" y="18" fill="white" font-size="10" font-weight="bold" font-family="Arial">S</text></svg>`,
   present: `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M14 2H6C4.89543 2 4 2.89543 4 4V20C4 21.1046 4.89543 22 6 22H18C19.1046 22 20 21.1046 20 20V8L14 2Z" fill="#d24726"/><path d="M14 2V8H20L14 2Z" fill="#a3361d"/><text x="8" y="18" fill="white" font-size="10" font-weight="bold" font-family="Arial">P</text></svg>`,
+  form: `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M14 2H6C4.89543 2 4 2.89543 4 4V20C4 21.1046 4.89543 22 6 22H18C19.1046 22 20 21.1046 20 20V8L14 2Z" fill="#7b2cbf"/><path d="M14 2V8H20L14 2Z" fill="#5a1e8a"/><text x="8" y="18" fill="white" font-size="10" font-weight="bold" font-family="Arial">F</text></svg>`,
 };
 
 const templates = [
@@ -87,6 +88,13 @@ const templates = [
     type: "present",
     icon: icons.present,
     description: "Business ready",
+  },
+  {
+    id: "blank-form",
+    name: "Blank Form",
+    type: "form",
+    icon: icons.form,
+    description: "Create a form",
   },
 ];
 
@@ -194,13 +202,17 @@ const createNew = async (template) => {
         ],
       },
     ];
+  } else if (template.id === "blank-form") {
+    initialData.formFields = [];
+    initialData.formResponses = [];
   }
 
   // Pre-save to firestore if it's a template
   if (
     template.id !== "blank-word" &&
     template.id !== "blank-sheets" &&
-    template.id !== "blank-present"
+    template.id !== "blank-present" &&
+    template.id !== "blank-form"
   ) {
     await setDoc(doc(db, "office", id), initialData);
   }
@@ -505,6 +517,14 @@ const saveSettings = () => {
             style="font-size: 20px"
           >
             P
+          </button>
+          <button
+            @click="activeCategory = 'form'"
+            :class="{ active: activeCategory === 'form' }"
+            title="Forms"
+            style="font-size: 20px"
+          >
+            F
           </button>
         </div>
         <div class="nav-footer">
