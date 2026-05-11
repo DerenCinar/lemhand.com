@@ -54,13 +54,15 @@ const pageData = computed(() => {
 </script>
 
 <template>
-  <main class="page-container" style="padding: 80px 5%; max-width: 800px; margin: 0 auto; min-height: 70vh;">
-    <h1 style="font-size: 3rem; font-weight: 600; margin-bottom: 20px;">{{ pageData.title }}</h1>
-    <div style="width: 50px; height: 4px; background-color: var(--ms-blue); margin-bottom: 30px;"></div>
-    <p style="font-size: 1.2rem; line-height: 1.8; color: var(--text-color); opacity: 0.8;">
+  <main class="min-h-[70vh] max-w-4xl mx-auto px-8 py-20">
+    <h1 class="text-4xl md:text-5xl font-bold mb-6 text-base-content">{{ pageData.title }}</h1>
+    <div class="w-16 h-1.5 bg-primary mb-10 rounded-full"></div>
+    <p class="text-lg md:text-xl leading-relaxed text-base-content/80 mb-10">
       {{ pageData.text }}
     </p>
-    <br>
-    <router-link to="/" class="ms-link">Return to Homepage</router-link>
+    <RouterLink to="/" class="btn btn-outline btn-primary rounded-full px-8 hover:scale-105 transition-transform">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd" /></svg>
+      Return to Homepage
+    </RouterLink>
   </main>
 </template>

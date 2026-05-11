@@ -56,44 +56,57 @@ const handleSignOut = async () => {
 </script>
 
 <template>
-  <main style="padding: 40px 5%; min-height: 80vh; display: flex; align-items: center; justify-content: center;">
-    <div style="width: 100%; max-width: 440px;">
+  <main class="min-h-[80vh] flex items-center justify-center bg-base-200 p-4">
+    <div class="w-full max-w-md">
       
-      <div v-if="!isAuthenticated" style="background: var(--bg-color); padding: 44px; box-shadow: 0 2px 6px rgba(0,0,0,0.2); border: 1px solid var(--border-color);">
-        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 24px;">
-          <img src="/las_logo.png" style="height: 24px;" alt="LemHand Logo">
-          <span style="font-weight: 600; font-size: 1.2rem;">LemHand</span>
-        </div>
-        <h2 style="font-size: 1.5rem; margin-bottom: 10px; font-weight: 600;">{{ isLoginMode ? 'Sign in' : 'Create account' }}</h2>
-        <p style="margin-bottom: 30px; font-size: 0.95rem; opacity: 0.8;">to continue to LemHand Services</p>
-        
-        <div class="form-group">
-          <input type="email" v-model="email" class="form-control" placeholder="Email address" style="border-bottom: 1px solid var(--border-color); border-top:none; border-left:none; border-right:none; border-radius:0; padding-left:0; margin-bottom: 20px;">
-          <input type="password" v-model="password" @keyup.enter="handleAuth" class="form-control" placeholder="Password" style="border-bottom: 1px solid var(--border-color); border-top:none; border-left:none; border-right:none; border-radius:0; padding-left:0;">
-        </div>
-        
-        <p style="font-size: 0.85rem; margin-bottom: 20px;">
-          {{ isLoginMode ? "No account?" : "Already have an account?" }}
-          <span style="color: var(--ms-blue); cursor: pointer; text-decoration: underline;" @click="isLoginMode = !isLoginMode">
-            {{ isLoginMode ? 'Create one!' : 'Sign in' }}
-          </span>
-        </p>
+      <div v-if="!isAuthenticated" class="card bg-base-100 shadow-2xl border border-base-200">
+        <div class="card-body p-10">
+          <div class="flex items-center gap-3 mb-6">
+            <img src="/las_logo.png" class="h-8" alt="LemHand Logo">
+            <span class="font-extrabold text-2xl text-primary">LemHand</span>
+          </div>
+          
+          <h2 class="text-2xl font-bold mb-2">{{ isLoginMode ? 'Sign in' : 'Create account' }}</h2>
+          <p class="text-base-content/70 mb-8">to continue to LemHand Services</p>
+          
+          <div class="form-control gap-4 mb-6">
+            <input type="email" v-model="email" class="input input-bordered input-primary w-full" placeholder="Email address">
+            <input type="password" v-model="password" @keyup.enter="handleAuth" class="input input-bordered input-primary w-full" placeholder="Password">
+          </div>
+          
+          <p class="text-sm mb-4">
+            {{ isLoginMode ? "No account?" : "Already have an account?" }}
+            <button class="link link-primary font-bold" @click="isLoginMode = !isLoginMode">
+              {{ isLoginMode ? 'Create one!' : 'Sign in' }}
+            </button>
+          </p>
 
-        <p v-if="error" style="color: #e81123; margin-bottom: 15px; font-size: 0.9rem;">{{ error }}</p>
-        
-        <div style="display: flex; justify-content: flex-end; margin-top: 20px;">
-          <button @click="handleAuth" class="ms-btn-primary" :disabled="loading">{{ loading ? 'Please wait...' : (isLoginMode ? 'Sign in' : 'Next') }}</button>
+          <div v-if="error" class="alert alert-error mb-4 shadow-sm">
+            <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+            <span>{{ error }}</span>
+          </div>
+          
+          <div class="card-actions justify-end mt-4">
+            <button @click="handleAuth" class="btn btn-primary rounded-full px-8" :disabled="loading">
+              <span v-if="loading" class="loading loading-spinner loading-sm"></span>
+              {{ loading ? 'Please wait...' : (isLoginMode ? 'Sign in' : 'Next') }}
+            </button>
+          </div>
         </div>
       </div>
       
-      <div v-else style="background: var(--bg-color); padding: 44px; box-shadow: 0 2px 6px rgba(0,0,0,0.2); border: 1px solid var(--border-color); text-align: center;">
-        <div style="width: 80px; height: 80px; background-color: var(--ms-blue); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: 600; margin: 0 auto 20px;">
-          {{ userEmail.charAt(0).toUpperCase() }}
+      <div v-else class="card bg-base-100 shadow-2xl border border-base-200 text-center">
+        <div class="card-body p-10 items-center">
+          <div class="avatar placeholder mb-6">
+            <div class="bg-primary text-primary-content rounded-full w-24 shadow-lg">
+              <span class="text-3xl font-bold">{{ userEmail.charAt(0).toUpperCase() }}</span>
+            </div>
+          </div>
+          <h2 class="text-2xl font-bold mb-2">Welcome back</h2>
+          <p class="text-base-content/70 mb-8 text-lg">{{ userEmail }}</p>
+          
+          <button @click="handleSignOut" class="btn btn-outline btn-error rounded-full px-8">Sign out</button>
         </div>
-        <h2 style="font-size: 1.5rem; margin-bottom: 10px; font-weight: 600;">Welcome back</h2>
-        <p style="margin-bottom: 30px; font-size: 1rem; opacity: 0.8;">{{ userEmail }}</p>
-        
-        <button @click="handleSignOut" style="text-decoration: underline; color: var(--ms-blue); font-weight: 600;">Sign out</button>
       </div>
 
     </div>
