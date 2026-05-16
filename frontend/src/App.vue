@@ -2,13 +2,14 @@
 import { RouterLink, RouterView, useRoute } from "vue-router";
 import { ref, onMounted, onUnmounted, computed } from "vue";
 import { auth } from "./firebase";
-import { onAuthStateChanged } from "firebase/auth";
+import { onAuthStateChanged, signOut } from "firebase/auth";
 
 const route = useRoute();
 const isDarkMode = ref(false);
 const isMegaMenuOpen = ref(false);
 const isMobileMenuOpen = ref(false);
 const userEmail = ref(null);
+const isDropdownOpen = ref(false);
 
 const hideLayout = computed(() => {
   return (
@@ -52,6 +53,11 @@ onMounted(() => {
 onUnmounted(() => {
   if (unsubscribeAuth) unsubscribeAuth();
 });
+
+const handleSignOut = async () => {
+  await signOut(auth);
+  isDropdownOpen.value = false;
+};
 </script>
 
 <template>
@@ -68,12 +74,6 @@ onUnmounted(() => {
                 class="p-navigation__logo-tag"
                 style="background-color: green"
               >
-                <!--  <img
-                  class="p-navigation__logo-icon"
-                  src="/favicon.svg"
-                  alt=""
-                />
-            -->
                 LH
               </div>
               <span class="p-navigation__logo-title">LemHand</span>
@@ -118,9 +118,25 @@ onUnmounted(() => {
             </li>
           </ul>
           <ul class="p-navigation__items">
-            <li class="p-navigation__item"></li>
-            <li class="p-navigation__item">
+            <!-- Sign in or Dropdown -->
+            <li class="p-navigation__item" v-if="!userEmail">
               <RouterLink class="p-navigation__link" to="/login">Sign in</RouterLink>
+            </li>
+            <li 
+              v-else 
+              class="p-navigation__item--dropdown-toggle" 
+              :class="{ 'is-active': isDropdownOpen }"
+              @click="isDropdownOpen = !isDropdownOpen"
+              style="cursor: pointer;"
+            >
+              <a class="p-navigation__link" href="#" @click.prevent>
+                Hi, {{ userEmail.split('@')[0] }}
+              </a>
+              <ul class="p-navigation__dropdown" :aria-hidden="!isDropdownOpen">
+                <li><RouterLink class="p-navigation__link" to="/account">My account</RouterLink></li>
+                <li><RouterLink class="p-navigation__link" to="/purchases">My purchases</RouterLink></li>
+                <li><a class="p-navigation__link" href="#" @click.prevent="handleSignOut">Sign out</a></li>
+              </ul>
             </li>
           </ul>
         </nav>

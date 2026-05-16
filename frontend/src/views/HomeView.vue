@@ -10,6 +10,8 @@ const heroConfig = ref({
     "Discover LemHand's premium ecosystem of web and Android applications designed for modern living. From real-time transit to creative tools.",
   buttonText: "Explore our Products",
   buttonLink: "/products",
+  button2Text: "Visit BusTracker",
+  button2Link: "/bustracker",
   image: "/hero_background_1778471167979.png",
 });
 
@@ -54,10 +56,21 @@ onUnmounted(() => {
           <p class="p-heading--4">
             {{ heroConfig.description }}
           </p>
-          <div class="u-sv2">
+          <div class="u-sv2" style="display: flex; gap: 10px;">
             <RouterLink :to="heroConfig.buttonLink" class="p-button">{{
               heroConfig.buttonText
             }}</RouterLink>
+            <RouterLink 
+              v-if="heroConfig.button2Text && heroConfig.button2Link && heroConfig.button2Link.startsWith('/')" 
+              :to="heroConfig.button2Link" 
+              class="p-button--positive"
+            >{{ heroConfig.button2Text }}</RouterLink>
+            <a 
+              v-else-if="heroConfig.button2Text && heroConfig.button2Link" 
+              :href="heroConfig.button2Link" 
+              target="_blank" 
+              class="p-button--positive"
+            >{{ heroConfig.button2Text }}</a>
           </div>
         </div>
       </div>

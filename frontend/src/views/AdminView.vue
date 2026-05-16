@@ -14,6 +14,8 @@ const heroConfig = ref({
   description: 'Discover the ultimate tools for your digital life.',
   buttonText: 'See more',
   buttonLink: '/products',
+  button2Text: '',
+  button2Link: '',
   image: 'https://placehold.co/800x600/0067b8/fff?text=LemHand+Surface'
 })
 
@@ -160,6 +162,17 @@ const deletePost = async (id) => {
             <div class="form-group">
               <label>Button Link</label>
               <input type="text" v-model="heroConfig.buttonLink" class="form-control">
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 15px;">
+            <div class="form-group">
+              <label>Button 2 Text (Green Button)</label>
+              <input type="text" v-model="heroConfig.button2Text" class="form-control">
+            </div>
+            <div class="form-group">
+              <label>Button 2 Link</label>
+              <input type="text" v-model="heroConfig.button2Link" class="form-control">
             </div>
           </div>
 
