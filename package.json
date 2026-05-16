@@ -4,6 +4,8 @@
     "build": "cd frontend && npm run build"
   },
   "dependencies": {
-    "bootstrap-icons": "^1.11.3"
+    "@material/web": "^2.4.1",
+    "bootstrap-icons": "^1.11.3",
+    "vanilla-framework": "^4.51.0"
   }
 }

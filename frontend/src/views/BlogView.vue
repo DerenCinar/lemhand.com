@@ -39,26 +39,34 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <main class="min-h-screen bg-base-100 py-20 px-8 max-w-7xl mx-auto">
-    <div class="mb-16">
-      <h1 class="text-4xl md:text-5xl font-extrabold mb-4 text-base-content">LemHand Newsroom</h1>
-      <p class="text-xl text-base-content/70">The latest updates, releases, and insights from our team.</p>
+  <main class="l-main">
+    <!-- Header -->
+    <div class="p-strip">
+      <div class="row">
+        <div class="col-12">
+          <h1>LemHand Newsroom</h1>
+          <p class="p-heading--4">The latest updates, releases, and insights from our team.</p>
+        </div>
+      </div>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
-      <article v-for="post in posts" :key="post.id" class="card bg-base-100 shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 border border-base-200">
-        <figure class="overflow-hidden h-56">
-          <img :src="post.image" :alt="post.title" class="w-full h-full object-cover hover:scale-105 transition-transform duration-500">
-        </figure>
-        <div class="card-body">
-          <p class="text-sm font-bold text-primary mb-2">{{ post.date || new Date().toLocaleDateString() }}</p>
-          <h2 class="card-title text-2xl leading-tight">{{ post.title }}</h2>
-          <p class="text-base-content/70 flex-grow mt-2">{{ post.excerpt }}</p>
-          <div class="card-actions justify-end mt-4">
-            <a href="#" class="link link-primary font-bold hover:underline inline-flex items-center gap-1">Read More <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd" /></svg></a>
+    <!-- Blog Posts Grid -->
+    <div class="p-strip">
+      <div class="row">
+        <div v-for="post in posts" :key="post.id" class="col-4">
+          <div class="p-card u-no-padding">
+            <img class="p-card__image" :src="post.image" :alt="post.title">
+            <div class="p-card__inner">
+              <p class="u-sv1"><small>{{ post.date || new Date().toLocaleDateString() }}</small></p>
+              <h3>{{ post.title }}</h3>
+              <p class="p-card__content">{{ post.excerpt }}</p>
+              <div class="p-card__footer">
+                <a href="#" class="p-button">Read More</a>
+              </div>
+            </div>
           </div>
         </div>
-      </article>
+      </div>
     </div>
   </main>
 </template>

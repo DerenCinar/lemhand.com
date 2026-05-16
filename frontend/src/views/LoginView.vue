@@ -56,59 +56,71 @@ const handleSignOut = async () => {
 </script>
 
 <template>
-  <main class="min-h-[80vh] flex items-center justify-center bg-base-200 p-4">
-    <div class="w-full max-w-md">
-      
-      <div v-if="!isAuthenticated" class="card bg-base-100 shadow-2xl border border-base-200">
-        <div class="card-body p-10">
-          <div class="flex items-center gap-3 mb-6">
-            <img src="/las_logo.png" class="h-8" alt="LemHand Logo">
-            <span class="font-extrabold text-2xl text-primary">LemHand</span>
-          </div>
+  <main class="l-main">
+    <div class="p-strip is-deep">
+      <div class="row" style="display: flex; justify-content: center;">
+        <div class="col-4">
           
-          <h2 class="text-2xl font-bold mb-2">{{ isLoginMode ? 'Sign in' : 'Create account' }}</h2>
-          <p class="text-base-content/70 mb-8">to continue to LemHand Services</p>
-          
-          <div class="form-control gap-4 mb-6">
-            <input type="email" v-model="email" class="input input-bordered input-primary w-full" placeholder="Email address">
-            <input type="password" v-model="password" @keyup.enter="handleAuth" class="input input-bordered input-primary w-full" placeholder="Password">
-          </div>
-          
-          <p class="text-sm mb-4">
-            {{ isLoginMode ? "No account?" : "Already have an account?" }}
-            <button class="link link-primary font-bold" @click="isLoginMode = !isLoginMode">
-              {{ isLoginMode ? 'Create one!' : 'Sign in' }}
-            </button>
-          </p>
+          <!-- Not Authenticated -->
+          <div v-if="!isAuthenticated" class="p-card">
+            <div class="p-card__content">
+              <div class="u-align-text--center u-sv2">
+                <img src="/las_logo.png" class="h-8" alt="LemHand Logo" style="height: 2rem;">
+                <span style="font-size: 1.5rem; font-weight: bold; margin-left: 0.5rem;">LemHand</span>
+              </div>
+              
+              <h2 class="u-align-text--center">{{ isLoginMode ? 'Sign in' : 'Create account' }}</h2>
+              <p class="u-align-text--center u-sv2">to continue to LemHand Services</p>
+              
+              <div class="u-sv2">
+                <label for="email">Email address</label>
+                <input type="email" id="email" v-model="email" placeholder="Email address" class="u-sv1">
+                
+                <label for="password">Password</label>
+                <input type="password" id="password" v-model="password" @keyup.enter="handleAuth" placeholder="Password" class="u-sv1">
+              </div>
+              
+              <p class="u-sv2">
+                {{ isLoginMode ? "No account?" : "Already have an account?" }}
+                <button class="p-button--link" @click="isLoginMode = !isLoginMode">
+                  {{ isLoginMode ? 'Create one!' : 'Sign in' }}
+                </button>
+              </p>
 
-          <div v-if="error" class="alert alert-error mb-4 shadow-sm">
-            <svg xmlns="http://www.w3.org/2000/svg" class="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-            <span>{{ error }}</span>
-          </div>
-          
-          <div class="card-actions justify-end mt-4">
-            <button @click="handleAuth" class="btn btn-primary rounded-full px-8" :disabled="loading">
-              <span v-if="loading" class="loading loading-spinner loading-sm"></span>
-              {{ loading ? 'Please wait...' : (isLoginMode ? 'Sign in' : 'Next') }}
-            </button>
-          </div>
-        </div>
-      </div>
-      
-      <div v-else class="card bg-base-100 shadow-2xl border border-base-200 text-center">
-        <div class="card-body p-10 items-center">
-          <div class="avatar placeholder mb-6">
-            <div class="bg-primary text-primary-content rounded-full w-24 shadow-lg">
-              <span class="text-3xl font-bold">{{ userEmail.charAt(0).toUpperCase() }}</span>
+              <div v-if="error" class="p-notification--negative">
+                <div class="p-notification__content">
+                  <p class="p-notification__message">{{ error }}</p>
+                </div>
+              </div>
+              
+              <div class="u-sv2 u-align-text--right">
+                <button @click="handleAuth" class="p-button" :disabled="loading">
+                  <span v-if="loading" class="p-icon--spinner"></span>
+                  {{ loading ? 'Please wait...' : (isLoginMode ? 'Sign in' : 'Next') }}
+                </button>
+              </div>
             </div>
           </div>
-          <h2 class="text-2xl font-bold mb-2">Welcome back</h2>
-          <p class="text-base-content/70 mb-8 text-lg">{{ userEmail }}</p>
           
-          <button @click="handleSignOut" class="btn btn-outline btn-error rounded-full px-8">Sign out</button>
+          <!-- Authenticated -->
+          <div v-else class="p-card">
+            <div class="p-card__content u-align-text--center">
+              <div class="u-sv2">
+                <div style="background-color: #0055ff; color: white; border-radius: 50%; width: 4rem; height: 4rem; display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: bold; margin: 0 auto;">
+                  {{ userEmail.charAt(0).toUpperCase() }}
+                </div>
+              </div>
+              <h2>Welcome back</h2>
+              <p class="u-sv2">{{ userEmail }}</p>
+              
+              <div class="u-sv2">
+                <button @click="handleSignOut" class="p-button--negative">Sign out</button>
+              </div>
+            </div>
+          </div>
+
         </div>
       </div>
-
     </div>
   </main>
 </template>
