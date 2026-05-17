@@ -3,6 +3,7 @@ import { ref, onMounted, computed } from "vue";
 import { useRouter } from "vue-router";
 import { db } from "../firebase";
 import { doc, deleteDoc as firestoreDelete, setDoc } from "firebase/firestore";
+import { isOfficeUnderConstruction } from "../router/index.js";
 
 const router = useRouter();
 const recentDocs = ref([]);
@@ -40,9 +41,9 @@ const uiIcons = {
 };
 
 const icons = {
-  word: `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M14 2H6C4.89543 2 4 2.89543 4 4V20C4 21.1046 4.89543 22 6 22H18C19.1046 22 20 21.1046 20 20V8L14 2Z" fill="#2b579a"/><path d="M14 2V8H20L14 2Z" fill="#1e3a5f"/><text x="7" y="18" fill="white" font-size="10" font-weight="bold" font-family="Arial">W</text></svg>`,
-  sheets: `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M14 2H6C4.89543 2 4 2.89543 4 4V20C4 21.1046 4.89543 22 6 22H18C19.1046 22 20 21.1046 20 20V8L14 2Z" fill="#217346"/><path d="M14 2V8H20L14 2Z" fill="#154a2d"/><text x="8" y="18" fill="white" font-size="10" font-weight="bold" font-family="Arial">S</text></svg>`,
-  present: `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M14 2H6C4.89543 2 4 2.89543 4 4V20C4 21.1046 4.89543 22 6 22H18C19.1046 22 20 21.1046 20 20V8L14 2Z" fill="#d24726"/><path d="M14 2V8H20L14 2Z" fill="#a3361d"/><text x="8" y="18" fill="white" font-size="10" font-weight="bold" font-family="Arial">P</text></svg>`,
+  word: `<img src="/1.svg" alt="Word" style="width: 100%; height: 100%; object-fit: contain;">`,
+  sheets: `<img src="/2.svg" alt="Sheets" style="width: 100%; height: 100%; object-fit: contain;">`,
+  present: `<img src="/3.svg" alt="Presentations" style="width: 100%; height: 100%; object-fit: contain;">`,
   form: `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M14 2H6C4.89543 2 4 2.89543 4 4V20C4 21.1046 4.89543 22 6 22H18C19.1046 22 20 21.1046 20 20V8L14 2Z" fill="#7b2cbf"/><path d="M14 2V8H20L14 2Z" fill="#5a1e8a"/><text x="8" y="18" fill="white" font-size="10" font-weight="bold" font-family="Arial">F</text></svg>`,
 };
 
@@ -259,6 +260,7 @@ const formatDate = (ts) => {
 const showAnimations = ref(
   localStorage.getItem("lemhand_office_animations") !== "false",
 );
+const searchOpen = ref(false);
 const saveSettings = () => {
   localStorage.setItem("lemhand_office_animations", showAnimations.value);
   localStorage.setItem("lemhand_office_theme_color", customThemeColor.value);
@@ -272,6 +274,7 @@ const saveSettings = () => {
       flex-direction: column;
       height: 100vh;
       background: #f0f2f5;
+      overflow: hidden;
     "
     :style="{ '--theme-color': customThemeColor }"
   >
@@ -361,270 +364,189 @@ const saveSettings = () => {
       </div>
     </div>
 
-    <!-- Exact Office Apps Toolbar -->
-    <div
-      style="
-        background-color: var(--theme-color);
-        color: white;
-        padding: 4px 15px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        flex-shrink: 0;
-        font-size: 12px;
-        height: 32px;
-      "
-    >
-      <!-- Left Section -->
-      <div style="display: flex; align-items: center; gap: 15px; flex: 1"></div>
-
-      <!-- Center Section: Search Bar -->
-      <div
-        style="
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          flex: 1;
-        "
-      >
-        <div
-          style="
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            width: 400px;
-            background: rgba(255, 255, 255, 0.15);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 4px;
-            padding: 0 10px;
-            height: 26px;
-          "
-        >
-          <span
-            v-html="uiIcons.search"
-            style="
-              opacity: 0.7;
-              display: flex;
-              align-items: center;
-              transform: scale(0.85);
-            "
-          ></span>
-          <input
-            v-model="searchQuery"
-            class="header-title-input"
-            placeholder="Search your documents..."
-            style="
-              width: 100%;
-              height: 100%;
-              border: none;
-              padding: 0;
-              background: transparent;
-            "
-          />
-        </div>
-      </div>
-
-      <!-- Right Section -->
-      <div
-        style="
-          display: flex;
-          align-items: center;
-          justify-content: flex-end;
-          gap: 10px;
-          flex: 1;
-          position: relative;
-        "
-      >
-        <div
-          @click="accountMenuOpen = !accountMenuOpen"
-          class="account-avatar"
-          :title="username + ' (Account)'"
-          style="
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            background: rgba(0, 0, 0, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.4);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 10px;
-            font-weight: bold;
-            cursor: pointer;
-          "
-        >
-          {{ (username || "??").substring(0, 2).toUpperCase() }}
-        </div>
-
-        <div v-if="accountMenuOpen" class="account-menu">
-          <div class="account-header">
-            <div class="avatar large" style="background: var(--theme-color)">
-              {{ username ? username.substring(0, 2).toUpperCase() : "??" }}
-            </div>
-            <div class="account-info">
-              <strong>{{ username }}</strong>
-              <span>LemHand Account</span>
-            </div>
+    <!-- Top Toolbar (Fixed) -->
+    <!-- Rebuilt Toolbar using user-provided Vanilla Navigation -->
+    <header id="navigation" class="p-navigation--sliding is-dark" :class="{ 'has-search-open': searchOpen }" :style="{ backgroundColor: customThemeColor }" style="flex-shrink: 0; z-index: 10;">
+      <div class="p-navigation__row--25-75">
+        <div class="p-navigation__banner">
+          <div class="p-navigation__tagged-logo">
+            <a class="p-navigation__link" href="#">
+              <span class="p-navigation__logo-title">LemHand Office</span>
+            </a>
           </div>
-          <button @click="logout" class="logout-btn">Sign Out</button>
+          <ul class="p-navigation__items">
+            <li class="p-navigation__item">
+              <button class="js-search-button p-navigation__link--search-toggle" @click="searchOpen = !searchOpen">
+                <span class="p-navigation__search-label">Search</span>
+              </button>
+            </li>
+          </ul>
         </div>
+        <nav class="p-navigation__nav" id="main-nav" aria-label="Example main">
+          <ul class="p-navigation__items js-dropdown-nav-list js-navigation-sliding-panel">
+            <li class="p-navigation__item--dropdown-toggle js-navigation-dropdown-toggle" id="account-dropdown" :class="{ 'is-active': accountMenuOpen }" @click="accountMenuOpen = !accountMenuOpen">
+              <button class="p-navigation__link" style="border: none; background: transparent; cursor: pointer; color: inherit;">
+                {{ (username || "??").substring(0, 2).toUpperCase() }}
+              </button>
+              <ul class="p-navigation__dropdown js-dropdown-nav-list js-navigation-sliding-panel" id="account-menu" :aria-hidden="!accountMenuOpen">
+                <li class="p-navigation__item--dropdown-close" id="account-back">
+                  <button class="p-navigation__link js-back-button" @click.stop="accountMenuOpen = false">Back</button>
+                </li>
+                <li>
+                  <a href="#" class="p-navigation__dropdown-item">Signed in as {{ username }}</a>
+                </li>
+                <li>
+                  <a href="#" class="p-navigation__dropdown-item" @click.prevent="logout">Sign Out</a>
+                </li>
+              </ul>
+            </li>
+          </ul>
+          <ul class="p-navigation__items">
+            <li class="p-navigation__item">
+              <button class="js-search-button p-navigation__link--search-toggle" @click="searchOpen = !searchOpen">
+                <span class="p-navigation__search-label">Search</span>
+              </button>
+            </li>
+          </ul>
+          <div class="p-navigation__search" :class="{ 'is-active': searchOpen }">
+            <form class="p-search-box" @submit.prevent>
+              <input type="search" class="p-search-box__input" name="q" v-model="searchQuery" placeholder="Search documents..." required="" aria-label="Search documents...">
+              <button type="reset" class="p-search-box__reset" @click="searchQuery = ''"><i class="p-icon--close"></i></button>
+              <button type="submit" class="p-search-box__button"><i class="p-icon--search"></i></button>
+            </form>
+          </div>
+        </nav>
       </div>
-    </div>
+      <div class="p-navigation__search-overlay" v-if="searchOpen" @click="searchOpen = false"></div>
+    </header>
 
-    <div class="dashboard-container">
-      <!-- Sidebar -->
-      <nav class="sidebar" :style="{ background: customThemeColor }">
-        <div class="logo-area">
-          <svg
-            viewBox="0 0 24 24"
-            width="36"
-            height="36"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-          >
-            <rect x="3" y="3" width="18" height="18" rx="2" />
-            <path d="M3 9h18M9 21V9" />
-          </svg>
-        </div>
-        <div class="nav-items">
-          <button
-            @click="activeCategory = 'all'"
-            :class="{ active: activeCategory === 'all' }"
-            title="All Content"
-            v-html="uiIcons.home"
-          ></button>
-          <button
-            @click="activeCategory = 'word'"
-            :class="{ active: activeCategory === 'word' }"
-            title="Word Docs"
-            style="font-size: 20px"
-          >
-            W
-          </button>
-          <button
-            @click="activeCategory = 'sheets'"
-            :class="{ active: activeCategory === 'sheets' }"
-            title="Spreadsheets"
-            style="font-size: 20px"
-          >
-            S
-          </button>
-          <button
-            @click="activeCategory = 'present'"
-            :class="{ active: activeCategory === 'present' }"
-            title="Presentations"
-            style="font-size: 20px"
-          >
-            P
-          </button>
-          <button
-            @click="activeCategory = 'form'"
-            :class="{ active: activeCategory === 'form' }"
-            title="Forms"
-            style="font-size: 20px"
-          >
-            F
-          </button>
-        </div>
-        <div class="nav-footer">
-          <button
-            @click="settingsModalOpen = true"
-            title="Settings"
-            v-html="uiIcons.settings"
-            style="
-              background: transparent;
-              border: none;
-              color: white;
-              cursor: pointer;
-            "
-          ></button>
-        </div>
+    <!-- Main Body Area -->
+    <div style="display: flex; flex-grow: 1; overflow: hidden; background: #f0f2f5;">
+      
+      <!-- Left Navbar (Fixed width, icons only) -->
+      <nav :style="{ backgroundColor: customThemeColor }" style="width: 70px; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; padding: 1.5rem 0; z-index: 5;">
+        
+        <button class="p-button--base u-no-margin" style="padding: 10px; margin-bottom: 1rem; border: none; background: transparent; cursor: pointer; border-radius: 8px; transition: background 0.2s; color: white;" :style="{ background: activeCategory === 'all' ? 'rgba(255,255,255,0.2)' : 'transparent' }" title="All Content" @click="activeCategory = 'all'">
+          <span v-html="uiIcons.home"></span>
+        </button>
+        
+        <button class="p-button--base u-no-margin" style="padding: 10px; margin-bottom: 1rem; border: none; background: transparent; cursor: pointer; border-radius: 8px; transition: background 0.2s; color: white;" :style="{ background: activeCategory === 'word' ? 'rgba(255,255,255,0.2)' : 'transparent' }" title="Word Docs" @click="activeCategory = 'word'">
+          <img src="/1.svg" alt="Word" style="width: 24px; height: 24px;" />
+        </button>
+        
+        <button class="p-button--base u-no-margin" style="padding: 10px; margin-bottom: 1rem; border: none; background: transparent; cursor: pointer; border-radius: 8px; transition: background 0.2s; color: white;" :style="{ background: activeCategory === 'sheets' ? 'rgba(255,255,255,0.2)' : 'transparent' }" title="Spreadsheets" @click="activeCategory = 'sheets'">
+          <img src="/2.svg" alt="Sheets" style="width: 24px; height: 24px;" />
+        </button>
+        
+        <button class="p-button--base u-no-margin" style="padding: 10px; margin-bottom: 1rem; border: none; background: transparent; cursor: pointer; border-radius: 8px; transition: background 0.2s; color: white;" :style="{ background: activeCategory === 'present' ? 'rgba(255,255,255,0.2)' : 'transparent' }" title="Presentations" @click="activeCategory = 'present'">
+          <img src="/3.svg" alt="Presentations" style="width: 24px; height: 24px;" />
+        </button>
+        
+        <button class="p-button--base u-no-margin" style="padding: 10px; margin-bottom: auto; border: none; background: transparent; cursor: pointer; border-radius: 8px; transition: background 0.2s; color: white;" :style="{ background: activeCategory === 'form' ? 'rgba(255,255,255,0.2)' : 'transparent' }" title="Forms" @click="activeCategory = 'form'">
+          <!-- Placeholder Icon (Forms) -->
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5" stroke="currentColor" stroke-width="2"/></svg>
+        </button>
+        
+        <button class="p-button--base u-no-margin" style="padding: 10px; border: none; background: transparent; cursor: pointer; border-radius: 8px; color: white;" title="Settings" @click="settingsModalOpen = true">
+          <span v-html="uiIcons.settings"></span>
+        </button>
       </nav>
 
-      <!-- Main Content -->
-      <main class="main-content">
-        <section class="welcome-section">
-          <h1>Welcome back to LemHand Office</h1>
-          <p>Pick a template or start something new.</p>
-        </section>
-
-        <!-- Template Gallery -->
-        <section class="template-section">
-          <div class="section-header">
-            <h2>Create New</h2>
-            <button
-              class="text-btn"
-              @click="alert('Template gallery coming soon!')"
-            >
-              View all templates
-            </button>
+      <!-- Scrollable Main Content -->
+      <main style="flex-grow: 1; overflow-y: auto; padding: 2rem;">
+        <div style="max-width: 1200px; margin: 0 auto;">
+          <div v-if="isOfficeUnderConstruction" style="display: flex; justify-content: center; align-items: center; min-height: 50vh;">
+            <div class="p-card--highlighted" style="max-width: 600px; text-align: center; padding: 3rem;">
+              <div style="font-size: 3rem; margin-bottom: 1rem;">🚧</div>
+              <h2>We are working on something new</h2>
+              <p>LemHand Office is currently undergoing a major update. The individual office applications are temporarily unavailable as we push out these changes. Please check back later!</p>
+            </div>
           </div>
-          <div class="template-grid">
-            <div
-              v-for="t in templates"
-              :key="t.id"
-              class="template-card"
-              @click="createNew(t)"
-            >
-              <div class="template-preview" v-html="t.icon"></div>
-              <div class="template-info">
-                <h3>{{ t.name }}</h3>
-                <p>{{ t.description }}</p>
+          <template v-else>
+            <section class="u-sv1">
+              <h1>Welcome back to LemHand Office</h1>
+            <p>Pick a template or start something new.</p>
+          </section>
+
+          <!-- Template Gallery -->
+          <section class="u-sv2">
+            <div class="row">
+              <div class="col-12">
+                <h2>Create New</h2>
               </div>
             </div>
-          </div>
-        </section>
-
-        <!-- Recent Content -->
-        <section class="recent-section">
-          <div class="section-header">
-            <h2>Recent Content</h2>
-          </div>
-
-          <div v-if="filteredDocs.length === 0" class="empty-state">
-            <p>No documents found matching your criteria.</p>
-          </div>
-
-          <div v-else class="content-table">
-            <div class="table-header">
-              <span class="col-name">Name</span>
-              <span class="col-date">Last Opened</span>
-              <span class="col-actions"></span>
-            </div>
-            <div
-              v-for="doc in filteredDocs"
-              :key="doc.id"
-              class="table-row"
-              @click="openDoc(doc)"
-            >
-              <div class="col-name">
-                <div
-                  class="doc-icon"
-                  :class="doc.type"
-                  v-html="icons[doc.type]"
-                ></div>
-                <div class="doc-meta">
-                  <span class="title">{{
-                    doc.title || "Untitled Document"
-                  }}</span>
-                  <span class="subtitle"
-                    >LemCloud • {{ doc.type.toUpperCase() }}</span
-                  >
+            <div class="row" style="display: flex; flex-wrap: wrap;">
+              <div
+                v-for="t in templates"
+                :key="t.id"
+                class="col-3"
+                style="display: flex; margin-bottom: 1rem;"
+              >
+                <div class="p-card u-no-padding" @click="createNew(t)" style="cursor: pointer; width: 100%; display: flex; flex-direction: column; margin-bottom: 0;">
+                  <div class="p-card__inner" style="flex-grow: 1; display: flex; flex-direction: column;">
+                    <div v-html="t.icon" style="height: 48px; width: 48px; margin-bottom: 1rem;"></div>
+                    <h3 style="margin-top: 0;">{{ t.name }}</h3>
+                    <p style="margin-bottom: 0; margin-top: auto;">{{ t.description }}</p>
+                  </div>
                 </div>
               </div>
-              <div class="col-date">{{ formatDate(doc.lastOpened) }}</div>
-              <div class="col-actions">
-                <button
-                  @click="deleteDoc($event, doc.id)"
-                  class="delete-btn"
-                  title="Delete Permanent"
-                  v-html="uiIcons.delete"
-                ></button>
+            </div>
+          </section>
+
+          <!-- Recent Content -->
+          <section class="u-sv2">
+            <div class="row">
+              <div class="col-12">
+                <h2>Recent Content</h2>
               </div>
             </div>
-          </div>
-        </section>
+
+            <div v-if="filteredDocs.length === 0" class="row">
+              <div class="col-12">
+                <div class="p-notification--information">
+                  <div class="p-notification__content">
+                    <p class="p-notification__message">No documents found matching your criteria.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div v-else class="row">
+              <div class="col-12">
+                <table class="p-table--mobile-card">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Last Opened</th>
+                      <th class="u-align--right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="doc in filteredDocs" :key="doc.id" @click="openDoc(doc)" style="cursor: pointer;">
+                      <td data-th="Name">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                          <div v-html="icons[doc.type]" style="width: 24px; height: 24px;"></div>
+                          <div>
+                            <strong>{{ doc.title || "Untitled Document" }}</strong>
+                            <br>
+                            <small>LemCloud • {{ doc.type.toUpperCase() }}</small>
+                          </div>
+                        </div>
+                      </td>
+                      <td data-th="Last Opened">{{ formatDate(doc.lastOpened) }}</td>
+                      <td data-th="Actions" class="u-align--right">
+                        <button @click.stop="deleteDoc($event, doc.id)" class="p-button--negative" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;">
+                          Delete
+                        </button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+          </template>
+        </div>
       </main>
     </div>
   </div>
@@ -738,280 +660,7 @@ const saveSettings = () => {
   background: rgba(255, 255, 255, 0.1);
   border-color: rgba(255, 255, 255, 0.3);
 }
-.header-title-input:focus {
-  background: white;
-  color: black;
-  outline: none;
-}
-
-.account-avatar:hover {
-  background: rgba(0, 0, 0, 0.3) !important;
-}
-
-.user-profile {
-  position: relative;
-}
-.account-menu {
-  position: absolute;
-  top: 32px;
-  right: 0;
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-  width: 250px;
-  padding: 20px;
-  border: 1px solid rgba(0, 0, 0, 0.05);
-  z-index: 100;
-  animation: fadeInDown 0.2s ease;
-  color: #202124;
-}
-.account-header {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  margin-bottom: 20px;
-  padding-bottom: 20px;
-  border-bottom: 1px solid #eee;
-}
-.avatar {
-  width: 40px;
-  height: 40px;
-  background: var(--theme-color);
-  color: #fff;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 14px;
-  font-weight: 700;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-  cursor: pointer;
-  transition: transform 0.2s;
-}
-.avatar.large {
-  width: 52px;
-  height: 52px;
-  font-size: 20px;
-  cursor: default;
-}
-.account-info {
-  display: flex;
-  flex-direction: column;
-}
-.account-info strong {
-  font-size: 15px;
-  color: #202124;
-  margin-bottom: 2px;
-}
-.account-info span {
-  font-size: 12px;
-  color: #5f6368;
-}
-.logout-btn {
-  width: 100%;
-  padding: 10px;
-  background: transparent;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 600;
-  color: #333;
-  transition: all 0.2s;
-}
-.logout-btn:hover {
-  background: #f8f9fa;
-  border-color: #ccc;
-}
-
-.welcome-section {
-  margin: 40px 0;
-  animation: fadeInDown 0.5s ease;
-}
-.welcome-section h1 {
-  font-size: 32px;
-  font-weight: 700;
-  margin-bottom: 8px;
-  letter-spacing: -0.5px;
-}
-.welcome-section p {
-  color: #5f6368;
-  font-size: 16px;
-}
-
-.section-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-}
-.section-header h2 {
-  font-size: 16px;
-  font-weight: 700;
-  text-transform: uppercase;
-  color: #5f6368;
-  letter-spacing: 0.5px;
-}
-.text-btn {
-  background: none;
-  border: none;
-  color: var(--theme-color);
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: opacity 0.2s;
-}
-.text-btn:hover {
-  opacity: 0.8;
-}
-
-/* Template Grid */
-.template-grid {
-  display: flex;
-  gap: 24px;
-  margin-bottom: 48px;
-  overflow-x: auto;
-  padding: 10px 10px 20px 10px;
-  margin-left: -10px;
-}
-.template-card {
-  width: 180px;
-  background: #fff;
-  border: 1px solid rgba(0, 0, 0, 0.05);
-  border-radius: 12px;
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-  flex-shrink: 0;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-}
-.template-card:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
-  border-color: transparent;
-}
-.template-preview {
-  height: 130px;
-  background: #f8f9fa;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.03);
-  padding: 24px;
-  border-radius: 12px 12px 0 0;
-}
-.template-info {
-  padding: 16px;
-}
-.template-info h3 {
-  font-size: 14px;
-  font-weight: 600;
-  margin-bottom: 4px;
-  color: #202124;
-}
-.template-info p {
-  font-size: 12px;
-  color: #5f6368;
-}
-
-/* Table View */
-.content-table {
-  background: #fff;
-  border: 1px solid rgba(0, 0, 0, 0.05);
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
-  overflow: hidden;
-}
-.table-header {
-  display: grid;
-  grid-template-columns: 1fr 200px 80px;
-  padding: 16px 24px;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-  font-size: 13px;
-  color: #5f6368;
-  font-weight: 700;
-  text-transform: uppercase;
-  background: #fafafa;
-}
-.table-row {
-  display: grid;
-  grid-template-columns: 1fr 200px 80px;
-  padding: 16px 24px;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.03);
-  align-items: center;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-.table-row:hover {
-  background: #f8f9fa;
-}
-.table-row:last-child {
-  border-bottom: none;
-}
-
-.col-name {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-.doc-icon {
-  width: 36px;
-  height: 36px;
-  transition: transform 0.2s;
-}
-.table-row:hover .doc-icon {
-  transform: scale(1.1);
-}
-.doc-meta {
-  display: flex;
-  flex-direction: column;
-}
-.doc-meta .title {
-  font-size: 15px;
-  font-weight: 600;
-  color: #202124;
-}
-.doc-meta .subtitle {
-  font-size: 12px;
-  color: #5f6368;
-  margin-top: 4px;
-  font-weight: 500;
-}
-
-.col-date {
-  font-size: 14px;
-  color: #5f6368;
-  font-weight: 500;
-}
-.delete-btn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  opacity: 0;
-  transition:
-    opacity 0.2s,
-    color 0.2s;
-  padding: 8px;
-  font-size: 18px;
-}
-.table-row:hover .delete-btn {
-  opacity: 0.5;
-}
-.delete-btn:hover {
-  opacity: 1 !important;
-  color: #ea4335;
-}
-
-.empty-state {
-  text-align: center;
-  padding: 80px 20px;
-  color: #5f6368;
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
-}
-.empty-state p {
-  font-size: 16px;
-  margin-bottom: 10px;
-}
+/* Custom CSS removed to prevent conflicts with Vanilla Framework */
 
 /* Modals */
 .custom-modal-overlay {

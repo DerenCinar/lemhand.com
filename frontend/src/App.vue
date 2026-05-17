@@ -15,8 +15,7 @@ const hideLayout = computed(() => {
   return (
     route.path.startsWith("/office") ||
     route.path.startsWith("/las") ||
-    route.path.startsWith("/app") ||
-    route.name === "not-found"
+    route.path.startsWith("/app")
   );
 });
 
@@ -120,22 +119,39 @@ const handleSignOut = async () => {
           <ul class="p-navigation__items">
             <!-- Sign in or Dropdown -->
             <li class="p-navigation__item" v-if="!userEmail">
-              <RouterLink class="p-navigation__link" to="/login">Sign in</RouterLink>
+              <RouterLink class="p-navigation__link" to="/login"
+                >Sign in</RouterLink
+              >
             </li>
-            <li 
-              v-else 
-              class="p-navigation__item--dropdown-toggle" 
+            <li
+              v-else
+              class="p-navigation__item--dropdown-toggle"
               :class="{ 'is-active': isDropdownOpen }"
               @click="isDropdownOpen = !isDropdownOpen"
-              style="cursor: pointer;"
+              style="cursor: pointer"
             >
               <a class="p-navigation__link" href="#" @click.prevent>
-                Hi, {{ userEmail.split('@')[0] }}
+                Hi, {{ userEmail.split("@")[0] }}
               </a>
               <ul class="p-navigation__dropdown" :aria-hidden="!isDropdownOpen">
-                <li><RouterLink class="p-navigation__link" to="/account">My account</RouterLink></li>
-                <li><RouterLink class="p-navigation__link" to="/purchases">My purchases</RouterLink></li>
-                <li><a class="p-navigation__link" href="#" @click.prevent="handleSignOut">Sign out</a></li>
+                <li>
+                  <RouterLink class="p-navigation__link" to="/account"
+                    >My account</RouterLink
+                  >
+                </li>
+                <li>
+                  <RouterLink class="p-navigation__link" to="/purchases"
+                    >My purchases</RouterLink
+                  >
+                </li>
+                <li>
+                  <a
+                    class="p-navigation__link"
+                    href="#"
+                    @click.prevent="handleSignOut"
+                    >Sign out</a
+                  >
+                </li>
               </ul>
             </li>
           </ul>

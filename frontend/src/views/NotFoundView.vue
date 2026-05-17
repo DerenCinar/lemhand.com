@@ -1,30 +1,35 @@
 <script setup>
-import { useRouter } from 'vue-router'
+import { useRouter } from "vue-router";
 
-const router = useRouter()
+const router = useRouter();
 
 const goHome = () => {
-  router.push('/')
-}
+  router.push("/");
+};
 </script>
 
 <template>
-  <div class="not-found-container">
-    <div class="glass-card">
-      <div class="error-code">404</div>
-      <h1 class="error-title">Page Not Found</h1>
-      <p class="error-text">
-        The page you are looking for might have been removed, had its name changed, or is temporarily unavailable.
-      </p>
-      <button @click="goHome" class="home-button">
-        Return Home
-      </button>
+  <main class="l-main">
+    <div class="p-strip">
+      <div class="row" style="display: flex; justify-content: center">
+        <div class="col-4">
+          <div class="p-card">
+            <div class="p-card__content u-align-text--center">
+              <img src="/404.png" alt="404" width="400px" />
+              <h2>Do'h!</h2>
+              <p class="u-sv2">Where'd that page go?</p>
+
+              <div class="u-sv2">
+                <router-link to="/">
+                  <button class="p-button--positive">Return to Home</button>
+                </router-link>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
-    
-    <!-- Background elements -->
-    <div class="blob blob-1"></div>
-    <div class="blob blob-2"></div>
-  </div>
+  </main>
 </template>
 
 <style scoped>
@@ -99,7 +104,9 @@ const goHome = () => {
   font-weight: 600;
   border-radius: 12px;
   cursor: pointer;
-  transition: transform 0.3s, box-shadow 0.3s;
+  transition:
+    transform 0.3s,
+    box-shadow 0.3s;
   box-shadow: 0 10px 20px -5px rgba(58, 123, 213, 0.5);
 }
 
@@ -117,7 +124,11 @@ const goHome = () => {
   position: absolute;
   width: 400px;
   height: 400px;
-  background: radial-gradient(circle, rgba(0, 210, 255, 0.15) 0%, rgba(58, 123, 213, 0) 70%);
+  background: radial-gradient(
+    circle,
+    rgba(0, 210, 255, 0.15) 0%,
+    rgba(58, 123, 213, 0) 70%
+  );
   border-radius: 50%;
   filter: blur(40px);
   z-index: 1;
@@ -132,17 +143,29 @@ const goHome = () => {
 .blob-2 {
   bottom: -150px;
   left: -100px;
-  background: radial-gradient(circle, rgba(58, 123, 213, 0.15) 0%, rgba(0, 210, 255, 0) 70%);
+  background: radial-gradient(
+    circle,
+    rgba(58, 123, 213, 0.15) 0%,
+    rgba(0, 210, 255, 0) 70%
+  );
   animation: moveBlob2 25s infinite alternate;
 }
 
 @keyframes moveBlob1 {
-  from { transform: translate(0, 0); }
-  to { transform: translate(-100px, 100px); }
+  from {
+    transform: translate(0, 0);
+  }
+  to {
+    transform: translate(-100px, 100px);
+  }
 }
 
 @keyframes moveBlob2 {
-  from { transform: translate(0, 0); }
-  to { transform: translate(150px, -50px); }
+  from {
+    transform: translate(0, 0);
+  }
+  to {
+    transform: translate(150px, -50px);
+  }
 }
 </style>

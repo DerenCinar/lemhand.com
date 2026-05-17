@@ -110,4 +110,15 @@ const router = createRouter({
   }
 })
 
+export const isOfficeUnderConstruction = true;
+
+router.beforeEach((to, from, next) => {
+  if (isOfficeUnderConstruction && to.path.startsWith('/office/')) {
+    next('/office');
+  } else {
+    next();
+  }
+});
+
 export default router
+
