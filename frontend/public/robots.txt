@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /las/
+Disallow: /office/word/
+Disallow: /office/sheets/
+Disallow: /office/present/
+Disallow: /office/form/
+
+Sitemap: https://lemhand.com/sitemap.xml
