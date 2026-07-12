@@ -33,5 +33,13 @@ service cloud.firestore {
     match /office/{document} {
       allow read, write: if true; // Allow anyone to collaborate for the demo
     }
+
+    // Bug Reports Rules
+    match /bugs/{bugId} {
+      // Anyone can create a bug report
+      allow create: if true;
+      // Only LemHand employees can read, update, or delete bug reports
+      allow read, update, delete: if request.auth != null && request.auth.token.email.matches('.*@lemhand.com');
+    }
   }
 }
