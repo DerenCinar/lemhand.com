@@ -23,9 +23,12 @@ const title = ref('')
 const excerpt = ref('')
 const image = ref('')
 const posts = ref([])
+const bugs = ref([])
+const expandedBugs = ref({})
 
 let unsubscribeBlogs = null
 let unsubscribeHero = null
+let unsubscribeBugs = null
 
 onMounted(() => {
   onAuthStateChanged(auth, (user) => {
@@ -42,6 +45,7 @@ onMounted(() => {
       isEmployee.value = false
       if (unsubscribeBlogs) unsubscribeBlogs()
       if (unsubscribeHero) unsubscribeHero()
+      if (unsubscribeBugs) unsubscribeBugs()
     }
   })
 })
@@ -49,6 +53,7 @@ onMounted(() => {
 onUnmounted(() => {
   if (unsubscribeBlogs) unsubscribeBlogs()
   if (unsubscribeHero) unsubscribeHero()
+  if (unsubscribeBugs) unsubscribeBugs()
 })
 
 const loadDashboardData = () => {
@@ -63,6 +68,12 @@ const loadDashboardData = () => {
     if (docSnap.exists()) {
       heroConfig.value = docSnap.data()
     }
+  })
+
+  const bugsRef = collection(db, 'bugs')
+  const qBugs = query(bugsRef, orderBy('createdAt', 'desc'))
+  unsubscribeBugs = onSnapshot(qBugs, (snapshot) => {
+    bugs.value = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
   })
 }
 
@@ -108,6 +119,52 @@ const deletePost = async (id) => {
     } catch (err) {
       alert('Error deleting post: ' + err.message)
     }
+  }
+}
+
+const toggleBugExpand = (id) => {
+  expandedBugs.value[id] = !expandedBugs.value[id]
+}
+
+const updateBugStatus = async (id, status) => {
+  try {
+    await setDoc(doc(db, 'bugs', id), { status }, { merge: true })
+  } catch (err) {
+    alert('Error updating status: ' + err.message)
+  }
+}
+
+const deleteBug = async (id) => {
+  if (confirm('Are you sure you want to permanently delete this bug report?')) {
+    try {
+      await deleteDoc(doc(db, 'bugs', id))
+    } catch (err) {
+      alert('Error deleting bug report: ' + err.message)
+    }
+  }
+}
+
+const formatDate = (dateString) => {
+  if (!dateString) return ''
+  const date = new Date(dateString)
+  return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+}
+
+const getSeverityColor = (sev) => {
+  switch (sev) {
+    case 'Critical': return '#e81123'
+    case 'High': return '#ff8c00'
+    case 'Medium': return '#ffb900'
+    default: return '#107c41'
+  }
+}
+
+const getStatusColor = (status) => {
+  switch (status) {
+    case 'Resolved': return '#107c41'
+    case 'In Progress': return '#0078d4'
+    case 'Closed': return '#7a7a7a'
+    default: return '#ffb900' // Open
   }
 }
 </script>
@@ -205,7 +262,7 @@ const deletePost = async (id) => {
           <button @click="addPost" class="ms-btn-primary" style="margin-top: 10px;">Publish Post</button>
         </div>
         
-        <div>
+        <div style="margin-bottom: 40px;">
           <h2 style="font-size: 1.2rem; font-weight: 600; margin-bottom: 20px;">Manage Posts</h2>
           <div v-if="posts.length === 0" style="padding: 20px; text-align: center; border: 1px solid var(--border-color); background: var(--bg-color);">
             No posts available.
@@ -217,6 +274,91 @@ const deletePost = async (id) => {
                 <span style="font-size: 0.8rem; color: #666;">{{ post.date }}</span>
               </div>
               <button @click="deletePost(post.id)" style="color: #e81123; text-decoration: underline;">Delete</button>
+            </div>
+          </div>
+        </div>
+
+        <div style="background: var(--footer-bg); padding: 30px; margin-bottom: 40px; border: 1px solid var(--border-color);">
+          <h2 style="font-size: 1.2rem; font-weight: 600; margin-bottom: 20px;">Manage Bug Reports</h2>
+          
+          <div v-if="bugs.length === 0" style="padding: 20px; text-align: center; border: 1px solid var(--border-color); background: var(--bg-color);">
+            No bug reports submitted yet.
+          </div>
+          
+          <div v-else style="display: flex; flex-direction: column; gap: 20px;">
+            <div v-for="bug in bugs" :key="bug.id" style="background: var(--bg-color); border: 1px solid var(--border-color); padding: 20px;">
+              <!-- Header Summary Row -->
+              <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 15px; flex-wrap: wrap;">
+                <div>
+                  <h3 style="font-size: 1.1rem; font-weight: 600; margin: 0 0 5px 0;">{{ bug.title }}</h3>
+                  <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; align-items: center;">
+                    <!-- Reference Tag -->
+                    <span style="font-family: monospace; font-size: 0.75rem; background: #eee; padding: 2px 6px; border-radius: 4px;">
+                      LH-BUG-{{ bug.id.substring(0, 6).toUpperCase() }}
+                    </span>
+                    
+                    <!-- Category Badge -->
+                    <span style="font-size: 0.75rem; background: #e1dfdd; padding: 2px 6px; border-radius: 4px;">
+                      {{ bug.category }}
+                    </span>
+
+                    <!-- Severity Badge -->
+                    <span :style="{ color: 'white', backgroundColor: getSeverityColor(bug.severity), fontSize: '0.75rem', padding: '2px 6px', borderRadius: '4px', fontWeight: 'bold' }">
+                      {{ bug.severity }}
+                    </span>
+
+                    <!-- Status Badge -->
+                    <span :style="{ color: 'white', backgroundColor: getStatusColor(bug.status), fontSize: '0.75rem', padding: '2px 6px', borderRadius: '4px', fontWeight: 'bold' }">
+                      {{ bug.status }}
+                    </span>
+                  </div>
+                  
+                  <div style="font-size: 0.8rem; opacity: 0.85;">
+                    Reported by: <strong>{{ bug.reporterName }}</strong> ({{ bug.reporterEmail }}) on {{ formatDate(bug.createdAt) }}
+                  </div>
+                </div>
+
+                <!-- Action Controls -->
+                <div style="display: flex; align-items: center; gap: 10px;">
+                  <select :value="bug.status" @change="updateBugStatus(bug.id, $event.target.value)" style="padding: 6px; border: 1px solid var(--border-color); font-size: 0.85rem; background: var(--bg-color); color: var(--text-color);">
+                    <option value="Open">Open</option>
+                    <option value="In Progress">In Progress</option>
+                    <option value="Resolved">Resolved</option>
+                    <option value="Closed">Closed</option>
+                  </select>
+                  
+                  <button @click="toggleBugExpand(bug.id)" class="ms-btn" style="padding: 6px 12px; font-size: 0.85rem;">
+                    {{ expandedBugs[bug.id] ? 'Hide Details' : 'View Details' }}
+                  </button>
+
+                  <button @click="deleteBug(bug.id)" style="color: #e81123; text-decoration: underline; background: transparent; border: none; cursor: pointer; font-size: 0.85rem;">
+                    Delete
+                  </button>
+                </div>
+              </div>
+
+              <!-- Expanded Details Drawer -->
+              <div v-if="expandedBugs[bug.id]" style="margin-top: 20px; padding-top: 15px; border-top: 1px dashed var(--border-color); display: flex; flex-direction: column; gap: 12px; font-size: 0.9rem;">
+                <div>
+                  <strong style="display: block; font-size: 0.8rem; text-transform: uppercase; color: #666; margin-bottom: 2px;">Actual Behavior</strong>
+                  <div style="white-space: pre-wrap; background: #fafafa; padding: 10px; border: 1px solid #eee; border-radius: 4px;">{{ bug.actual }}</div>
+                </div>
+
+                <div v-if="bug.expected">
+                  <strong style="display: block; font-size: 0.8rem; text-transform: uppercase; color: #666; margin-bottom: 2px;">Expected Behavior</strong>
+                  <div style="white-space: pre-wrap; background: #fafafa; padding: 10px; border: 1px solid #eee; border-radius: 4px;">{{ bug.expected }}</div>
+                </div>
+
+                <div v-if="bug.steps">
+                  <strong style="display: block; font-size: 0.8rem; text-transform: uppercase; color: #666; margin-bottom: 2px;">Steps to Reproduce</strong>
+                  <div style="white-space: pre-wrap; background: #fafafa; padding: 10px; border: 1px solid #eee; border-radius: 4px;">{{ bug.steps }}</div>
+                </div>
+
+                <div v-if="bug.systemInfo">
+                  <strong style="display: block; font-size: 0.8rem; text-transform: uppercase; color: #666; margin-bottom: 2px;">System / Browser Information</strong>
+                  <pre style="font-family: monospace; font-size: 0.8rem; background: #f3f3f3; padding: 10px; border-radius: 4px; overflow-x: auto; margin: 0;">{{ bug.systemInfo }}</pre>
+                </div>
+              </div>
             </div>
           </div>
         </div>

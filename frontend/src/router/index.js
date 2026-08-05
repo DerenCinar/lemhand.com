@@ -46,6 +46,18 @@ const router = createRouter({
       meta: { title: 'Sign In | LemHand', description: 'Sign in to your LemHand account to access your documents and services.' }
     },
     {
+      path: '/account',
+      name: 'account',
+      component: () => import('../views/AccountView.vue'),
+      meta: { title: 'My Account | LemHand', description: 'Manage your LemHand account information, update security settings, and check product licenses.' }
+    },
+    {
+      path: '/report-bug',
+      name: 'report-bug',
+      component: () => import('../views/ReportBugView.vue'),
+      meta: { title: 'Report a Bug | LemHand', description: 'Submit bug reports and issues to help improve LemHand products.' }
+    },
+    {
       path: '/office',
       name: 'office',
       component: () => import('../views/OfficeDashboardView.vue'),

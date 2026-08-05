@@ -173,7 +173,7 @@ const handleSignOut = async () => {
             <RouterLink to="/legal"><small>Legal information</small></RouterLink>
           </li>
           <li class="p-inline-list__item">
-            <a href="#"><small>Report a bug on this site</small></a>
+            <RouterLink to="/report-bug"><small>Report a bug on this site</small></RouterLink>
           </li>
         </ul>
         <span class="u-off-screen"
