@@ -17,12 +17,21 @@ const settingsModalOpen = ref(false);
 const customThemeColor = ref(
   localStorage.getItem("lemhand_office_theme_color") || "#0078d4",
 );
+const showWelcomeVideo = ref(false);
+
+const closeWelcomeVideo = () => {
+  showWelcomeVideo.value = false;
+  localStorage.setItem("lemhand_office_welcomed", "true");
+};
 
 const loginWithLemHand = () => {
-  const lasUrl = new URL(window.location.origin + '/las/signin')
-  lasUrl.searchParams.append('client_id', 'lemhand_office')
-  lasUrl.searchParams.append('redirect_uri', window.location.href.split('?')[0])
-  window.location.href = lasUrl.toString()
+  const lasUrl = new URL(window.location.origin + "/las/signin");
+  lasUrl.searchParams.append("client_id", "lemhand_office");
+  lasUrl.searchParams.append(
+    "redirect_uri",
+    window.location.href.split("?")[0],
+  );
+  window.location.href = lasUrl.toString();
 };
 
 const logout = () => {
@@ -101,10 +110,14 @@ const templates = [
 
 onMounted(() => {
   const urlParams = new URLSearchParams(window.location.search);
-  const success = urlParams.get('success');
-  const name = urlParams.get('name') || 'User';
+  const success = urlParams.get("success");
+  const name = urlParams.get("name") || "User";
 
-  if (success === 'true') {
+  if (!localStorage.getItem("lemhand_office_welcomed")) {
+    showWelcomeVideo.value = true;
+  }
+
+  if (success === "true") {
     localStorage.setItem("lemhand_office_name", name);
     username.value = name;
     loginModal.value = false;
@@ -278,11 +291,38 @@ const saveSettings = () => {
     "
     :style="{ '--theme-color': customThemeColor }"
   >
+    <!-- Welcome Video Loading Screen -->
+    <div
+      v-if="showWelcomeVideo"
+      class="custom-modal-overlay"
+      style="z-index: 100000; background: #000"
+    >
+      <video
+        src="/lemhandOfficeWelcome.mp4"
+        autoplay
+        muted
+        playsinline
+        @ended="closeWelcomeVideo"
+        style="
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          pointer-events: none;
+        "
+      ></video>
+    </div>
+
     <!-- Login Modal Overlay -->
     <div v-if="loginModal" class="custom-modal-overlay" style="z-index: 99999">
-      <div class="custom-modal" style="width: 380px; text-align: center;">
-        <div style="display: flex; justify-content: center; margin-bottom: 16px;">
-          <img src="/favicon.svg" alt="LemHand" style="width: 48px; height: 48px;" />
+      <div class="custom-modal" style="width: 380px; text-align: center">
+        <div
+          style="display: flex; justify-content: center; margin-bottom: 16px"
+        >
+          <img
+            src="/favicon.svg"
+            alt="LemHand"
+            style="width: 48px; height: 48px"
+          />
         </div>
         <h2 style="color: var(--theme-color); margin-bottom: 10px">
           Welcome to LemHand Office
@@ -304,10 +344,14 @@ const saveSettings = () => {
             gap: 10px;
           "
         >
-          <img src="/favicon.svg" alt="LemHand" style="width: 20px; height: 20px; filter: brightness(0) invert(1);" />
+          <img
+            src="/favicon.svg"
+            alt="LemHand"
+            style="width: 20px; height: 20px; filter: brightness(0) invert(1)"
+          />
           Sign in with LemHand
         </button>
-        <p style="font-size: 12px; color: #9ca3af; margin-top: 20px;">
+        <p style="font-size: 12px; color: #9ca3af; margin-top: 20px">
           Securely provided by LemHand Account Services
         </p>
       </div>
@@ -366,7 +410,13 @@ const saveSettings = () => {
 
     <!-- Top Toolbar (Fixed) -->
     <!-- Rebuilt Toolbar using user-provided Vanilla Navigation -->
-    <header id="navigation" class="p-navigation--sliding is-dark" :class="{ 'has-search-open': searchOpen }" :style="{ backgroundColor: customThemeColor }" style="flex-shrink: 0; z-index: 10;">
+    <header
+      id="navigation"
+      class="p-navigation--sliding is-dark"
+      :class="{ 'has-search-open': searchOpen }"
+      :style="{ backgroundColor: customThemeColor }"
+      style="flex-shrink: 0; z-index: 10"
+    >
       <div class="p-navigation__row--25-75">
         <div class="p-navigation__banner">
           <div class="p-navigation__tagged-logo">
@@ -376,175 +426,435 @@ const saveSettings = () => {
           </div>
           <ul class="p-navigation__items">
             <li class="p-navigation__item">
-              <button class="js-search-button p-navigation__link--search-toggle" @click="searchOpen = !searchOpen">
+              <button
+                class="js-search-button p-navigation__link--search-toggle"
+                @click="searchOpen = !searchOpen"
+              >
                 <span class="p-navigation__search-label">Search</span>
               </button>
             </li>
           </ul>
         </div>
         <nav class="p-navigation__nav" id="main-nav" aria-label="Example main">
-          <ul class="p-navigation__items js-dropdown-nav-list js-navigation-sliding-panel">
-            <li class="p-navigation__item--dropdown-toggle js-navigation-dropdown-toggle" id="account-dropdown" :class="{ 'is-active': accountMenuOpen }" @click="accountMenuOpen = !accountMenuOpen">
-              <button class="p-navigation__link" style="border: none; background: transparent; cursor: pointer; color: inherit;">
+          <ul
+            class="p-navigation__items js-dropdown-nav-list js-navigation-sliding-panel"
+          >
+            <li
+              class="p-navigation__item--dropdown-toggle js-navigation-dropdown-toggle"
+              id="account-dropdown"
+              :class="{ 'is-active': accountMenuOpen }"
+              @click="accountMenuOpen = !accountMenuOpen"
+            >
+              <button
+                class="p-navigation__link"
+                style="
+                  border: none;
+                  background: transparent;
+                  cursor: pointer;
+                  color: inherit;
+                "
+              >
                 {{ (username || "??").substring(0, 2).toUpperCase() }}
               </button>
-              <ul class="p-navigation__dropdown js-dropdown-nav-list js-navigation-sliding-panel" id="account-menu" :aria-hidden="!accountMenuOpen">
-                <li class="p-navigation__item--dropdown-close" id="account-back">
-                  <button class="p-navigation__link js-back-button" @click.stop="accountMenuOpen = false">Back</button>
+              <ul
+                class="p-navigation__dropdown js-dropdown-nav-list js-navigation-sliding-panel"
+                id="account-menu"
+                :aria-hidden="!accountMenuOpen"
+              >
+                <li
+                  class="p-navigation__item--dropdown-close"
+                  id="account-back"
+                >
+                  <button
+                    class="p-navigation__link js-back-button"
+                    @click.stop="accountMenuOpen = false"
+                  >
+                    Back
+                  </button>
                 </li>
                 <li>
-                  <a href="#" class="p-navigation__dropdown-item">Signed in as {{ username }}</a>
+                  <a href="#" class="p-navigation__dropdown-item"
+                    >Signed in as {{ username }}</a
+                  >
                 </li>
                 <li>
-                  <a href="#" class="p-navigation__dropdown-item" @click.prevent="logout">Sign Out</a>
+                  <a
+                    href="#"
+                    class="p-navigation__dropdown-item"
+                    @click.prevent="logout"
+                    >Sign Out</a
+                  >
                 </li>
               </ul>
             </li>
           </ul>
           <ul class="p-navigation__items">
             <li class="p-navigation__item">
-              <button class="js-search-button p-navigation__link--search-toggle" @click="searchOpen = !searchOpen">
+              <button
+                class="js-search-button p-navigation__link--search-toggle"
+                @click="searchOpen = !searchOpen"
+              >
                 <span class="p-navigation__search-label">Search</span>
               </button>
             </li>
           </ul>
-          <div class="p-navigation__search" :class="{ 'is-active': searchOpen }">
+          <div
+            class="p-navigation__search"
+            :class="{ 'is-active': searchOpen }"
+          >
             <form class="p-search-box" @submit.prevent>
-              <input type="search" class="p-search-box__input" name="q" v-model="searchQuery" placeholder="Search documents..." required="" aria-label="Search documents...">
-              <button type="reset" class="p-search-box__reset" @click="searchQuery = ''"><i class="p-icon--close"></i></button>
-              <button type="submit" class="p-search-box__button"><i class="p-icon--search"></i></button>
+              <input
+                type="search"
+                class="p-search-box__input"
+                name="q"
+                v-model="searchQuery"
+                placeholder="Search documents..."
+                required=""
+                aria-label="Search documents..."
+              />
+              <button
+                type="reset"
+                class="p-search-box__reset"
+                @click="searchQuery = ''"
+              >
+                <i class="p-icon--close"></i>
+              </button>
+              <button type="submit" class="p-search-box__button">
+                <i class="p-icon--search"></i>
+              </button>
             </form>
           </div>
         </nav>
       </div>
-      <div class="p-navigation__search-overlay" v-if="searchOpen" @click="searchOpen = false"></div>
+      <div
+        class="p-navigation__search-overlay"
+        v-if="searchOpen"
+        @click="searchOpen = false"
+      ></div>
     </header>
 
     <!-- Main Body Area -->
-    <div style="display: flex; flex-grow: 1; overflow: hidden; background: #f0f2f5;">
-      
+    <div
+      style="display: flex; flex-grow: 1; overflow: hidden; background: #f0f2f5"
+    >
       <!-- Left Navbar (Fixed width, icons only) -->
-      <nav :style="{ backgroundColor: customThemeColor }" style="width: 70px; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; padding: 1.5rem 0; z-index: 5;">
-        
-        <button class="p-button--base u-no-margin" style="padding: 10px; margin-bottom: 1rem; border: none; background: transparent; cursor: pointer; border-radius: 8px; transition: background 0.2s; color: white;" :style="{ background: activeCategory === 'all' ? 'rgba(255,255,255,0.2)' : 'transparent' }" title="All Content" @click="activeCategory = 'all'">
+      <nav
+        :style="{ backgroundColor: customThemeColor }"
+        style="
+          width: 70px;
+          flex-shrink: 0;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          padding: 1.5rem 0;
+          z-index: 5;
+        "
+      >
+        <button
+          class="p-button--base u-no-margin"
+          style="
+            padding: 10px;
+            margin-bottom: 1rem;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: background 0.2s;
+            color: white;
+          "
+          :style="{
+            background:
+              activeCategory === 'all'
+                ? 'rgba(255,255,255,0.2)'
+                : 'transparent',
+          }"
+          title="All Content"
+          @click="activeCategory = 'all'"
+        >
           <span v-html="uiIcons.home"></span>
         </button>
-        
-        <button class="p-button--base u-no-margin" style="padding: 10px; margin-bottom: 1rem; border: none; background: transparent; cursor: pointer; border-radius: 8px; transition: background 0.2s; color: white;" :style="{ background: activeCategory === 'word' ? 'rgba(255,255,255,0.2)' : 'transparent' }" title="Word Docs" @click="activeCategory = 'word'">
-          <img src="/1.svg" alt="Word" style="width: 24px; height: 24px;" />
+
+        <button
+          class="p-button--base u-no-margin"
+          style="
+            padding: 10px;
+            margin-bottom: 1rem;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: background 0.2s;
+            color: white;
+          "
+          :style="{
+            background:
+              activeCategory === 'word'
+                ? 'rgba(255,255,255,0.2)'
+                : 'transparent',
+          }"
+          title="Word Docs"
+          @click="activeCategory = 'word'"
+        >
+          <img src="/1.svg" alt="Word" style="width: 24px; height: 24px" />
         </button>
-        
-        <button class="p-button--base u-no-margin" style="padding: 10px; margin-bottom: 1rem; border: none; background: transparent; cursor: pointer; border-radius: 8px; transition: background 0.2s; color: white;" :style="{ background: activeCategory === 'sheets' ? 'rgba(255,255,255,0.2)' : 'transparent' }" title="Spreadsheets" @click="activeCategory = 'sheets'">
-          <img src="/2.svg" alt="Sheets" style="width: 24px; height: 24px;" />
+
+        <button
+          class="p-button--base u-no-margin"
+          style="
+            padding: 10px;
+            margin-bottom: 1rem;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: background 0.2s;
+            color: white;
+          "
+          :style="{
+            background:
+              activeCategory === 'sheets'
+                ? 'rgba(255,255,255,0.2)'
+                : 'transparent',
+          }"
+          title="Spreadsheets"
+          @click="activeCategory = 'sheets'"
+        >
+          <img src="/2.svg" alt="Sheets" style="width: 24px; height: 24px" />
         </button>
-        
-        <button class="p-button--base u-no-margin" style="padding: 10px; margin-bottom: 1rem; border: none; background: transparent; cursor: pointer; border-radius: 8px; transition: background 0.2s; color: white;" :style="{ background: activeCategory === 'present' ? 'rgba(255,255,255,0.2)' : 'transparent' }" title="Presentations" @click="activeCategory = 'present'">
-          <img src="/3.svg" alt="Presentations" style="width: 24px; height: 24px;" />
+
+        <button
+          class="p-button--base u-no-margin"
+          style="
+            padding: 10px;
+            margin-bottom: 1rem;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: background 0.2s;
+            color: white;
+          "
+          :style="{
+            background:
+              activeCategory === 'present'
+                ? 'rgba(255,255,255,0.2)'
+                : 'transparent',
+          }"
+          title="Presentations"
+          @click="activeCategory = 'present'"
+        >
+          <img
+            src="/3.svg"
+            alt="Presentations"
+            style="width: 24px; height: 24px"
+          />
         </button>
-        
-        <button class="p-button--base u-no-margin" style="padding: 10px; margin-bottom: auto; border: none; background: transparent; cursor: pointer; border-radius: 8px; transition: background 0.2s; color: white;" :style="{ background: activeCategory === 'form' ? 'rgba(255,255,255,0.2)' : 'transparent' }" title="Forms" @click="activeCategory = 'form'">
+
+        <button
+          class="p-button--base u-no-margin"
+          style="
+            padding: 10px;
+            margin-bottom: auto;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: background 0.2s;
+            color: white;
+          "
+          :style="{
+            background:
+              activeCategory === 'form'
+                ? 'rgba(255,255,255,0.2)'
+                : 'transparent',
+          }"
+          title="Forms"
+          @click="activeCategory = 'form'"
+        >
           <!-- Placeholder Icon (Forms) -->
-          <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5" stroke="currentColor" stroke-width="2"/></svg>
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+            <rect x="5" y="3" width="14" height="18" rx="2" />
+            <path
+              d="M8 8h8M8 12h8M8 16h5"
+              stroke="currentColor"
+              stroke-width="2"
+            />
+          </svg>
         </button>
-        
-        <button class="p-button--base u-no-margin" style="padding: 10px; border: none; background: transparent; cursor: pointer; border-radius: 8px; color: white;" title="Settings" @click="settingsModalOpen = true">
+
+        <button
+          class="p-button--base u-no-margin"
+          style="
+            padding: 10px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            border-radius: 8px;
+            color: white;
+          "
+          title="Settings"
+          @click="settingsModalOpen = true"
+        >
           <span v-html="uiIcons.settings"></span>
         </button>
       </nav>
 
       <!-- Scrollable Main Content -->
-      <main style="flex-grow: 1; overflow-y: auto; padding: 2rem;">
-        <div style="max-width: 1200px; margin: 0 auto;">
-          <div v-if="isOfficeUnderConstruction" style="display: flex; justify-content: center; align-items: center; min-height: 50vh;">
-            <div class="p-card--highlighted" style="max-width: 600px; text-align: center; padding: 3rem;">
-              <div style="font-size: 3rem; margin-bottom: 1rem;">🚧</div>
+      <main style="flex-grow: 1; overflow-y: auto; padding: 2rem">
+        <div style="max-width: 1200px; margin: 0 auto">
+          <div
+            v-if="isOfficeUnderConstruction"
+            style="
+              display: flex;
+              justify-content: center;
+              align-items: center;
+              min-height: 50vh;
+            "
+          >
+            <div
+              class="p-card--highlighted"
+              style="max-width: 600px; text-align: center; padding: 3rem"
+            >
+              <div style="font-size: 3rem; margin-bottom: 1rem">🚧</div>
               <h2>We are working on something new</h2>
-              <p>LemHand Office is currently undergoing a major update. The individual office applications are temporarily unavailable as we push out these changes. Please check back later!</p>
+              <p>
+                LemHand Office is currently undergoing a major update. The
+                individual office applications are temporarily unavailable as we
+                push out these changes. Please check back later!
+              </p>
             </div>
           </div>
           <template v-else>
             <section class="u-sv1">
               <h1>Welcome back to LemHand Office</h1>
-            <p>Pick a template or start something new.</p>
-          </section>
+              <p>Pick a template or start something new.</p>
+            </section>
 
-          <!-- Template Gallery -->
-          <section class="u-sv2">
-            <div class="row">
-              <div class="col-12">
-                <h2>Create New</h2>
+            <!-- Template Gallery -->
+            <section class="u-sv2">
+              <div class="row">
+                <div class="col-12">
+                  <h2>Create New</h2>
+                </div>
               </div>
-            </div>
-            <div class="row" style="display: flex; flex-wrap: wrap;">
-              <div
-                v-for="t in templates"
-                :key="t.id"
-                class="col-3"
-                style="display: flex; margin-bottom: 1rem;"
-              >
-                <div class="p-card u-no-padding" @click="createNew(t)" style="cursor: pointer; width: 100%; display: flex; flex-direction: column; margin-bottom: 0;">
-                  <div class="p-card__inner" style="flex-grow: 1; display: flex; flex-direction: column;">
-                    <div v-html="t.icon" style="height: 48px; width: 48px; margin-bottom: 1rem;"></div>
-                    <h3 style="margin-top: 0;">{{ t.name }}</h3>
-                    <p style="margin-bottom: 0; margin-top: auto;">{{ t.description }}</p>
+              <div class="row" style="display: flex; flex-wrap: wrap">
+                <div
+                  v-for="t in templates"
+                  :key="t.id"
+                  class="col-3"
+                  style="display: flex; margin-bottom: 1rem"
+                >
+                  <div
+                    class="p-card u-no-padding"
+                    @click="createNew(t)"
+                    style="
+                      cursor: pointer;
+                      width: 100%;
+                      display: flex;
+                      flex-direction: column;
+                      margin-bottom: 0;
+                    "
+                  >
+                    <div
+                      class="p-card__inner"
+                      style="
+                        flex-grow: 1;
+                        display: flex;
+                        flex-direction: column;
+                      "
+                    >
+                      <div
+                        v-html="t.icon"
+                        style="height: 48px; width: 48px; margin-bottom: 1rem"
+                      ></div>
+                      <h3 style="margin-top: 0">{{ t.name }}</h3>
+                      <p style="margin-bottom: 0; margin-top: auto">
+                        {{ t.description }}
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          </section>
+            </section>
 
-          <!-- Recent Content -->
-          <section class="u-sv2">
-            <div class="row">
-              <div class="col-12">
-                <h2>Recent Content</h2>
+            <!-- Recent Content -->
+            <section class="u-sv2">
+              <div class="row">
+                <div class="col-12">
+                  <h2>Recent Content</h2>
+                </div>
               </div>
-            </div>
 
-            <div v-if="filteredDocs.length === 0" class="row">
-              <div class="col-12">
-                <div class="p-notification--information">
-                  <div class="p-notification__content">
-                    <p class="p-notification__message">No documents found matching your criteria.</p>
+              <div v-if="filteredDocs.length === 0" class="row">
+                <div class="col-12">
+                  <div class="p-notification--information">
+                    <div class="p-notification__content">
+                      <p class="p-notification__message">
+                        No documents found matching your criteria.
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
 
-            <div v-else class="row">
-              <div class="col-12">
-                <table class="p-table--mobile-card">
-                  <thead>
-                    <tr>
-                      <th>Name</th>
-                      <th>Last Opened</th>
-                      <th class="u-align--right">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr v-for="doc in filteredDocs" :key="doc.id" @click="openDoc(doc)" style="cursor: pointer;">
-                      <td data-th="Name">
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                          <div v-html="icons[doc.type]" style="width: 24px; height: 24px;"></div>
-                          <div>
-                            <strong>{{ doc.title || "Untitled Document" }}</strong>
-                            <br>
-                            <small>LemCloud • {{ doc.type.toUpperCase() }}</small>
+              <div v-else class="row">
+                <div class="col-12">
+                  <table class="p-table--mobile-card">
+                    <thead>
+                      <tr>
+                        <th>Name</th>
+                        <th>Last Opened</th>
+                        <th class="u-align--right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr
+                        v-for="doc in filteredDocs"
+                        :key="doc.id"
+                        @click="openDoc(doc)"
+                        style="cursor: pointer"
+                      >
+                        <td data-th="Name">
+                          <div
+                            style="
+                              display: flex;
+                              align-items: center;
+                              gap: 10px;
+                            "
+                          >
+                            <div
+                              v-html="icons[doc.type]"
+                              style="width: 24px; height: 24px"
+                            ></div>
+                            <div>
+                              <strong>{{
+                                doc.title || "Untitled Document"
+                              }}</strong>
+                              <br />
+                              <small
+                                >LemCloud • {{ doc.type.toUpperCase() }}</small
+                              >
+                            </div>
                           </div>
-                        </div>
-                      </td>
-                      <td data-th="Last Opened">{{ formatDate(doc.lastOpened) }}</td>
-                      <td data-th="Actions" class="u-align--right">
-                        <button @click.stop="deleteDoc($event, doc.id)" class="p-button--negative" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;">
-                          Delete
-                        </button>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
+                        </td>
+                        <td data-th="Last Opened">
+                          {{ formatDate(doc.lastOpened) }}
+                        </td>
+                        <td data-th="Actions" class="u-align--right">
+                          <button
+                            @click.stop="deleteDoc($event, doc.id)"
+                            class="p-button--negative"
+                            style="padding: 0.25rem 0.5rem; font-size: 0.8rem"
+                          >
+                            Delete
+                          </button>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
               </div>
-            </div>
-          </section>
+            </section>
           </template>
         </div>
       </main>

@@ -114,6 +114,24 @@ const router = createRouter({
       meta: { title: 'Demo | LemHand Account Services' }
     },
     {
+      path: '/legal',
+      name: 'legal',
+      component: () => import('../views/LegalView.vue'),
+      meta: { title: 'Legal Information | LemHand' }
+    },
+    {
+      path: '/purchases',
+      name: 'purchases',
+      component: () => import('../views/PurchasesView.vue'),
+      meta: { title: 'My Purchases | LemHand' }
+    },
+    {
+      path: '/blog/:id',
+      name: 'blog-post',
+      component: () => import('../views/BlogPostView.vue'),
+      meta: { title: 'Blog Post | LemHand' }
+    },
+    {
       path: '/:pathMatch(.*)*',
       name: 'not-found',
       component: () => import('../views/NotFoundView.vue'),

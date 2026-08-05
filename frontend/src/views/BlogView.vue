@@ -61,7 +61,7 @@ onUnmounted(() => {
               <h3>{{ post.title }}</h3>
               <p class="p-card__content">{{ post.excerpt }}</p>
               <div class="p-card__footer">
-                <a href="#" class="p-button">Read More</a>
+                <router-link :to="`/blog/${post.id}`" class="p-button">Read More</router-link>
               </div>
             </div>
           </div>
