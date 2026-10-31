@@ -56,21 +56,27 @@ onUnmounted(() => {
           <p class="p-heading--4">
             {{ heroConfig.description }}
           </p>
-          <div class="u-sv2" style="display: flex; gap: 10px;">
+          <div class="u-sv2" style="display: flex; gap: 10px">
             <RouterLink :to="heroConfig.buttonLink" class="p-button">{{
               heroConfig.buttonText
             }}</RouterLink>
-            <RouterLink 
-              v-if="heroConfig.button2Text && heroConfig.button2Link && heroConfig.button2Link.startsWith('/')" 
-              :to="heroConfig.button2Link" 
+            <RouterLink
+              v-if="
+                heroConfig.button2Text &&
+                heroConfig.button2Link &&
+                heroConfig.button2Link.startsWith('/')
+              "
+              :to="heroConfig.button2Link"
               class="p-button--positive"
-            >{{ heroConfig.button2Text }}</RouterLink>
-            <a 
-              v-else-if="heroConfig.button2Text && heroConfig.button2Link" 
-              :href="heroConfig.button2Link" 
-              target="_blank" 
+              >{{ heroConfig.button2Text }}</RouterLink
+            >
+            <a
+              v-else-if="heroConfig.button2Text && heroConfig.button2Link"
+              :href="heroConfig.button2Link"
+              target="_blank"
               class="p-button--positive"
-            >{{ heroConfig.button2Text }}</a>
+              >{{ heroConfig.button2Text }}</a
+            >
           </div>
         </div>
       </div>
@@ -94,7 +100,7 @@ onUnmounted(() => {
           <div class="p-card u-no-padding">
             <img
               class="p-card__image"
-              src="/bustracker_screenshot.png"
+              src="/bustracker_banner.png"
               alt="BusTracker"
             />
             <div class="p-card__inner">
@@ -113,11 +119,7 @@ onUnmounted(() => {
         <!-- Quizzy -->
         <div class="col-4">
           <div class="p-card u-no-padding">
-            <img
-              class="p-card__image"
-              src="/quizzy_screenshot.png"
-              alt="Quizzy"
-            />
+            <img class="p-card__image" src="/quizzy_banner.png" alt="Quizzy" />
             <div class="p-card__inner">
               <h3>Quizzy</h3>
               <p>
@@ -139,7 +141,7 @@ onUnmounted(() => {
           <div class="p-card u-no-padding">
             <img
               class="p-card__image"
-              src="/office_screenshot.png"
+              src="/office_banner.png"
               alt="LemHand Office"
             />
             <div class="p-card__inner">

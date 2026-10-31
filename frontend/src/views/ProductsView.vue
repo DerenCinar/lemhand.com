@@ -35,8 +35,11 @@
                 automatically.
               </p>
               <div class="p-card__footer">
-                <RouterLink to="/page/internet" class="p-button"
-                  >Download now</RouterLink
+                <a
+                  href="https://web-bowser-ec6c6.web.app/"
+                  target="_blank"
+                  class="p-button"
+                  >Download now</a
                 >
               </div>
             </div>
