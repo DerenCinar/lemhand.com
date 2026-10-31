@@ -59,7 +59,7 @@ const handleSignOut = async () => {
 };
 </script>
 
-<!-- <template>
+<template>
   <div
     v-if="!hideLayout"
     class="navbar bg-base-100/80 backdrop-blur-md sticky top-0 z-50 border-b border-base-200"
@@ -101,10 +101,10 @@ const handleSignOut = async () => {
             </li>
             <li
               class="p-navigation__item"
-              :class="{ 'is-selected': route.path === '/products' }"
+              :class="{ 'is-selected': route.path === '/projects' }"
             >
-              <RouterLink class="p-navigation__link" to="/products"
-                >Products</RouterLink
+              <RouterLink class="p-navigation__link" to="/projects"
+                >Projects</RouterLink
               >
             </li>
             <li
@@ -172,21 +172,15 @@ const handleSignOut = async () => {
     <nav class="row" aria-label="Footer">
       <div class="has-cookie">
         <p>
-          © 2026 LemHand Ltd. <a href="/bustracker">BusTracker</a> and
-          <a href="#">LemHand</a> are trademarks of LemHand Ltd.
-        </p>
-        <ul class="p-inline-list--middot">
-          <li class="p-inline-list__item">
-            <RouterLink to="/legal"
-              ><small>Legal information</small></RouterLink
-            >
-          </li>
+          LemHand is an independent student project for demonstrative and
+          learning purposes.
+
           <li class="p-inline-list__item">
             <RouterLink to="/report-bug"
               ><small>Report a bug on this site</small></RouterLink
             >
           </li>
-        </ul>
+        </p>
         <span class="u-off-screen"
           ><a href="#">Go to the top of the page</a></span
         >
@@ -194,8 +188,7 @@ const handleSignOut = async () => {
     </nav>
   </footer>
 </template>
--->
-
+<!--
 <template>
   <div
     style="
@@ -207,7 +200,6 @@ const handleSignOut = async () => {
     "
     :style="{ '--theme-color': customThemeColor }"
   >
-    <!-- Welcome Video Loading Screen -->
     <div
       v-if="showWelcomeVideo"
       class="custom-modal-overlay"
@@ -228,7 +220,6 @@ const handleSignOut = async () => {
       ></video>
     </div>
 
-    <!-- Login Modal Overlay -->
     <div v-if="loginModal" class="custom-modal-overlay" style="z-index: 99999">
       <div class="custom-modal" style="width: 380px; text-align: center">
         <div
@@ -273,7 +264,6 @@ const handleSignOut = async () => {
       </div>
     </div>
 
-    <!-- Settings Modal -->
     <div
       v-if="settingsModalOpen"
       class="custom-modal-overlay"
@@ -324,16 +314,10 @@ const handleSignOut = async () => {
       </div>
     </div>
 
-    <!-- Top Toolbar (Fixed) -->
-    <!-- Rebuilt Toolbar using user-provided Vanilla Navigation -->
-
-    <!-- Main Body Area -->
     <div
       style="display: flex; flex-grow: 1; overflow: hidden; background: #f0f2f5"
     >
-      <!-- Left Navbar (Fixed width, icons only) -->
 
-      <!-- Scrollable Main Content -->
       <main style="flex-grow: 1; overflow-y: auto; padding: 2rem">
         <div style="max-width: 1200px; margin: 0 auto">
           <div
@@ -361,3 +345,4 @@ const handleSignOut = async () => {
     </div>
   </div>
 </template>
+-->

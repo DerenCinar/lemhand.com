@@ -15,146 +15,146 @@ const router = createRouter({
       component: HomeView,
       meta: { title: 'LemHand | Innovative Software Solutions', description: 'LemHand provides innovative software solutions including our modern Office suite and BusTracker application.' }
     },
-    // {
-    //   path: '/products',
-    //   name: 'products',
-    //   component: ProductsView,
-    //   meta: { title: 'Our Products | LemHand', description: 'Explore our suite of modern applications including LemHand Office, BusTracker, and more.' }
-    // },
-    // {
-    //   path: '/bustracker',
-    //   name: 'bustracker',
-    //   component: BusTrackerView,
-    //   meta: { title: 'BusTracker | LemHand', description: 'Track your local transit in real-time with the LemHand BusTracker app.' }
-    // },
-    // {
-    //   path: '/blog',
-    //   name: 'blog',
-    //   component: BlogView,
-    //   meta: { title: 'Blog | LemHand', description: 'Read the latest updates, news, and technical insights from the LemHand team.' }
-    // },
-    // {
-    //   path: '/admin',
-    //   name: 'admin',
-    //   component: AdminView,
-    //   meta: { title: 'Admin Dashboard | LemHand' }
-    // },
-    // {
-    //   path: '/login',
-    //   name: 'login',
-    //   component: () => import('../views/LoginView.vue'),
-    //   meta: { title: 'Sign In | LemHand', description: 'Sign in to your LemHand account to access your documents and services.' }
-    // },
-    // {
-    //   path: '/account',
-    //   name: 'account',
-    //   component: () => import('../views/AccountView.vue'),
-    //   meta: { title: 'My Account | LemHand', description: 'Manage your LemHand account information, update security settings, and check product licenses.' }
-    // },
-    // {
-    //   path: '/report-bug',
-    //   name: 'report-bug',
-    //   component: () => import('../views/ReportBugView.vue'),
-    //   meta: { title: 'Report a Bug | LemHand', description: 'Submit bug reports and issues to help improve LemHand products.' }
-    // },
-    // {
-    //   path: '/office',
-    //   name: 'office',
-    //   component: () => import('../views/OfficeDashboardView.vue'),
-    //   meta: { title: 'LemHand Office', description: 'Access your cloud-based documents, spreadsheets, and presentations with LemHand Office.' }
-    // },
-    // {
-    //   path: '/office/word/:id',
-    //   name: 'office-word',
-    //   component: () => import('../views/OfficeWordView.vue'),
-    //   meta: { title: 'Word Document | LemHand Office' }
-    // },
-    // {
-    //   path: '/office/form/:id',
-    //   name: 'office-form',
-    //   component: () => import('../views/OfficeFormView.vue'),
-    //   meta: { title: 'Form Editor | LemHand Office' }
-    // },
-    // {
-    //   path: '/office/form/:id/respond',
-    //   name: 'form-respond',
-    //   component: () => import('../views/OfficeFormResponderView.vue'),
-    //   meta: { title: 'Respond to Form | LemHand Office' }
-    // },
-    // {
-    //   path: '/office/sheets/:id',
-    //   name: 'office-sheets',
-    //   component: () => import('../views/OfficeSheetsView.vue'),
-    //   meta: { title: 'Spreadsheet | LemHand Office' }
-    // },
-    // {
-    //   path: '/office/present/:id',
-    //   name: 'office-present',
-    //   component: () => import('../views/OfficePresentView.vue'),
-    //   meta: { title: 'Presentation | LemHand Office' }
-    // },
-    // {
-    //   path: '/app/word',
-    //   name: 'app-word',
-    //   component: () => import('../views/AppWordDashboard.vue')
-    // },
-    // {
-    //   path: '/app/sheets',
-    //   name: 'app-sheets',
-    //   component: () => import('../views/AppSheetsDashboard.vue')
-    // },
-    // {
-    //   path: '/app/present',
-    //   name: 'app-present',
-    //   component: () => import('../views/AppPresentDashboard.vue')
-    // },
-    // {
-    //   path: '/page/:id',
-    //   name: 'generic',
-    //   component: GenericPage
-    // },
-    // {
-    //   path: '/las/signin',
-    //   name: 'las-signin',
-    //   component: () => import('../views/LASSignInView.vue'),
-    //   meta: { title: 'Sign In | LemHand Account Services' }
-    // },
-    // {
-    //   path: '/las/demo',
-    //   name: 'las-demo',
-    //   component: () => import('../views/LASDemoView.vue'),
-    //   meta: { title: 'Demo | LemHand Account Services' }
-    // },
-    // {
-    //   path: '/legal',
-    //   name: 'legal',
-    //   component: () => import('../views/LegalView.vue'),
-    //   meta: { title: 'Legal Information | LemHand' }
-    // },
-    // {
-    //   path: '/purchases',
-    //   name: 'purchases',
-    //   component: () => import('../views/PurchasesView.vue'),
-    //   meta: { title: 'My Purchases | LemHand' }
-    // },
-    // {
-    //   path: '/games',
-    //   name: 'games',
-    //   component: () => import('../views/GamesView.vue'),
-    //   meta: { title: 'LemHand Studios | LemHand' }
-    // },
-    // {
-    //   path: '/blog/:id',
-    //   name: 'blog-post',
-    //   component: () => import('../views/BlogPostView.vue'),
-    //   meta: { title: 'Blog Post | LemHand' }
-    // },
-    // {
-    //   path: '/:pathMatch(.*)*',
-    //   name: 'not-found',
-    //   component: () => import('../views/NotFoundView.vue'),
-    //   meta: { title: 'Page Not Found | LemHand' }
-    // }
+      {
+        path: '/projects',
+        name: 'projects',
+        component: ProductsView,
+        meta: { title: 'Our Projects | LemHand', description: 'Explore our suite of modern applications including LemHand Office, BusTracker, and more.' }
+      },
+      {
+        path: '/bustracker',
+        name: 'bustracker',
+        component: BusTrackerView,
+        meta: { title: 'BusTracker | LemHand', description: 'Track your local transit in real-time with the LemHand BusTracker app.' }
+      },
+      {
+        path: '/blog',
+        name: 'blog',
+        component: BlogView,
+        meta: { title: 'Blog | LemHand', description: 'Read the latest updates, news, and technical insights from the LemHand team.' }
+      },
+      {
+        path: '/admin',
+        name: 'admin',
+        component: AdminView,
+        meta: { title: 'Admin Dashboard | LemHand' }
+      },
+      {
+        path: '/login',
+        name: 'login',
+        component: () => import('../views/LoginView.vue'),
+        meta: { title: 'Sign In | LemHand', description: 'Sign in to your LemHand account to access your documents and services.' }
+      },
+      {
+        path: '/account',
+        name: 'account',
+        component: () => import('../views/AccountView.vue'),
+        meta: { title: 'My Account | LemHand', description: 'Manage your LemHand account information, update security settings, and check product licenses.' }
+      },
+      {
+        path: '/report-bug',
+        name: 'report-bug',
+        component: () => import('../views/ReportBugView.vue'),
+        meta: { title: 'Report a Bug | LemHand', description: 'Submit bug reports and issues to help improve LemHand products.' }
+      },
+      {
+        path: '/office',
+        name: 'office',
+        component: () => import('../views/OfficeDashboardView.vue'),
+        meta: { title: 'LemHand Office', description: 'Access your cloud-based documents, spreadsheets, and presentations with LemHand Office.' }
+      },
+      {
+        path: '/office/word/:id',
+        name: 'office-word',
+        component: () => import('../views/OfficeWordView.vue'),
+        meta: { title: 'Word Document | LemHand Office' }
+      },
+      {
+        path: '/office/form/:id',
+        name: 'office-form',
+        component: () => import('../views/OfficeFormView.vue'),
+        meta: { title: 'Form Editor | LemHand Office' }
+      },
+      {
+        path: '/office/form/:id/respond',
+        name: 'form-respond',
+        component: () => import('../views/OfficeFormResponderView.vue'),
+        meta: { title: 'Respond to Form | LemHand Office' }
+      },
+      {
+        path: '/office/sheets/:id',
+        name: 'office-sheets',
+        component: () => import('../views/OfficeSheetsView.vue'),
+        meta: { title: 'Spreadsheet | LemHand Office' }
+      },
+      {
+        path: '/office/present/:id',
+        name: 'office-present',
+        component: () => import('../views/OfficePresentView.vue'),
+        meta: { title: 'Presentation | LemHand Office' }
+      },
+      {
+        path: '/app/word',
+        name: 'app-word',
+        component: () => import('../views/AppWordDashboard.vue')
+      },
+      {
+        path: '/app/sheets',
+        name: 'app-sheets',
+        component: () => import('../views/AppSheetsDashboard.vue')
+      },
+      {
+        path: '/app/present',
+        name: 'app-present',
+        component: () => import('../views/AppPresentDashboard.vue')
+      },
+      {
+        path: '/page/:id',
+        name: 'generic',
+        component: GenericPage
+      },
+      {
+        path: '/las/signin',
+        name: 'las-signin',
+        component: () => import('../views/LASSignInView.vue'),
+        meta: { title: 'Sign In | LemHand Account Services' }
+      },
+      {
+        path: '/las/demo',
+        name: 'las-demo',
+        component: () => import('../views/LASDemoView.vue'),
+        meta: { title: 'Demo | LemHand Account Services' }
+      },
+      {
+        path: '/legal',
+        name: 'legal',
+        component: () => import('../views/LegalView.vue'),
+        meta: { title: 'Legal Information | LemHand' }
+      },
+      {
+        path: '/purchases',
+        name: 'purchases',
+        component: () => import('../views/PurchasesView.vue'),
+        meta: { title: 'My Purchases | LemHand' }
+      },
+      {
+        path: '/games',
+        name: 'games',
+        component: () => import('../views/GamesView.vue'),
+        meta: { title: 'LemHand Studios | LemHand' }
+      },
+      {
+        path: '/blog/:id',
+        name: 'blog-post',
+        component: () => import('../views/BlogPostView.vue'),
+        meta: { title: 'Blog Post | LemHand' }
+      },
+      {
+        path: '/:pathMatch(.*)*',
+        name: 'not-found',
+        component: () => import('../views/NotFoundView.vue'),
+        meta: { title: 'Page Not Found | LemHand' }
+      }
   ],
   scrollBehavior() {
     return { top: 0 }

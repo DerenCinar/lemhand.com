@@ -8,8 +8,8 @@ const heroConfig = ref({
   title: "Building the Future of Software",
   description:
     "Discover LemHand's premium ecosystem of web and Android applications designed for modern living. From real-time transit to creative tools.",
-  buttonText: "Explore our Products",
-  buttonLink: "/products",
+  buttonText: "Explore our Projects",
+  buttonLink: "/projects",
   button2Text: "Visit BusTracker",
   button2Link: "/bustracker",
   image: "/hero_background_1778471167979.png",

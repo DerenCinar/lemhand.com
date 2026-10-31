@@ -6,7 +6,7 @@
     <div class="p-strip">
       <div class="row u-align-text--center">
         <div class="col-12">
-          <h1>All LemHand Products</h1>
+          <h1>All LemHand Projects</h1>
           <p class="p-heading--4">
             Discover the powerful tools that shape the future of your digital
             life.
@@ -142,24 +142,6 @@
                 >
               </div>
             </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Enterprise Banner -->
-    <div class="p-strip--highlighted">
-      <div class="row u-align-text--center">
-        <div class="col-12">
-          <h2>Looking for business solutions?</h2>
-          <p class="p-heading--4">
-            LemHand Enterprise offers dedicated support, advanced security
-            features, and bulk licensing to supercharge your organization.
-          </p>
-          <div class="u-sv2">
-            <RouterLink to="/page/enterprise" class="p-button"
-              >Contact Sales</RouterLink
-            >
           </div>
         </div>
       </div>
