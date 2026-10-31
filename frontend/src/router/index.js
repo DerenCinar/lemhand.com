@@ -161,7 +161,7 @@ const router = createRouter({
   }
 })
 
-export const isOfficeUnderConstruction = false;
+export const isOfficeUnderConstruction = true;
 
 router.beforeEach((to, from, next) => {
   // SEO Titles
