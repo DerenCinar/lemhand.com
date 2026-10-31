@@ -1,8 +1,6 @@
 <script setup>
 import { RouterLink, RouterView, useRoute } from "vue-router";
 import { ref, onMounted, onUnmounted, computed } from "vue";
-import { auth } from "./firebase";
-import { onAuthStateChanged, signOut } from "firebase/auth";
 
 const route = useRoute();
 const isDarkMode = ref(false);
@@ -18,8 +16,6 @@ const hideLayout = computed(() => {
     route.path.startsWith("/app")
   );
 });
-
-let unsubscribeAuth = null;
 
 onMounted(() => {
   if (
@@ -39,24 +35,9 @@ onMounted(() => {
         event.matches ? "dark" : "light",
       );
     });
-
-  unsubscribeAuth = onAuthStateChanged(auth, (user) => {
-    if (user) {
-      userEmail.value = user.email;
-    } else {
-      userEmail.value = null;
-    }
-  });
 });
 
-onUnmounted(() => {
-  if (unsubscribeAuth) unsubscribeAuth();
-});
-
-const handleSignOut = async () => {
-  await signOut(auth);
-  isDropdownOpen.value = false;
-};
+onUnmounted(() => {});
 </script>
 
 <template>
