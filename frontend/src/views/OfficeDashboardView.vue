@@ -312,7 +312,7 @@ const saveSettings = () => {
       ></video>
     </div>
 
-    <!-- Login Modal Overlay -->
+    <!-- Login Modal Overlay 
     <div v-if="loginModal" class="custom-modal-overlay" style="z-index: 99999">
       <div class="custom-modal" style="width: 380px; text-align: center">
         <div
@@ -355,7 +355,7 @@ const saveSettings = () => {
           Securely provided by LemHand Account Services
         </p>
       </div>
-    </div>
+    </div>-->
 
     <!-- Settings Modal -->
     <div
