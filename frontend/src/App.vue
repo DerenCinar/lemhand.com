@@ -59,7 +59,7 @@ const handleSignOut = async () => {
 };
 </script>
 
-<template>
+<!-- <template>
   <div
     v-if="!hideLayout"
     class="navbar bg-base-100/80 backdrop-blur-md sticky top-0 z-50 border-b border-base-200"
@@ -125,7 +125,6 @@ const handleSignOut = async () => {
             </li>
           </ul>
           <ul class="p-navigation__items">
-            <!-- Sign in or Dropdown -->
             <li class="p-navigation__item" v-if="!userEmail">
               <RouterLink class="p-navigation__link" to="/login"
                 >Sign in</RouterLink
@@ -194,4 +193,171 @@ const handleSignOut = async () => {
       </div>
     </nav>
   </footer>
+</template>
+-->
+
+<template>
+  <div
+    style="
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      background: #f0f2f5;
+      overflow: hidden;
+    "
+    :style="{ '--theme-color': customThemeColor }"
+  >
+    <!-- Welcome Video Loading Screen -->
+    <div
+      v-if="showWelcomeVideo"
+      class="custom-modal-overlay"
+      style="z-index: 100000; background: #000"
+    >
+      <video
+        src="/lemhandOfficeWelcome.mp4"
+        autoplay
+        muted
+        playsinline
+        @ended="closeWelcomeVideo"
+        style="
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          pointer-events: none;
+        "
+      ></video>
+    </div>
+
+    <!-- Login Modal Overlay -->
+    <div v-if="loginModal" class="custom-modal-overlay" style="z-index: 99999">
+      <div class="custom-modal" style="width: 380px; text-align: center">
+        <div
+          style="display: flex; justify-content: center; margin-bottom: 16px"
+        >
+          <img
+            src="/favicon.svg"
+            alt="LemHand"
+            style="width: 48px; height: 48px"
+          />
+        </div>
+        <h2 style="color: var(--theme-color); margin-bottom: 10px">
+          Welcome to LemHand Office
+        </h2>
+        <p style="margin-bottom: 24px; color: #5f6368; font-size: 14px">
+          Log in to your account using your standard LemHand login.
+        </p>
+        <button
+          @click="loginWithLemHand"
+          class="modal-btn primary"
+          style="
+            width: 100%;
+            margin-top: 10px;
+            padding: 12px;
+            background: var(--theme-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+          "
+        >
+          <img
+            src="/favicon.svg"
+            alt="LemHand"
+            style="width: 20px; height: 20px; filter: brightness(0) invert(1)"
+          />
+          Sign in with LemHand
+        </button>
+        <p style="font-size: 12px; color: #9ca3af; margin-top: 20px">
+          Securely provided by LemHand Account Services
+        </p>
+      </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div
+      v-if="settingsModalOpen"
+      class="custom-modal-overlay"
+      style="z-index: 10000"
+    >
+      <div class="custom-modal" style="width: 380px">
+        <h2 style="color: var(--theme-color); margin-bottom: 20px">Settings</h2>
+        <div
+          style="
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+          "
+        >
+          <span style="font-size: 14px; font-weight: 500"
+            >Enable UI Animations</span
+          >
+          <input
+            type="checkbox"
+            v-model="showAnimations"
+            @change="saveSettings"
+          />
+        </div>
+        <div
+          style="
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+          "
+        >
+          <span style="font-size: 14px; font-weight: 500">Theme Color</span>
+          <input
+            type="color"
+            v-model="customThemeColor"
+            @change="saveSettings"
+            style="border: none; width: 40px; height: 40px; cursor: pointer"
+          />
+        </div>
+        <button
+          @click="settingsModalOpen = false"
+          class="modal-btn secondary"
+          style="width: 100%"
+        >
+          Close
+        </button>
+      </div>
+    </div>
+
+    <!-- Top Toolbar (Fixed) -->
+    <!-- Rebuilt Toolbar using user-provided Vanilla Navigation -->
+
+    <!-- Main Body Area -->
+    <div
+      style="display: flex; flex-grow: 1; overflow: hidden; background: #f0f2f5"
+    >
+      <!-- Left Navbar (Fixed width, icons only) -->
+
+      <!-- Scrollable Main Content -->
+      <main style="flex-grow: 1; overflow-y: auto; padding: 2rem">
+        <div style="max-width: 1200px; margin: 0 auto">
+          <div
+            style="
+              display: flex;
+              justify-content: center;
+              align-items: center;
+              min-height: 50vh;
+            "
+          >
+            <div
+              class="p-card--highlighted"
+              style="max-width: 600px; text-align: center; padding: 3rem"
+            >
+              <div style="font-size: 3rem; margin-bottom: 1rem">🚧</div>
+              <h2>Not Avalible</h2>
+              <p>
+                The LemHand.com website is currently unavalible until furhter
+                notice
+              </p>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
 </template>
