@@ -281,37 +281,154 @@ const saveSettings = () => {
 </script>
 
 <template>
-  <div
-    style="
-      display: flex;
-      flex-direction: column;
-      height: 100vh;
-      background: #f0f2f5;
-      overflow: hidden;
-    "
-    :style="{ '--theme-color': customThemeColor }"
-  >
-    <!-- Welcome Video Loading Screen -->
-    <div
-      v-if="showWelcomeVideo"
-      class="custom-modal-overlay"
-      style="z-index: 100000; background: #000"
-    >
-      <video
-        src="/lemhandOfficeWelcome.mp4"
-        autoplay
-        muted
-        playsinline
-        @ended="closeWelcomeVideo"
+  <main style="flex-grow: 1; overflow-y: auto; padding: 2rem">
+    <div style="max-width: 1200px; margin: 0 auto">
+      <div
+        v-if="isOfficeUnderConstruction"
         style="
-          width: 100%;
-          height: 100%;
-          object-fit: cover;
-          pointer-events: none;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          min-height: 50vh;
         "
-      ></video>
+      >
+        <div
+          class="p-card--highlighted"
+          style="max-width: 600px; text-align: center; padding: 3rem"
+        >
+          <div style="font-size: 3rem; margin-bottom: 1rem">🚧</div>
+          <h2>We are working on something new</h2>
+          <p>
+            LemHand Office is currently undergoing a major update. The
+            individual office applications are temporarily unavailable as we
+            push out these changes. Please check back later!
+          </p>
+        </div>
+      </div>
+      <template v-else>
+        <section class="u-sv1">
+          <h1>Welcome back to LemHand Office</h1>
+          <p>Pick a template or start something new.</p>
+        </section>
+
+        <!-- Template Gallery -->
+        <section class="u-sv2">
+          <div class="row">
+            <div class="col-12">
+              <h2>Create New</h2>
+            </div>
+          </div>
+          <div class="row" style="display: flex; flex-wrap: wrap">
+            <div
+              v-for="t in templates"
+              :key="t.id"
+              class="col-3"
+              style="display: flex; margin-bottom: 1rem"
+            >
+              <div
+                class="p-card u-no-padding"
+                @click="createNew(t)"
+                style="
+                  cursor: pointer;
+                  width: 100%;
+                  display: flex;
+                  flex-direction: column;
+                  margin-bottom: 0;
+                "
+              >
+                <div
+                  class="p-card__inner"
+                  style="flex-grow: 1; display: flex; flex-direction: column"
+                >
+                  <div
+                    v-html="t.icon"
+                    style="height: 48px; width: 48px; margin-bottom: 1rem"
+                  ></div>
+                  <h3 style="margin-top: 0">{{ t.name }}</h3>
+                  <p style="margin-bottom: 0; margin-top: auto">
+                    {{ t.description }}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Recent Content -->
+        <section class="u-sv2">
+          <div class="row">
+            <div class="col-12">
+              <h2>Recent Content</h2>
+            </div>
+          </div>
+
+          <div v-if="filteredDocs.length === 0" class="row">
+            <div class="col-12">
+              <div class="p-notification--information">
+                <div class="p-notification__content">
+                  <p class="p-notification__message">
+                    No documents found matching your criteria.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div v-else class="row">
+            <div class="col-12">
+              <table class="p-table--mobile-card">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Last Opened</th>
+                    <th class="u-align--right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr
+                    v-for="doc in filteredDocs"
+                    :key="doc.id"
+                    @click="openDoc(doc)"
+                    style="cursor: pointer"
+                  >
+                    <td data-th="Name">
+                      <div
+                        style="display: flex; align-items: center; gap: 10px"
+                      >
+                        <div
+                          v-html="icons[doc.type]"
+                          style="width: 24px; height: 24px"
+                        ></div>
+                        <div>
+                          <strong>{{
+                            doc.title || "Untitled Document"
+                          }}</strong>
+                          <br />
+                          <small>LemCloud • {{ doc.type.toUpperCase() }}</small>
+                        </div>
+                      </div>
+                    </td>
+                    <td data-th="Last Opened">
+                      {{ formatDate(doc.lastOpened) }}
+                    </td>
+                    <td data-th="Actions" class="u-align--right">
+                      <button
+                        @click.stop="deleteDoc($event, doc.id)"
+                        class="p-button--negative"
+                        style="padding: 0.25rem 0.5rem; font-size: 0.8rem"
+                      >
+                        Delete
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+      </template>
     </div>
-  </div>
+  </main>
 </template>
 
 <style scoped>
