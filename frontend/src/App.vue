@@ -351,7 +351,7 @@ const handleSignOut = async () => {
               <div style="font-size: 3rem; margin-bottom: 1rem">🚧</div>
               <h2>Not Avalible</h2>
               <p>
-                The LemHand.com website is currently unavalible until furhter
+                The LemHand.com website is currently unavalible until further
                 notice
               </p>
             </div>
