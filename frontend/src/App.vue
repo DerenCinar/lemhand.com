@@ -105,44 +105,6 @@ onUnmounted(() => {});
               >
             </li>
           </ul>
-          <ul class="p-navigation__items">
-            <li class="p-navigation__item" v-if="!userEmail">
-              <RouterLink class="p-navigation__link" to="/login"
-                >Sign in</RouterLink
-              >
-            </li>
-            <li
-              v-else
-              class="p-navigation__item--dropdown-toggle"
-              :class="{ 'is-active': isDropdownOpen }"
-              @click="isDropdownOpen = !isDropdownOpen"
-              style="cursor: pointer"
-            >
-              <a class="p-navigation__link" href="#" @click.prevent>
-                Hi, {{ userEmail.split("@")[0] }}
-              </a>
-              <ul class="p-navigation__dropdown" :aria-hidden="!isDropdownOpen">
-                <li>
-                  <RouterLink class="p-navigation__link" to="/account"
-                    >My account</RouterLink
-                  >
-                </li>
-                <li>
-                  <RouterLink class="p-navigation__link" to="/purchases"
-                    >My purchases</RouterLink
-                  >
-                </li>
-                <li>
-                  <a
-                    class="p-navigation__link"
-                    href="#"
-                    @click.prevent="handleSignOut"
-                    >Sign out</a
-                  >
-                </li>
-              </ul>
-            </li>
-          </ul>
         </nav>
       </div>
     </header>
