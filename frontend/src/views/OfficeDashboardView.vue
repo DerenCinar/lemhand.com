@@ -671,15 +671,7 @@ const saveSettings = () => {
           title="Forms"
           @click="activeCategory = 'form'"
         >
-          <!-- Placeholder Icon (Forms) -->
-          <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
-            <rect x="5" y="3" width="14" height="18" rx="2" />
-            <path
-              d="M8 8h8M8 12h8M8 16h5"
-              stroke="currentColor"
-              stroke-width="2"
-            />
-          </svg>
+          <img src="/4.svg" alt="Forms" style="width: 24px; height: 24px" />
         </button>
 
         <button

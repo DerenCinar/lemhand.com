@@ -73,7 +73,7 @@ const handleSignOut = async () => {
                 class="p-navigation__logo-tag"
                 style="background-color: green"
               >
-                LH
+                <img src="/Grayscale.svg" />
               </div>
               <span class="p-navigation__logo-title">LemHand</span>
             </a>
@@ -170,10 +170,14 @@ const handleSignOut = async () => {
         </p>
         <ul class="p-inline-list--middot">
           <li class="p-inline-list__item">
-            <RouterLink to="/legal"><small>Legal information</small></RouterLink>
+            <RouterLink to="/legal"
+              ><small>Legal information</small></RouterLink
+            >
           </li>
           <li class="p-inline-list__item">
-            <RouterLink to="/report-bug"><small>Report a bug on this site</small></RouterLink>
+            <RouterLink to="/report-bug"
+              ><small>Report a bug on this site</small></RouterLink
+            >
           </li>
         </ul>
         <span class="u-off-screen"

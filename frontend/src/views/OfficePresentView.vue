@@ -367,12 +367,19 @@ const flipVertical = () => {
     <template v-else>
       <!-- Header -->
       <div style="background-color: #d24726; color: white; padding: 4px 15px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; font-size: 12px; height: 32px;">
-        <div style="display: flex; align-items: center; gap: 15px; flex-grow: 1;">
-          <RouterLink :to="returnPath" style="color: white; text-decoration: none; font-weight: bold; font-size: 14px;">P</RouterLink>
-          <div style="width: 1px; height: 16px; background: rgba(255,255,255,0.3);"></div>
-          <button @click="saveToCloud" class="quick-btn" v-html="icons.save"></button>
-          <button @click="togglePresent" class="quick-btn" v-html="icons.play"></button>
+        <div style="display: flex; align-items: center; gap: 8px; flex-grow: 1;">
+          <RouterLink :to="returnPath" style="display: flex; align-items: center; gap: 6px; color: white; text-decoration: none; font-weight: 600; font-size: 14px; margin-right: 8px;">
+            <img src="/3.svg" alt="LemHand Presentations Logo" style="width: 20px; height: 20px; object-fit: contain;">
+            LemHand Presentations
+          </RouterLink>
+          
           <input v-model="documentTitle" class="header-title-input" placeholder="Presentation title...">
+
+          <div style="width: 1px; height: 16px; background: rgba(255,255,255,0.3); margin-left: 8px; margin-right: 2px;"></div>
+          <button @click="saveToCloud" class="quick-btn" title="Save" v-html="icons.save"></button>
+          <button @click="togglePresent" class="quick-btn" title="Present" v-html="icons.play"></button>
+          <div style="width: 1px; height: 16px; background: rgba(255,255,255,0.3); margin-left: 2px;"></div>
+
           <div v-if="originalFormat" style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.4); border-radius: 4px; padding: 2px 6px; font-size: 10px; font-weight: bold; margin-left: 5px; color: white;">.{{ originalFormat }}</div>
           <span style="font-size: 10px; opacity: 0.7; margin-left: 10px;">{{ isCloudSaving ? 'Saving...' : 'Saved to LemCloud' }}</span>
         </div>
@@ -595,8 +602,9 @@ const flipVertical = () => {
 <style scoped>
 .context-item { padding: 8px 12px; font-size: 13px; cursor: pointer; color: #333; }
 .context-item:hover { background: #f3f2f1; }
-.quick-btn { background: transparent; border: none; color: white; padding: 4px 8px; cursor: pointer; border-radius: 2px; }
-.header-title-input { background: transparent; border: 1px solid transparent; color: white; font-weight: 600; font-size: 12px; padding: 2px 8px; border-radius: 2px; outline: none; width: 250px; }
+.quick-btn { background: transparent; border: none; color: white; padding: 4px 8px; cursor: pointer; border-radius: 2px; display: flex; align-items: center; margin: 0 !important; height: 24px; box-sizing: border-box; }
+.quick-btn:hover { background: rgba(255,255,255,0.2); }
+.header-title-input { background: transparent; border: 1px solid transparent; color: white; font-weight: 600; font-size: 12px; padding: 2px 8px; border-radius: 2px; outline: none; width: 250px; margin: 0 !important; box-sizing: border-box; }
 .header-title-input:hover { background: rgba(255,255,255,0.1); }
 .header-title-input:focus { background: white; color: #d24726; }
 
@@ -606,20 +614,20 @@ const flipVertical = () => {
 .avatar.other { margin-left: -8px; z-index: 5; }
 
 .ribbon-tabs { background: #f3f2f1; display: flex; gap: 2px; padding: 0 10px; border-bottom: 1px solid #e1dfdd; flex-shrink: 0; }
-.ribbon-tab { padding: 6px 12px; font-size: 11px; color: #333; cursor: pointer; border-bottom: 3px solid transparent; transition: all 0.2s; }
+.ribbon-tab { padding: 6px 12px; font-size: 12px; color: #333; cursor: pointer; border-bottom: 3px solid transparent; transition: all 0.2s; margin: 0 !important; }
 .ribbon-tab:hover { background: #e1dfdd; }
 .ribbon-tab.active { border-bottom-color: #d24726; font-weight: 600; background: #fff; }
 
-.ribbon-panel { background: #fff; height: 95px; display: flex; padding: 5px 10px; gap: 15px; border-bottom: 1px solid #e1dfdd; flex-shrink: 0; }
+.ribbon-panel { background: #fff; height: 95px; display: flex; padding: 5px 10px; gap: 15px; border-bottom: 1px solid #e1dfdd; flex-shrink: 0; overflow-x: auto; box-sizing: border-box; }
 .ribbon-group { display: flex; flex-direction: column; align-items: center; border-right: 1px solid #f3f2f1; padding-right: 15px; height: 100%; min-width: max-content; }
-.ribbon-group label { font-size: 9px; color: #666; margin-top: auto; text-transform: uppercase; padding-top: 5px; }
+.ribbon-group label { font-size: 9px; color: #666; margin-top: auto; text-transform: uppercase; padding-top: 5px; margin-bottom: 0 !important; }
 
-.big-ribbon-btn { display: flex; flex-direction: column; align-items: center; justify-content: center; background: transparent; border: 1px solid transparent; padding: 4px 12px; border-radius: 4px; cursor: pointer; font-size: 11px; gap: 2px; }
+.big-ribbon-btn { display: flex; flex-direction: column; align-items: center; justify-content: center; background: transparent; border: 1px solid transparent; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 11px; gap: 2px; margin: 0 !important; }
 .big-ribbon-btn:hover { background: #f3f2f1; border-color: #e1dfdd; }
-.small-ribbon-btn { background: transparent; border: 1px solid #eee; padding: 2px 8px; border-radius: 2px; cursor: pointer; font-size: 11px; }
-.small-ribbon-btn:hover { background: #f3f2f1; }
-.ribbon-select { font-size: 11px; border: 1px solid #eee; outline: none; }
-.theme-mini { width: 30px; height: 20px; border-radius: 2px; cursor: pointer; }
+.small-ribbon-btn { background: transparent; border: 1px solid transparent; padding: 2px 6px; border-radius: 2px; cursor: pointer; font-size: 11px; display: flex; align-items: center; justify-content: center; gap: 4px; margin: 0 !important; }
+.small-ribbon-btn:hover { background: #f3f2f1; border-color: #e1dfdd; }
+.ribbon-select { font-size: 11px; border: 1px solid #eee; outline: none; margin: 0 !important; }
+.theme-mini { width: 30px; height: 20px; border-radius: 2px; cursor: pointer; margin: 0 !important; }
 
 /* Workspace */
 .slide-sidebar { width: 180px; background: #fff; border-right: 1px solid #e1dfdd; overflow-y: auto; padding: 10px; display: flex; flex-direction: column; gap: 10px; }

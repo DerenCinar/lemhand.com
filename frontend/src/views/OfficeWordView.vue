@@ -372,15 +372,19 @@ const downloadWord = async () => {
 
     <!-- Top Header -->
     <div style="background-color: #2b579a; color: white; padding: 4px 15px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; font-size: 12px; height: 32px;">
-      <div style="display: flex; align-items: center; gap: 15px; flex-grow: 1;">
-        <RouterLink :to="returnPath" style="color: white; text-decoration: none; font-weight: bold; font-size: 14px;">W</RouterLink>
-        <div style="width: 1px; height: 16px; background: rgba(255,255,255,0.3);"></div>
+      <div style="display: flex; align-items: center; gap: 8px; flex-grow: 1;">
+        <RouterLink :to="returnPath" style="display: flex; align-items: center; gap: 6px; color: white; text-decoration: none; font-weight: 600; font-size: 14px; margin-right: 8px;">
+          <img src="/1.svg" alt="LemHand Word Logo" style="width: 20px; height: 20px; object-fit: contain;">
+          LemHand Word
+        </RouterLink>
+        
+        <input v-model="documentTitle" class="header-title-input" placeholder="Enter document title...">
+
+        <div style="width: 1px; height: 16px; background: rgba(255,255,255,0.3); margin-left: 8px; margin-right: 2px;"></div>
         <button @click="saveToCloud" class="quick-btn" title="Save" v-html="icons.save"></button>
         <button @click="execCmd('undo')" class="quick-btn" title="Undo" v-html="icons.undo"></button>
         <button @click="execCmd('redo')" class="quick-btn" title="Redo" v-html="icons.redo"></button>
-        <div style="width: 1px; height: 16px; background: rgba(255,255,255,0.3);"></div>
-        
-        <input v-model="documentTitle" class="header-title-input" placeholder="Enter document title...">
+        <div style="width: 1px; height: 16px; background: rgba(255,255,255,0.3); margin-left: 2px;"></div>
         
         <div v-if="originalFormat" style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.4); border-radius: 4px; padding: 2px 6px; font-size: 10px; font-weight: bold; margin-left: 5px;">.{{ originalFormat }}</div>
 
@@ -614,31 +618,32 @@ const downloadWord = async () => {
 </template>
 
 <style scoped>
-.quick-btn { background: transparent; border: none; color: white; padding: 4px 8px; cursor: pointer; border-radius: 2px; display: flex; align-items: center; }
+.quick-btn { background: transparent; border: none; color: white; padding: 4px 8px; cursor: pointer; border-radius: 2px; display: flex; align-items: center; margin: 0 !important; height: 24px; box-sizing: border-box; }
 .quick-btn:hover { background: rgba(255,255,255,0.2); }
 
-.header-title-input { background: transparent; border: 1px solid transparent; color: white; font-weight: 600; font-size: 12px; padding: 2px 8px; border-radius: 2px; outline: none; width: 250px; }
+.header-title-input { background: transparent; border: 1px solid transparent; color: white; font-weight: 600; font-size: 12px; padding: 2px 8px; border-radius: 2px; outline: none; width: 250px; margin: 0 !important; box-sizing: border-box; }
 .header-title-input:hover { background: rgba(255,255,255,0.1); }
 .header-title-input:focus { background: white; color: #2b579a; }
 
-.ribbon-tab { padding: 6px 12px; font-size: 12px; color: #333; cursor: pointer; border-bottom: 3px solid transparent; }
+.ribbon-tab { padding: 6px 12px; font-size: 12px; color: #333; cursor: pointer; border-bottom: 3px solid transparent; margin: 0 !important; }
 .ribbon-tab:hover { background: #e1dfdd; }
 .ribbon-tab.active { border-bottom-color: #2b579a; font-weight: 600; background: #fff; }
 
-.ribbon-panel { background: #fff; height: 95px; display: flex; padding: 5px 10px; gap: 15px; border-bottom: 1px solid #e1dfdd; flex-shrink: 0; overflow-x: auto; }
+.ribbon-panel { background: #fff; height: 95px; display: flex; padding: 5px 10px; gap: 15px; border-bottom: 1px solid #e1dfdd; flex-shrink: 0; overflow-x: auto; box-sizing: border-box; }
 .ribbon-panel.hidden { height: 0; padding: 0; overflow: hidden; }
 
 .ribbon-group { display: flex; flex-direction: column; align-items: center; border-right: 1px solid #f3f2f1; padding-right: 15px; height: 100%; min-width: max-content; }
-.ribbon-group label { font-size: 9px; color: #666; margin-top: auto; text-transform: uppercase; padding-top: 5px; }
+.ribbon-group label { font-size: 9px; color: #666; margin-top: auto; text-transform: uppercase; padding-top: 5px; margin-bottom: 0 !important; }
 
-.big-ribbon-btn { display: flex; flex-direction: column; align-items: center; justify-content: center; background: transparent; border: 1px solid transparent; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 11px; gap: 2px; }
+.big-ribbon-btn { display: flex; flex-direction: column; align-items: center; justify-content: center; background: transparent; border: 1px solid transparent; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 11px; gap: 2px; margin: 0 !important; }
 .big-ribbon-btn:hover { background: #f3f2f1; border-color: #e1dfdd; }
 
-.small-ribbon-btn { background: transparent; border: 1px solid transparent; padding: 2px 6px; border-radius: 2px; cursor: pointer; font-size: 11px; display: flex; align-items: center; gap: 4px; }
+.small-ribbon-btn { background: transparent; border: 1px solid transparent; padding: 2px 6px; border-radius: 2px; cursor: pointer; font-size: 11px; display: flex; align-items: center; gap: 4px; margin: 0 !important; }
 .small-ribbon-btn:hover { background: #f3f2f1; border-color: #e1dfdd; }
 .small-ribbon-btn.active { background: #e1dfdd; font-weight: bold; }
 
-.ribbon-select { font-size: 11px; padding: 2px; border: 1px solid #e1dfdd; outline: none; background: white; }
+.ribbon-select { font-size: 11px; padding: 2px; border: 1px solid #e1dfdd; outline: none; background: white; margin: 0 !important; }
+.ribbon-panel input { margin: 0 !important; }
 
 /* Page Layout */
 .word-page-container {
