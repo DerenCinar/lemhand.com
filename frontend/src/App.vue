@@ -109,6 +109,14 @@ const handleSignOut = async () => {
             </li>
             <li
               class="p-navigation__item"
+              :class="{ 'is-selected': route.path === '/games' }"
+            >
+              <RouterLink class="p-navigation__link" to="/games"
+                >LH Studios</RouterLink
+              >
+            </li>
+            <li
+              class="p-navigation__item"
               :class="{ 'is-selected': route.path === '/blog' }"
             >
               <RouterLink class="p-navigation__link" to="/blog"

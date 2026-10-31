@@ -138,6 +138,12 @@ const router = createRouter({
       meta: { title: 'My Purchases | LemHand' }
     },
     {
+      path: '/games',
+      name: 'games',
+      component: () => import('../views/GamesView.vue'),
+      meta: { title: 'LemHand Studios | LemHand' }
+    },
+    {
       path: '/blog/:id',
       name: 'blog-post',
       component: () => import('../views/BlogPostView.vue'),
